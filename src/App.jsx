@@ -21,7 +21,7 @@ import ResultPage from "./pages/Result";
 import YourTeamPlayers from "./pages/AuctionResult/YourTeamPlayers";
 
 import Play from "./pages/StaticPages/Play";
-import Pay from "./pages/StaticPages/pay";
+import Pay from "./pages/StaticPages/Pay";
 import Withdraw from "./pages/StaticPages/Withdraw";
 import Privacy from "./pages/StaticPages/Privacy";
 import Terms from "./pages/StaticPages/Terms";
