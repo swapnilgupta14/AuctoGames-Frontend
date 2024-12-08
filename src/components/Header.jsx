@@ -10,7 +10,7 @@ import tnc from "../assets/t&c.svg";
 import leftArr from "../assets/leftArr.png";
 import whatsapp from "../assets/whatsapp.svg";
 import user from "../assets/user (2).png";
-import { Wallet, ChevronRight, Download, LogOut } from "lucide-react";
+import { Wallet, ChevronRight, Download, LogOut, HomeIcon } from "lucide-react";
 import { getWalletBalance } from "../api/fetch";
 
 const Header = ({ heading }) => {
@@ -54,6 +54,9 @@ const Header = ({ heading }) => {
         </div>
 
         <div className="flex justify-center items-center gap-6">
+          <div onClick={() => navigate("/home")}>
+            <HomeIcon className="w-6 h-6 text-white" />
+          </div>
           {heading === "Results" && (
             <div className="flex justify-center">
               <Download size={22} className="text-white" />
@@ -62,6 +65,7 @@ const Header = ({ heading }) => {
           <div>
             <img src={bellIcon} alt="Notifications" />
           </div>
+
           <div
             className="border border-white w-[30px] h-[30px] rounded-full flex justify-center items-center text-white font-medium text-[16px] cursor-pointer"
             onClick={toggleSidebar}

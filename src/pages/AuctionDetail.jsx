@@ -90,8 +90,8 @@ const AuctionDetail = () => {
           {isValidating ? (
             <div className="flex flex-col items-center justify-center">
               <RefreshCw
-                className="animate-spin text-blue-600 mb-4"
-                size={48}
+                className="animate-spin text-gray-500 mb-4"
+                size={40}
               />
               <p className="text-gray-700 font-medium">
                 Validating registration...
@@ -272,7 +272,7 @@ const AuctionDetail = () => {
                 })
               }
             >
-              Create Team
+              Enter Auction
             </button>
           ) : (
             <button
@@ -281,13 +281,13 @@ const AuctionDetail = () => {
                 navigate(`/register/${id}`, { state: { auction } })
               }
             >
-              Registered! Team not Found.
+              Create Team
             </button>
           )
         ) : validationResult?.status === "insufficient_balance" ? (
           <button
             className="px-4 py-3 bg-yellow-500 text-white rounded-lg w-full font-medium text-[16px]"
-            onClick={() => navigate("/wallet")}
+            onClick={() => navigate("/myWallet")}
           >
             Insufficient Balance! Go to Wallet
           </button>
@@ -301,6 +301,7 @@ const AuctionDetail = () => {
         ) : validationResult?.status === "not_registered" ? (
           <button
             disabled
+            onClick={() => navigate(`/register/${id}`, { state: { auction } })}
             className="px-4 py-3 bg-blue-700 text-gray-100 rounded-lg w-full font-medium text-[16px] cursor-not-allowed"
           >
             Register Now
