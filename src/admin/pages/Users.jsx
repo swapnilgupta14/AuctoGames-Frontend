@@ -68,8 +68,9 @@ const Users = () => {
 
   if (isLoading)
     return (
-      <div className="flex justify-center items-center h-full py-10">
-        <RefreshCw className="animate-spin text-blue-500" size={32} />
+      <div className="flex flex-col gap-3 justify-center items-center h-full">
+        <RefreshCw className="animate-spin text-gray-500" size={36} />
+        <p>Loading...</p>
       </div>
     );
 
@@ -83,7 +84,9 @@ const Users = () => {
           <div className="mb-8 flex flex-wrap justify-between items-center">
             <h1 className="flex-1 text-xl font-semibold text-gray-800 mb-4 md:mb-0 pb-3 flex flex-col ">
               All Users
-              <p className="text-xs font-normal">Total Users: {allUsers.length}</p>
+              <p className="text-xs font-normal">
+                Total Users: {allUsers.length}
+              </p>
             </h1>
 
             <div className="relative w-full md:w-1/3">

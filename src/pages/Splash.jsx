@@ -15,7 +15,7 @@ const Splash = () => {
   };
 
   return (
-    <div className="w-full h-[100vh] bg-[#050F40] flex flex-col justify-center items-center gap-3 py-4 overflow-hidden">
+    <div className="w-full h-dvh bg-[#050F40] flex flex-col justify-center items-center gap-3 py-4 overflow-hidden">
       <div className="-mt-3">
         <img
           src={splashImg}

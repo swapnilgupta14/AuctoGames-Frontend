@@ -58,12 +58,12 @@ const AuctionCard = ({ auction }) => {
         </div>
 
         <div className="flex flex-col items-center text-center">
-          <DollarSignIcon size={18} className="text-green-500 mb-1.5" />
+        ₹
           <span className="text-xs text-gray-600 font-medium tracking-tight">
             Budget
           </span>
           <span className="text-xs text-gray-800 font-semibold">
-            ${auction.budgetLimit}
+          ₹{auction.budgetLimit}
           </span>
         </div>
       </div>
@@ -98,6 +98,7 @@ const MyAuctions = () => {
   const { userId } = useSelector((state) => state.user);
   const [auctionsData, setAuctionsData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     fetchAuctions(userId);
@@ -112,32 +113,40 @@ const MyAuctions = () => {
       }
     } catch (error) {
       console.error("Error fetching auctions:", error);
+      setIsError(true);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-full bg-gray-100">
+    <div className="h-dvh w-full bg-gray-100 ">
       <Header heading={"My Auctions"} />
 
-      <div className="container mx-auto px-4 py-6">
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <RefreshCw className="animate-spin text-gray-500" size={36} />
-          </div>
-        ) : auctionsData.length > 0 ? (
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {auctionsData.map((auction) => (
-              <AuctionCard key={auction.id} auction={auction} />
-            ))}
-          </div>
-        ) : (
-          <div className="h-full text-center font-medium flex items-center justify-center text-red-600">
-            You have not participated in any auction yet!
-          </div>
-        )}
-      </div>
+      {isError ? (
+        <div className="flex flex-col gap-3 justify-center items-center h-full">
+          <p className="text-red-600 font-medium">Some Error Occured!</p>
+        </div>
+      ) : (
+        <div className="container mx-auto px-4 py-6 h-full">
+          {isLoading ? (
+            <div className="flex flex-col gap-3 justify-center items-center h-full">
+              <RefreshCw className="animate-spin text-gray-500" size={36} />
+              <p>Loading...</p>
+            </div>
+          ) : auctionsData.length > 0 ? (
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {auctionsData.map((auction) => (
+                <AuctionCard key={auction.id} auction={auction} />
+              ))}
+            </div>
+          ) : (
+            <div className="h-full text-center font-medium flex items-center justify-center text-red-600">
+              You have not participated in any auction yet!
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

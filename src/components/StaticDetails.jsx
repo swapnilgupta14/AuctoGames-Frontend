@@ -11,7 +11,7 @@ const StaticDetails = ({ staticType, pageTitle }) => {
     try {
       setIsLoading(true);
       const res = await getStaticData(staticType);
-      
+
       if (res?.content?.content) {
         setContent(res.content.content);
         setError(null);
@@ -34,20 +34,22 @@ const StaticDetails = ({ staticType, pageTitle }) => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-full py-10">
-        <RefreshCw className="animate-spin text-blue-500" size={32} />
+      <div className="flex flex-col gap-3 justify-center items-center h-full">
+        <RefreshCw className="animate-spin text-gray-500" size={36} />
+        <p>Loading...</p>
       </div>
     );
   }
 
   return (
     <div className="h-screen mx-auto p-6 bg-white rounded-lg overflow-y-auto">
-      <h1 className="text-xl font-semibold text-gray-800 mb-4">
-        {pageTitle}
-      </h1>
+      <h1 className="text-xl font-semibold text-gray-800 mb-4">{pageTitle}</h1>
 
       {error && (
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4" role="alert">
+        <div
+          className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4"
+          role="alert"
+        >
           <p className="font-bold">Warning</p>
           <p>{error}</p>
         </div>

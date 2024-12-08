@@ -276,7 +276,7 @@ const Header = ({ heading }) => {
             <div className="bg-green-50 rounded-md p-3 flex items-center justify-between">
               <span className="text-green-700 font-medium">Total Balance</span>
               <div className="bg-green-100 px-2 py-1 rounded-full">
-                <span className="text-green-800 font-bold">{balance}</span>
+                <span className="text-green-800 font-bold">₹{balance}</span>
               </div>
             </div>
 

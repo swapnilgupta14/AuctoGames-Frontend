@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { getAllAuctions } from "../../api/fetch";
 import AuctionDetails from "../components/AuctionDetails"; // Import the separate component
-import { 
-  Clock, 
-  Users, 
-  TrendingUp, 
-  Calendar, 
-  RefreshCw, 
+import {
+  Clock,
+  Users,
+  TrendingUp,
+  Calendar,
+  RefreshCw,
   DollarSign,
-  Activity
+  Activity,
 } from "lucide-react";
 
 const Auctions = () => {
@@ -22,7 +22,7 @@ const Auctions = () => {
     upcomingAuctions: 0,
     completedAuctions: 0,
     totalParticipants: 0,
-    totalRevenue: 0
+    totalRevenue: 0,
   });
 
   useEffect(() => {
@@ -32,19 +32,30 @@ const Auctions = () => {
         const res = await getAllAuctions();
         if (res?.auctions) {
           setAuctions(res.auctions);
-          
+
           // Calculate stats
           const stats = {
             totalAuctions: res.auctions.length,
-            liveAuctions: res.auctions.filter(a => a.status === 'LIVE').length,
-            upcomingAuctions: res.auctions.filter(a => a.status === 'UPCOMING').length,
-            completedAuctions: res.auctions.filter(a => a.status === 'COMPLETED').length,
-            totalParticipants: res.auctions.reduce((sum, auction) => 
-              sum + (auction.participants?.length || 0), 0),
-            totalRevenue: res.auctions.reduce((sum, auction) => 
-              sum + (auction.registrationFee * (auction.participants?.length || 0)), 0)
+            liveAuctions: res.auctions.filter((a) => a.status === "LIVE")
+              .length,
+            upcomingAuctions: res.auctions.filter(
+              (a) => a.status === "UPCOMING"
+            ).length,
+            completedAuctions: res.auctions.filter(
+              (a) => a.status === "COMPLETED"
+            ).length,
+            totalParticipants: res.auctions.reduce(
+              (sum, auction) => sum + (auction.participants?.length || 0),
+              0
+            ),
+            totalRevenue: res.auctions.reduce(
+              (sum, auction) =>
+                sum +
+                auction.registrationFee * (auction.participants?.length || 0),
+              0
+            ),
           };
-          
+
           setStatsData(stats);
         } else {
           setError("Failed to fetch auctions");
@@ -95,19 +106,17 @@ const Auctions = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-full py-10">
-        <RefreshCw className="animate-spin text-blue-500" size={32} />
-      </div>
+      <div className="flex flex-col gap-3 justify-center items-center h-full">
+          <RefreshCw className="animate-spin text-gray-500" size={36} />
+          <p>Loading...</p>
+        </div>
     );
   }
 
   // If an auction is selected, render the AuctionDetails
   if (selectedAuction) {
     return (
-      <AuctionDetails 
-        auction={selectedAuction} 
-        onClose={handleCloseDetails} 
-      />
+      <AuctionDetails auction={selectedAuction} onClose={handleCloseDetails} />
     );
   }
 
@@ -118,31 +127,34 @@ const Auctions = () => {
       </h1>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+        <div
+          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+          role="alert"
+        >
           <span className="block sm:inline">{error}</span>
         </div>
       )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-        <StatCard 
+        <StatCard
           icon={Activity}
           title="Total Auctions"
           value={statsData.totalAuctions}
           color="text-blue-500"
         />
-        <StatCard 
+        <StatCard
           icon={Clock}
           title="Live Auctions"
           value={statsData.liveAuctions}
           color="text-green-500"
         />
-        <StatCard 
+        <StatCard
           icon={Calendar}
           title="Upcoming Auctions"
           value={statsData.upcomingAuctions}
           color="text-yellow-500"
         />
-        <StatCard 
+        <StatCard
           icon={DollarSign}
           title="Total Revenue"
           value={`₹${statsData.totalRevenue.toLocaleString()}`}

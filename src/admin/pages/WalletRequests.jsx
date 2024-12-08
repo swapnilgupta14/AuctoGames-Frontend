@@ -83,8 +83,9 @@ const WalletRequests = () => {
       </div>
 
       {isLoading && (
-        <div className="flex justify-center items-center h-full py-10">
-          <RefreshCw className="animate-spin text-blue-500" size={32} />
+        <div className="flex flex-col gap-3 justify-center items-center h-full">
+          <RefreshCw className="animate-spin text-gray-500" size={36} />
+          <p>Loading...</p>
         </div>
       )}
       {requests.length === 0 ? (

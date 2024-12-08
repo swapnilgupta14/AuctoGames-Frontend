@@ -1,49 +1,46 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
 import Header from "../../components/Header";
+import { RefreshCw } from "lucide-react";
 import {
   getTeamResultOfAction,
   checkTeamComposition,
   priorityUpdate,
 } from "../../api/fetch";
 
-const PlayerCard = ({ player, index, movePlayer }) => {
-  console.log(player);
-
-  const [{ isDragging }, drag] = useDrag({
-    type: "PLAYER",
-    item: { index },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  });
-
-  const [, drop] = useDrop({
-    accept: "PLAYER",
-    hover: (draggedItem) => {
-      if (draggedItem.index !== index) {
-        movePlayer(draggedItem.index, index);
-        draggedItem.index = index;
-      }
-    },
-  });
-
-  console.log(player?.points, `${player?.player?.name}`);
-
+const PlayerCard = ({
+  player,
+  index,
+  isValid,
+  onTouchStart,
+  onTouchMove,
+  onTouchEnd,
+  isDragging,
+  draggedIndex,
+}) => {
   return (
     <div
-      ref={(node) => drag(drop(node))}
-      className={`w-full shadow-2xl bg-white px-4 py-2 my-2 rounded-xl flex items-center gap-4 justify-between 
-      ${isDragging ? "opacity-50" : "opacity-100"}`}
+      data-player-index={index}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      className={`
+        w-full shadow-2xl bg-white select-none px-4 py-2 my-2 rounded-xl flex items-center gap-4 justify-between 
+        transition-all duration-200 ease-in-out
+        ${!isValid ? "cursor-not-allowed opacity-70" : ""}
+        ${
+          isDragging && draggedIndex === index
+            ? "transform scale-105 opacity-70 shadow-xl z-50 relative"
+            : "scale-100 opacity-100"
+        }
+      `}
     >
       <div className="flex gap-2 items-center">
         <div className="flex gap-2 justify-between items-center">
           <p className="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-700 font-medium text-sm p-2 rounded-full">
             {index + 1}
           </p>
-          <div className="bg-zinc-200 w-14 h-14 rounded-full border-black border-2 overflow-hidden">
+          <div className="bg-zinc-200 w-12 h-12 rounded-full border-black border-2 overflow-hidden">
             <img
               src={player?.imageUrl}
               alt="Player"
@@ -53,18 +50,15 @@ const PlayerCard = ({ player, index, movePlayer }) => {
         </div>
         <div>
           <p className="font-medium text-md">{player?.player?.name || "N/A"}</p>
-          <p className="text-red-700 font-semibold text-sm">
+          <p className="text-red-700 font-semibold text-xs">
             Sold for - {player?.currentBid || "N/A"}Cr
           </p>
-          <p className="text-blue-700 font-semibold text-sm">
+          <p className="text-blue-700 font-semibold text-xs">
             Base Price - {player?.startingBid || "N/A"}Cr
           </p>
         </div>
       </div>
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center justify-end">
-          <p className="font-medium">{player.type}</p>
-        </div>
         <div className="text-red-700">
           <p className="text-sm font-semibold text-gray-600">Points</p>
           <p className="font-semibold">
@@ -81,31 +75,82 @@ const YourTeamPlayers = () => {
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [teamData, setTeamData] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [teamName, setTeamName] = useState(null);
   const [auctionName, setAuctionName] = useState(null);
   const [teamId, setTeamId] = useState(null);
   const [isValid, setIsValid] = useState(false);
-
   const [playerIds, setPlayerIds] = useState([]);
-  console.log(playerIds, "arrr");
+  const [isOrderChanged, setIsOrderChanged] = useState(false);
+
+  const [dragState, setDragState] = useState({
+    isDragging: false,
+    startIndex: null,
+    startY: null,
+    holdTimeout: null,
+    touchMoveStarted: false,
+    draggedIndex: null,
+  });
+
+  const listContainerRef = useRef(null);
+  const touchStartTimerRef = useRef(null);
 
   const fetchPlayersBought = async () => {
-    setIsLoading(true);
-    if (!userId || !auctionId) return;
-    const res = await getTeamResultOfAction(auctionId, userId);
-    if (res) {
-      setTeamId(res.teams[0]?.id);
-      setError("");
+    try {
+      if (!userId || !auctionId) {
+        setError("Missing user or auction ID");
+        setIsLoading(false);
+        return;
+      }
+
+      const res = await getTeamResultOfAction(auctionId, userId);
+
+      if (res && res.teams && res.teams.length > 0) {
+        const team = res.teams[0];
+        setTeamId(team.id);
+        setAuctionName(team.auction?.title);
+
+        const players = team.auctionPlayers || [];
+        setTeamData(players);
+        setPlayerIds(players.map((player) => player.id));
+        setTeamName(team?.name);
+
+        await validateTeamComposition(team.id);
+      } else {
+        setError("No team data found");
+      }
+    } catch (err) {
+      setError("Error fetching team data");
+    } finally {
       setIsLoading(false);
-      setAuctionName(res.teams[0].auction?.title);
-      const players = res.teams[0].auctionPlayers || [];
-      setTeamData(players);
-      setPlayerIds(players.map((player) => player.id));
-      setTeamName(res.teams[0]?.name);
-    } else {
-      setIsLoading(false);
-      setError("Some Error Occurred! Please try again.");
+    }
+  };
+
+  const validateTeamComposition = async (teamId) => {
+    try {
+      const res = await checkTeamComposition(teamId);
+      setIsValid(!!res);
+    } catch (error) {
+      console.error("Validation error:", error);
+      // For development, set to true
+      setIsValid(true);
+    }
+  };
+
+  const updatePriority = async () => {
+    const sliced = playerIds.slice(0, 7);
+
+    if (teamId && auctionId && playerIds.length > 0) {
+      try {
+        const res = await priorityUpdate(teamId, auctionId, sliced);
+        if (res) {
+          await fetchPlayersBought();
+          setIsOrderChanged(false);
+        }
+      } catch (error) {
+        console.error("Error updating priority order:", error);
+        setError("Failed to update player priority");
+      }
     }
   };
 
@@ -113,122 +158,229 @@ const YourTeamPlayers = () => {
     fetchPlayersBought();
   }, [auctionId, userId]);
 
-  const validate = async (teamId) => {
-    try {
-      const res = await checkTeamComposition(teamId);
-      if (res) {
-        setIsValid(true);
-        // await fetchPlayersBought();
-        return;
+  const handleTouchStart = useCallback(
+    (e) => {
+      if (!isValid) return;
+
+      if (touchStartTimerRef.current) {
+        clearTimeout(touchStartTimerRef.current);
       }
-    } catch (error) {
-      console.log(error);
-      // setIsValid(false);
-      // For development purposes, always set to true
-      setIsValid(true);
-    }
-  };
+
+      const playerIndex = parseInt(
+        e.currentTarget.getAttribute("data-player-index"),
+        10
+      );
+      const touch = e.touches[0];
+
+      touchStartTimerRef.current = setTimeout(() => {
+        setDragState((prev) => ({
+          isDragging: true,
+          startIndex: playerIndex,
+          startY: touch.clientY,
+          touchMoveStarted: false,
+          holdTimeout: null,
+          draggedIndex: playerIndex,
+        }));
+      }, 300);
+    },
+    [isValid]
+  );
 
   useEffect(() => {
-    if (teamId) {
-      validate(teamId);
-    }
-  }, [teamId]);
+    console.log(playerIds);
+  }, [playerIds]);
 
-  // useEffect(() => {
-  const updatePriority = async () => {
-    const sliced = playerIds.slice(0, 7);
-    console.log("dxjwhbax s", teamId, auctionId, sliced);
+  const handleTouchMove = useCallback(
+    (e) => {
+      if (!dragState.isDragging) return;
 
-    if (teamId && auctionId && playerIds.length > 0) {
-      try {
-        const res = await priorityUpdate(teamId, auctionId, sliced);
-        if (res) {
-          await fetchPlayersBought();
+      e.preventDefault();
+
+      const touch = e.touches[0];
+      const containerRect = listContainerRef.current.getBoundingClientRect();
+      const touchY = touch.clientY;
+
+      const playerCards = Array.from(
+        listContainerRef.current.querySelectorAll("[data-player-index]")
+      );
+      const targetCard = playerCards.find((card) => {
+        const rect = card.getBoundingClientRect();
+        return touchY >= rect.top && touchY <= rect.bottom;
+      });
+
+      if (targetCard) {
+        const toIndex = parseInt(
+          targetCard.getAttribute("data-player-index"),
+          10
+        );
+        const fromIndex = dragState.startIndex;
+
+        if (toIndex !== fromIndex) {
+          const updatedTeamData = [...teamData];
+          const [movedPlayer] = updatedTeamData.splice(fromIndex, 1);
+          updatedTeamData.splice(toIndex, 0, movedPlayer);
+          setTeamData(updatedTeamData);
+
+          const updatedPlayerIds = [...playerIds];
+          const [movedPlayerId] = updatedPlayerIds.splice(fromIndex, 1);
+          updatedPlayerIds.splice(toIndex, 0, movedPlayerId);
+          setPlayerIds(updatedPlayerIds);
+
+          setDragState((prev) => ({
+            ...prev,
+            startIndex: toIndex,
+            touchMoveStarted: true,
+            draggedIndex: toIndex,
+          }));
+
+          setIsOrderChanged(true);
         }
-      } catch (error) {
-        console.error("Error updating priority order:", error);
       }
+
+      const scrollThreshold = 50;
+      if (touchY <= containerRect.top + scrollThreshold) {
+        listContainerRef.current.scrollTop -= 10;
+      } else if (touchY >= containerRect.bottom - scrollThreshold) {
+        listContainerRef.current.scrollTop += 10;
+      }
+    },
+    [dragState, teamData, playerIds]
+  );
+
+  const handleTouchEnd = useCallback(() => {
+    if (touchStartTimerRef.current) {
+      clearTimeout(touchStartTimerRef.current);
     }
-  };
 
-  // }, [playerIds, teamId, auctionId]);
+    setDragState({
+      isDragging: false,
+      startIndex: null,
+      startY: null,
+      touchMoveStarted: false,
+      holdTimeout: null,
+      draggedIndex: null,
+    });
+  }, []);
 
-  const movePlayer = (fromIndex, toIndex) => {
-    const updatedTeamData = [...teamData];
-    const [movedPlayer] = updatedTeamData.splice(fromIndex, 1);
-    updatedTeamData.splice(toIndex, 0, movedPlayer);
-    setTeamData(updatedTeamData);
+  useEffect(() => {
+    const preventScroll = (e) => {
+      console.log(dragState.isDragging, dragState.touchMoveStarted);
+      if (dragState.isDragging || dragState.touchMoveStarted) {
+        e.preventDefault();
+      }
+    };
 
-    const updatedPlayerIds = [...playerIds];
-    const [movedPlayerId] = updatedPlayerIds.splice(fromIndex, 1);
-    updatedPlayerIds.splice(toIndex, 0, movedPlayerId);
-    setPlayerIds(updatedPlayerIds);
-  };
+    document.addEventListener("touchmove", preventScroll, { passive: false });
+
+    return () => {
+      document.removeEventListener("touchmove", preventScroll);
+    };
+  }, [dragState]);
+
+  useEffect(() => {
+    const preventScroll = (e) => {
+      if (dragState.isDragging && dragState.touchMoveStarted) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener("touchmove", preventScroll, { passive: false });
+
+    return () => {
+      document.removeEventListener("touchmove", preventScroll);
+    };
+  }, [dragState]);
 
   const handleLeave = () => {
     navigate("/home");
   };
 
-  return (
-    <DndProvider backend={HTML5Backend}>
+  if (isLoading) {
+    return (
       <div className="flex flex-col h-dvh lg:h-screen">
         <Header heading={`My Team in Auction ${auctionId}`} />
-        {!auctionId || !userId || error.length > 1 || isLoading ? (
-          <div className="flex-1 flex items-center justify-center font-semibold">
-            {!isLoading
-              ? `Some Error Occurred! Please try again.`
-              : "Loading..."}
-          </div>
-        ) : (
-          <div className="flex-1 flex flex-col px-4 overflow-y-scroll pb-24">
-            {teamData.length > 0 && !isValid && (
-              <div className="bg-red-200 text-red-800 p-4 rounded-lg shadow-lg absolute bottom-0 left-0 z-10 flex items-center justify-center">
-                <p className="font-semibold text-lg">
-                  Your team composition is not valid. Your auction has failed.
-                </p>
-                <button
-                  onClick={handleLeave}
-                  className="mt-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
-                >
-                  Leave
-                </button>
-              </div>
-            )}
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <RefreshCw className="animate-spin text-gray-500" size={36} />
+          <p className="mt-2">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
-            <div className="py-4 px-2 font-medium flex justify-between items-center">
-              <div className="text-xs">
-                <p>Team Name: {teamName}</p>
-                <p>Auction: {auctionName}</p>
-              </div>
-              <div>
-                <button
-                  className={`${teamData.length < 1 ? "bg-gray-500 cursor-not-allowed" : "bg-blue-600"}  rounded-xl py-2 px-3 text-xs text-white`}
-                  onClick={() => updatePriority()}
-                  disabled = {teamData.length < 1}
-                >
-                  Update Positions
-                </button>
-              </div>
-            </div>
-            {teamData.length > 0 ? (
-              teamData.map((player, index) => (
-                <PlayerCard
-                  key={index}
-                  player={player}
-                  index={index}
-                  movePlayer={movePlayer}
-                />
-              ))
-            ) : (
-              <div className="h-full flex items-center justify-center font-medium px-6">
-                No Players found in this team!
-              </div>
-            )}
+  if (error) {
+    return (
+      <div className="flex flex-col h-dvh lg:h-screen">
+        <Header heading={`My Team in Auction ${auctionId}`} />
+        <div className="flex-1 flex items-center justify-center text-red-600 font-semibold">
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-dvh lg:h-screen relative">
+      <Header heading={`My Team in Auction ${auctionId}`} />
+
+      <div
+        ref={listContainerRef}
+        className="flex-1 flex flex-col px-4 overflow-y-scroll"
+      >
+        <div className="py-4 px-2 font-medium flex justify-between items-center">
+          <div className="text-xs">
+            <p>Team Name: {teamName}</p>
+            <p>Auction: {auctionName}</p>
+          </div>
+        </div>
+
+        {teamData.length > 0 ? (
+          teamData.map((player, index) => (
+            <PlayerCard
+              key={player.id}
+              player={player}
+              index={index}
+              isValid={isValid}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              isDragging={dragState.isDragging}
+              draggedIndex={dragState.draggedIndex}
+            />
+          ))
+        ) : (
+          <div className="h-full flex items-center justify-center font-medium px-6">
+            No Players found in this team!
           </div>
         )}
       </div>
-    </DndProvider>
+
+      {!isValid && (
+        <div className="bg-red-200 text-red-800 p-4 rounded-lg absolute bottom-0 left-0 right-0 m-4 z-10 flex items-center justify-between">
+          <p className="font-semibold">
+            Your team composition is not valid. Your auction has failed.
+          </p>
+          <button
+            onClick={handleLeave}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+          >
+            Leave
+          </button>
+        </div>
+      )}
+
+      {isOrderChanged && (
+        <div className="fixed bottom-0 left-0 right-0 flex justify-center z-20">
+          <button
+            className={`${
+              !isValid ? "bg-gray-500 cursor-not-allowed" : "bg-blue-800"
+            } rounded-xl py-3 px-6 text-white w-screen`}
+            onClick={updatePriority}
+            disabled={!isValid}
+          >
+            Update Positions
+          </button>
+        </div>
+      )}
+    </div>
   );
 };
 

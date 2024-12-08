@@ -81,14 +81,15 @@ const StaticContentPage = ({ staticType, pageTitle }) => {
 
   if (isLoading) {
     return (
-        <div className="flex justify-center items-center h-full py-10">
-          <RefreshCw className="animate-spin text-blue-500" size={32} />
-        </div>
+      <div className="flex flex-col gap-3 justify-center items-center h-full">
+      <RefreshCw className="animate-spin text-gray-500" size={36} />
+      <p>Loading...</p>
+    </div>
       );
   }
 
   return (
-    <div className="h-screen mx-auto p-6 bg-white rounded-lg overflow-y-auto">
+    <div className="h-dvh mx-auto p-6 bg-white rounded-lg overflow-y-auto">
       <div className="mb-4 flex justify-between items-center">
         <div>
           <h1 className="text-xl font-semibold text-gray-800 mb-1">

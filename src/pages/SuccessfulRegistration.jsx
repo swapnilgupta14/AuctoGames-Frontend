@@ -13,7 +13,7 @@ const SuccessRegister = () => {
   console.log(auction, "onSucess auction data")
 
   return (
-    <div className="w-full h-[100vh] flex flex-col  border-red-600 justify-between pb-3">
+    <div className="w-full h-dvh flex flex-col  border-red-600 justify-between pb-3">
       <Header heading={"Successful Registration"}></Header>
       <div className="h-fit w-full  border-green-500 mt-[5%] relative">
         <img src={confetti} alt="" className="" />
