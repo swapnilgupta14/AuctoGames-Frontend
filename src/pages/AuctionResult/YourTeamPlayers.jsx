@@ -309,7 +309,14 @@ const YourTeamPlayers = () => {
   if (error) {
     return (
       <div className="flex flex-col h-dvh lg:h-screen">
-        <Header heading={`My Team in Auction ${auctionId}`} />
+        <Header
+          heading={
+            <div className="text-xs">
+              <p>Team Name: {teamName}</p>
+              <p>Auction: {auctionName}</p>
+            </div>
+          }
+        />
         <div className="flex-1 flex items-center justify-center text-red-600 font-semibold">
           {error}
         </div>
@@ -319,18 +326,22 @@ const YourTeamPlayers = () => {
 
   return (
     <div className="flex flex-col h-dvh lg:h-screen relative">
-      <Header heading={`My Team in Auction ${auctionId}`} />
+       <Header
+          heading={
+            <div className="text-xs">
+              <p>Team Name: {teamName}</p>
+              <p>Auction: {auctionName}</p>
+            </div>
+          }
+        />
 
       <div
         ref={listContainerRef}
-        className="flex-1 flex flex-col px-4 overflow-y-scroll"
+        className="flex-1 flex flex-col px-4 overflow-y-scroll pb-16"
       >
-        <div className="py-4 px-2 font-medium flex justify-between items-center">
-          <div className="text-xs">
-            <p>Team Name: {teamName}</p>
-            <p>Auction: {auctionName}</p>
-          </div>
-        </div>
+        {/* <div className="py-4 px-2 font-medium flex justify-between items-center">
+          
+        </div> */}
 
         {teamData.length > 0 ? (
           teamData.map((player, index) => (

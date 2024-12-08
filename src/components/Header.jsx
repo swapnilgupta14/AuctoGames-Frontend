@@ -267,7 +267,7 @@ const Header = ({ heading }) => {
               onClick={() => navigate("/myWallet")}
             >
               <div className="flex items-center space-x-5">
-                <Wallet className="text-black w-5 h-5" />
+                <Wallet className="text-blue-950 w-6 h-6 ml-1" />
                 <h3 className="text-md">My Wallet</h3>
               </div>
               <ChevronRight className="text-gray-500 w-5 h-5" />

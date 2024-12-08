@@ -41,7 +41,7 @@ const TeamsTab = ({ auctionPlayers, activePlayerId, userId, participantMap, pull
           </button>
 
           {expandedTeam === teamId && (
-            <div className="bg-white mt-3 rounded-lg shadow-lg p-4 border border-gray-200">
+            <div className="bg-white mt-3 rounded-lg shadow-lg p-1 border border-gray-200">
               {teamPlayersMap[teamId]?.map((player, index) => (
                 <PlayerCard
                   key={player.auctionPlayerId}

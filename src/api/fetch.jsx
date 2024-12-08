@@ -256,7 +256,7 @@ export const getAllPendingWithdrawlRequests = async () => {
     });
     if (response) return response;
   } catch (error) {
-    console.error("Error fetching getAllPendingWithdrawlRequests:", error);
+    console.error("Error fetching getAllPendingWithdrawalRequests:", error);
     throw error;
   }
 };
@@ -282,7 +282,7 @@ export const approveWithdrawlRequest = async (id) => {
     });
     if (response) return response;
   } catch (error) {
-    console.error("Error fetching getAllPendingWithdrawlRequests:", error);
+    console.error("Error fetching getAllPendingWithdrawalRequests:", error);
     throw error;
   }
 };

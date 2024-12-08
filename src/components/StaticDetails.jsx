@@ -34,7 +34,7 @@ const StaticDetails = ({ staticType, pageTitle }) => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-3 justify-center items-center h-full">
+      <div className="flex flex-col gap-3 justify-center items-center h-screen">
         <RefreshCw className="animate-spin text-gray-500" size={36} />
         <p>Loading...</p>
       </div>
@@ -51,7 +51,7 @@ const StaticDetails = ({ staticType, pageTitle }) => {
           role="alert"
         >
           <p className="font-bold">Warning</p>
-          <p>{error}</p>
+          <p>No content found!</p>
         </div>
       )}
 

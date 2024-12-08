@@ -21,8 +21,9 @@ const TransactionCardList = ({
 
   if (isTransactionLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-500"></div>
+      <div className="flex flex-col gap-3 justify-center items-center h-full">
+        <RefreshCw className="animate-spin text-gray-500" size={36} />
+        <p>Loading...</p>
       </div>
     );
   }
@@ -34,7 +35,7 @@ const TransactionCardList = ({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="overflow-y-auto max-h-full space-y-3 pr-2">
       {transactions.map((transaction) => (
         <div
           key={transaction.id}
@@ -104,7 +105,6 @@ const MyWallet = () => {
         setBalance(balanceRes.balance);
 
         const historyRes = await fetchTransactionHistory(userId);
-        // console.log(historyRes, "history")
         setTransactions(historyRes?.data?.transactions || []);
       } catch (error) {
         console.error("Failed to fetch wallet data", error);
@@ -156,7 +156,6 @@ const MyWallet = () => {
     setIsLoading(true);
     try {
       const res = await postRechargeRequest(userId, parseFloat(rechargeAmount));
-      console.log(res, "result...");
       if (res) {
         setRechargeAmount("");
         setShowRechargeModal(false);
@@ -288,25 +287,12 @@ const MyWallet = () => {
   );
 
   return (
-    <div className="flex flex-col h-screen w-full">
+    <div className="flex flex-col h-dvh w-full">
       <Header heading={"My Wallet"}></Header>
-
-      {/* Error Notification */}
-      {/* {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-          <span className="block sm:inline">{error}</span>
-          <span 
-            className="absolute top-0 bottom-0 right-0 px-4 py-3"
-            onClick={() => setError(null)}
-          >
-            <X className="h-5 w-5 text-red-500 cursor-pointer" />
-          </span>
-        </div>
-      )} */}
 
       <div className="container mx-auto p-4 space-y-6 relative flex-1 w-full flex flex-col">
         <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-xl shadow-md">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center mb-5">
             <h2 className="text-2xl font-semibold text-blue-800">My Wallet</h2>
             <div className="text-2xl font-semibold text-green-600">
               ₹{balance.toLocaleString()}
@@ -315,7 +301,7 @@ const MyWallet = () => {
 
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <h3 className="font-semibold flex items-center">
+              <h3 className="font-medium flex items-center">
                 <PlusCircle className="mr-2 text-green-600" /> Add Money
               </h3>
               <div className="flex space-x-2 w-full">
@@ -337,7 +323,7 @@ const MyWallet = () => {
             </div>
 
             <div className="space-y-2">
-              <h3 className="font-semibold flex items-center">
+              <h3 className="font-medium flex items-center">
                 <MinusCircle className="mr-2 text-red-600" /> Withdraw Money
               </h3>
               <div className="flex space-x-2">
@@ -360,7 +346,7 @@ const MyWallet = () => {
           </div>
         </div>
 
-        <div className="flex-1 bg-white p-2 rounded-xl shadow-md overflow-hidden flex flex-col">
+        <div className="flex-1 bg-white p-2 rounded-xl shadow-md flex flex-col max-h-[26rem]">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-medium">Transaction History</h3>
             <button
@@ -371,11 +357,13 @@ const MyWallet = () => {
             </button>
           </div>
 
+          {/* <div className="flex-1"> */}
           <TransactionCardList
             isTransactionLoading={isTransactionLoading}
             transactions={transactions}
             formatDate={formatDate}
           />
+          {/* </div> */}
         </div>
 
         {showRechargeModal && <RechargeModal />}

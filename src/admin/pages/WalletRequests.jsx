@@ -27,7 +27,7 @@ const WalletRequests = () => {
       setIsLoading(false);
       setWithdrawlRequests(res?.data?.walletRequests);
     } else {
-      setError("Error fetching the Withdrawl requests");
+      setError("Error fetching the Withdrawal requests");
       setIsLoading(false);
     }
   };
