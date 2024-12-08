@@ -21,7 +21,7 @@ const PlayerCard = ({
   console.log(idToUsernameMap)
 
   return (
-    <div className="w-full shadow-custom-card bg-white px-4 py-2 my-2 rounded-xl flex items-center gap-4 justify-between ">
+    <div className="w-full shadow-2xl bg-white px-4 py-2 my-2 rounded-xl flex items-center gap-4 justify-between border border-gray-200">
       <div className="flex gap-3 items-center">
         <div>
           <div className="bg-zinc-200 w-14 h-14 rounded-full border-black border-2 overflow-hidden">

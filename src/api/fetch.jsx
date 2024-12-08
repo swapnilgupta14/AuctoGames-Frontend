@@ -350,6 +350,32 @@ export const getAllTeamsInAuction = async (auctionId) => {
   }
 };
 
+export const getRegistrationrequest = async () => {
+  try {
+    const response = await axiosInstance.get(`/admin/registration-requests`);
+    if (response) return response?.data;
+  } catch (error) {
+    console.error("Error Validating User", error);
+    throw error;
+  }
+};
+
+export const updateRegistrationRequest = async (requestId) => {
+  try {
+    const response = await axiosInstance.post(
+      `/admin/update-registration-request`,
+      {
+        requestId: requestId,
+        action: "APPROVED",
+      }
+    );
+    if (response) return response?.data;
+  } catch (error) {
+    console.error("Error Validating User", error);
+    throw error;
+  }
+};
+
 export const checkTeamComposition = async (teamId) => {
   try {
     const response = await axiosInstance.post(`/teams/validate-composition`, {

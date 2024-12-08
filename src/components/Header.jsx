@@ -22,6 +22,9 @@ const Header = ({ heading }) => {
   const [balance, setBalance] = useState(0);
 
   const toggleSidebar = () => {
+    if (!isSidebarOpen) {
+      fetchWalletData(userId);
+    }
     setIsSidebarOpen((prev) => !prev);
   };
 
@@ -33,10 +36,6 @@ const Header = ({ heading }) => {
       console.error("Failed to fetch wallet data", error);
     }
   };
-
-  useEffect(() => {
-    fetchWalletData(userId);
-  }, [isSidebarOpen, userId]);
 
   return (
     <div>
@@ -86,7 +85,6 @@ const Header = ({ heading }) => {
         }`}
         style={{ width: "300px" }}
       >
-       
         <div className="flex flex-col gap-4 px-0  border-green-500">
           <div className="border-b border-gray-300 px-3 py-4 bg-[rgb(31,65,187)] flex  items-center gap-5 justify-around">
             <div className="w-[50px] h-[50px] rounded-full border border-white justify-center items-center flex bg-white">
@@ -169,7 +167,6 @@ const Header = ({ heading }) => {
           </button>
           <p className="px-4 border-b-2"></p>
 
-         
           <button
             onClick={() => navigate("/privacy-policy")}
             className="w-full py-2 text-left hover:bg-blue-700 rounded-md px-4"
@@ -208,50 +205,6 @@ const Header = ({ heading }) => {
               <div className="flex justify-center items-center gap-5">
                 <img src={whatsapp} alt="" />
                 <div>Refer and Earn</div>
-              </div>
-              <div>
-                <img src={leftArr} alt="" />
-              </div>
-            </div>
-          </button> */}
-
-          {/* <button
-            onClick={() => navigate("/bidhistory")}
-            className="w-full py-2 text-left hover:bg-blue-700 rounded-md px-4"
-          >
-            <div className="flex justify-between items-center">
-              <div className="flex justify-center items-center gap-5">
-                <img src={privacy} alt="" />
-                <div>Bid History</div>
-              </div>
-              <div>
-                <img src={leftArr} alt="" />
-              </div>
-            </div>
-          </button> */}
-          {/* <button
-            onClick={() => navigate("/teampage/0/0")}
-            className="w-full py-2 text-left hover:bg-blue-700 rounded-md px-4"
-          >
-            <div className="flex justify-between items-center">
-              <div className="flex justify-center items-center gap-5">
-                <img src={privacy} alt="" />
-                <div>Teams</div>
-              </div>
-              <div>
-                <img src={leftArr} alt="" />
-              </div>
-            </div>
-          </button> */}
-
-          {/* <button
-            onClick={() => navigate("/result/0")}
-            className="w-full py-2 text-left hover:bg-blue-700 rounded-md px-4"
-          >
-            <div className="flex justify-between items-center">
-              <div className="flex justify-center items-center gap-5">
-                <img src={privacy} alt="" />
-                <div>Results</div>
               </div>
               <div>
                 <img src={leftArr} alt="" />

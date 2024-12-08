@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getAllAuctions } from "../../api/fetch";
+import { getAllAuctions, getRegistrationrequest } from "../../api/fetch";
 import AuctionDetails from "../components/AuctionDetails"; // Import the separate component
 import {
   Clock,
@@ -9,13 +9,20 @@ import {
   RefreshCw,
   DollarSign,
   Activity,
+  IndianRupee,
 } from "lucide-react";
 
 const Auctions = () => {
   const [auctions, setAuctions] = useState([]);
   const [selectedAuction, setSelectedAuction] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFecthingReq, setIsFetchingRequest] = useState(false);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('liveAuctions');
+
+
+  const [requests, setRequests] = useState([]);
+
   const [statsData, setStatsData] = useState({
     totalAuctions: 0,
     liveAuctions: 0,
@@ -33,7 +40,6 @@ const Auctions = () => {
         if (res?.auctions) {
           setAuctions(res.auctions);
 
-          // Calculate stats
           const stats = {
             totalAuctions: res.auctions.length,
             liveAuctions: res.auctions.filter((a) => a.status === "LIVE")
@@ -68,7 +74,23 @@ const Auctions = () => {
       }
     };
 
+    const fetchReuests = async () => {
+      try {
+        setIsFetchingRequest(true);
+        const result = await getRegistrationrequest();
+        if (result) {
+          console.log("result", result);
+          setRequests(result?.requests);
+          setIsFetchingRequest(false);
+        }
+      } catch (error) {
+        setIsFetchingRequest(false);
+        console.log(error);
+      }
+    };
+
     fetchAllAuctions();
+    fetchReuests();
   }, []);
 
   const handleViewDetails = (auction) => {
@@ -107,13 +129,12 @@ const Auctions = () => {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-3 justify-center items-center h-full">
-          <RefreshCw className="animate-spin text-gray-500" size={36} />
-          <p>Loading...</p>
-        </div>
+        <RefreshCw className="animate-spin text-gray-500" size={36} />
+        <p>Loading...</p>
+      </div>
     );
   }
 
-  // If an auction is selected, render the AuctionDetails
   if (selectedAuction) {
     return (
       <AuctionDetails auction={selectedAuction} onClose={handleCloseDetails} />
@@ -155,96 +176,167 @@ const Auctions = () => {
           color="text-yellow-500"
         />
         <StatCard
-          icon={DollarSign}
+          icon={IndianRupee}
           title="Total Revenue"
           value={`₹${statsData.totalRevenue.toLocaleString()}`}
           color="text-purple-500"
         />
       </div>
 
-      <h2 className="text-xl font-semibold mb-6 text-gray-800">
-        All Auctions ({auctions.length})
-      </h2>
 
-      {auctions.length === 0 ? (
-        <div className="text-center text-gray-500">
-          No active or upcoming auctions
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {auctions.map((auction) => (
-            <div
-              key={auction.id}
-              className="bg-gray-50 rounded-lg border border-gray-300 hover:shadow-xl transition-shadow duration-300"
-            >
-              <div className="p-5">
-                <div className="flex justify-between items-start mb-4">
-                  <h2 className="text-lg text-gray-900 tracking-tight font-medium">
-                    {auction.title}
-                  </h2>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
-                      auction.status
-                    )}`}
-                  >
-                    {auction.status}
-                  </span>
-                </div>
+      <div className="w-full p-4">
+      <div className="flex border-b mb-6">
+        <button
+          onClick={() => setActiveTab('liveAuctions')}
+          className={`px-4 py-2 text-sm font-medium transition-colors duration-200 
+            ${activeTab === 'liveAuctions' 
+              ? 'border-b-2 border-blue-600 text-blue-600' 
+              : 'text-black hover:text-gray-700'}`}
+        >
+          Live Auctions 
+          <span className="ml-2 bg-gray-200 text-gray-700 rounded-full px-2 py-0.5 text-xs">
+            {auctions.length}
+          </span>
+        </button>
+        <button
+          onClick={() => setActiveTab('registrationRequests')}
+          className={`px-4 py-2 text-sm font-medium transition-colors duration-200 
+            ${activeTab === 'registrationRequests' 
+              ? 'border-b-2 border-blue-600 text-blue-600' 
+              : 'text-black hover:text-gray-700'}`}
+        >
+          Pending Registration Requests
+          <span className="ml-2 bg-gray-200 text-gray-700 rounded-full px-2 py-0.5 text-xs">
+            {requests.length}
+          </span>
+        </button>
+      </div>
 
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                  {auction.description}
-                </p>
-
-                <div className="space-y-2.5 text-md">
-                  <div className="flex items-center text-sm text-gray-500">
-                    <Calendar className="mr-2 h-3.5 w-3.5 text-blue-400" />
-                    Start:{" "}
-                    <span className="truncate font-semibold ml-1 text-gray-600">
-                      {new Date(auction.startTime).toLocaleString()}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center text-sm text-gray-500">
-                    <Clock className="mr-2 h-3.5 w-3.5 text-green-400" />
-                    End:
-                    <span className="truncate font-semibold ml-1 text-gray-600">
-                      {new Date(auction.endTime).toLocaleString()}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center text-sm text-gray-500">
-                    <Users className="mr-2 h-3.5 w-3.5 text-purple-400" />
-                    Participants:
-                    <span className="font-semibold ml-1 text-gray-600">
-                      {" "}
-                      {auction.participants?.length || 0}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center text-sm text-gray-500">
-                    <TrendingUp className="mr-2 h-3.5 w-3.5 text-red-400" />
-                    Reg. Fee:{" "}
-                    <span className="font-semibold ml-1 text-gray-600">
-                      {auction.registrationFee}Rs
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleViewDetails(auction)}
-                  className="mt-4 w-full py-2 rounded-md text-sm 
-                  bg-blue-600 text-white 
-                  hover:bg-blue-700 
-                  transition-colors 
-                  focus:outline-none focus:ring-2 focus:ring-blue-400"
-                >
-                  View Auction Details
-                </button>
+      {/* Content Area */}
+      <div className="w-full">
+        {activeTab === 'liveAuctions' ? (
+          <div className="space-y-6">
+            {auctions.length === 0 ? (
+              <div className="text-center text-gray-500">
+                No active or upcoming auctions
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {auctions.map((auction) => (
+                  <div
+                    key={auction.id}
+                    className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <div className="p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <h3 className="text-md font-medium text-gray-900 truncate max-w-[70%]">
+                          {auction.title}
+                        </h3>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
+                            auction.status
+                          )}`}
+                        >
+                          {auction.status}
+                        </span>
+                      </div>
+
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                        {auction.description}
+                      </p>
+
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center text-gray-500">
+                          <Calendar className="mr-2 h-4 w-4 text-blue-400" />
+                          <span className="truncate">
+                            {new Date(auction.startTime).toLocaleString()}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center text-gray-500">
+                          <Clock className="mr-2 h-4 w-4 text-green-400" />
+                          <span className="truncate">
+                            {new Date(auction.endTime).toLocaleString()}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center text-gray-500">
+                          <Users className="mr-2 h-4 w-4 text-purple-400" />
+                          Participants: {auction.participants?.length || 0}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleViewDetails(auction)}
+                        className="mt-4 w-full py-2 rounded-md text-sm 
+                        bg-blue-600 text-white 
+                        hover:bg-blue-700 
+                        transition-colors 
+                        focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      >
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {isFecthingReq ? (
+              <div className="flex flex-col gap-3 justify-center items-center h-full">
+                <RefreshCw className="animate-spin text-gray-500" size={36} />
+                <p className="text-gray-500">Loading Requests...</p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                {requests.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {requests.map((request) => (
+                      <div 
+                        key={request.id} 
+                        className="bg-gray-50 p-3 rounded-lg border border-gray-200"
+                      >
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-medium text-gray-800">
+                            {request.userName}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {new Date(request.requestTime).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600 truncate">
+                          {request.auctionTitle}
+                        </p>
+                        <div className="mt-2 flex justify-between">
+                          <span 
+                            className={`text-xs px-2 py-1 rounded-full ${
+                              request.status === 'Pending' 
+                                ? 'bg-yellow-100 text-yellow-800' 
+                                : 'bg-green-100 text-green-800'
+                            }`}
+                          >
+                            {request.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-gray-500">
+                    No pending registration requests
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+
+
+     
     </div>
   );
 };
