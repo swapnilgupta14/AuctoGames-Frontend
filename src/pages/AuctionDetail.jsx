@@ -43,13 +43,13 @@ const AuctionDetail = () => {
 
       let status = "error";
       if (res?.status === "registered") {
+        status = "success";
+      } else if (res?.status === "not_registered") {
         if (userBalance >= auction.registrationFee) {
-          status = "success";
+          status = "not_registered";
         } else {
           status = "insufficient_balance";
         }
-      } else if (res?.status === "not_registered") {
-        status = "not_registered";
       } else {
         status = "ineligible";
       }

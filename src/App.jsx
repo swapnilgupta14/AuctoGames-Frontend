@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import { Suspense, lazy } from "react";
 import LoginPage from "./pages/Login";
 import { Routes, Route } from "react-router-dom";
@@ -31,7 +31,26 @@ import MyAuctions from "./pages/MyAuctions";
 import TeamsPage from "./pages/TeamsPage";
 const Admin = lazy(() => import("./admin"));
 
+import { useLocation } from "react-router-dom";
+import { initGA, trackPageView } from "./analytics";
+
 function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    initGA();
+  }, []);
+
+  useEffect(() => {
+    //GA - average session time
+    trackPageView(location.pathname);
+  }, [location]);
+
+  useEffect(() => {
+    // traction on home page
+    trackPageView("/home");
+  }, []);
+
   return (
     <div className="App">
       <Routes>
@@ -67,8 +86,6 @@ function App() {
         <Route path="/my-auctions" element={<MyAuctions />} />
 
         <Route path="/teamPage/:auctionId/:userId" element={<TeamsPage />} />
-
-
 
         <Route path="/myWallet" element={<MyWallet />} />
 
