@@ -23,14 +23,26 @@ const AdminLogin = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    if (username === "admin" && password === "admin123") {
-      localStorage.setItem("adminAuth", "true");
-      navigate("/admin/auctions");
-    } else {
-      setError("Invalid credentials");
+    let url = "https://server.rishabh17704.workers.dev/api/user/login";
+    const data = {
+      email: username,
+      password,
+    };
+    const response = await fetch(url, {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+    });
+    const finalRes = await response.json();
+    if (finalRes?.status === 201) {
+      localStorage.setItem("adminToken", finalRes.token);
+      localStorage.setItem("adminAuth", true);
+      navigate("/admin/auctions")
     }
   };
 
@@ -98,7 +110,7 @@ const AdminLogin = () => {
 
 const ProtectedRoute = () => {
   const isAuthenticated = localStorage.getItem("adminAuth") === "true";
-
+  console.log(isAuthenticated, "qwertyuitrewqwertyui")
   return isAuthenticated ? (
     <AdminLayout>
       <Outlet />

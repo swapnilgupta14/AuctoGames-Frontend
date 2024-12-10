@@ -5,7 +5,7 @@ import { Routes, Route } from "react-router-dom";
 import SignUp from "./pages/SignUp";
 import ForgotPassPage from "./pages/ForgotPassPage";
 import toast, { Toaster } from "react-hot-toast";
-import UnderConstruction from "./pages/UnderConstruction";
+// import UnderConstruction from "./pages/UnderConstruction";
 import ResetPassword from "./pages/ResetPassword";
 import Splash from "./pages/Splash";
 import Home from "./pages/Home";

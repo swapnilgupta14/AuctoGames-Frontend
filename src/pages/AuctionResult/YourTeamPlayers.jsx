@@ -49,7 +49,7 @@ const PlayerCard = ({
           </div>
         </div>
         <div>
-          <p className="font-medium text-md">{player?.player?.name || "N/A"}</p>
+          <p className="font-medium text-md">{player?.player?.name || "N/A"} ({player?.id})</p>
           <p className="text-red-700 font-semibold text-xs">
             Sold for - {player?.currentBid || "N/A"}Cr
           </p>
@@ -110,7 +110,10 @@ const YourTeamPlayers = () => {
         setTeamId(team.id);
         setAuctionName(team.auction?.title);
 
-        const players = team.auctionPlayers || [];
+        const players_beforeSorting = team.auctionPlayers || [];
+        const players = players_beforeSorting.sort((a, b) => (a?.order || 0) - (b?.order || 0));
+
+        console.log(players, "players");
         setTeamData(players);
         setPlayerIds(players.map((player) => player.id));
         setTeamName(team?.name);
@@ -194,7 +197,7 @@ const YourTeamPlayers = () => {
     (e) => {
       if (!dragState.isDragging) return;
 
-      e.preventDefault();
+      // e.preventDefault();
 
       const touch = e.touches[0];
       const containerRect = listContainerRef.current.getBoundingClientRect();
@@ -264,7 +267,7 @@ const YourTeamPlayers = () => {
 
   useEffect(() => {
     const preventScroll = (e) => {
-      console.log(dragState.isDragging, dragState.touchMoveStarted);
+      // console.log(dragState.isDragging, dragState.touchMoveStarted);
       if (dragState.isDragging || dragState.touchMoveStarted) {
         e.preventDefault();
       }

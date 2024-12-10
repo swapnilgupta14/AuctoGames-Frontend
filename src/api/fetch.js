@@ -1,4 +1,5 @@
-import axiosInstance from "./axiosInstance";
+import { axiosInstance } from "./axiosInstance";
+import { axiosInstanceAdmin } from "./axiosInstance";
 
 export const fetchAuctionPlayers = async (playerId, auctionId) => {
   try {
@@ -240,7 +241,7 @@ export const getAllAuctions = async () => {
 
 export const getTransactionHistory = async () => {
   try {
-    const response = await axiosInstance.get("/admin/transactions");
+    const response = await axiosInstanceAdmin.get("/admin/transactions");
     return response.data;
   } catch (error) {
     console.error("Error fetching auction players:", error);
@@ -250,7 +251,7 @@ export const getTransactionHistory = async () => {
 
 export const getAllPendingWithdrawlRequests = async () => {
   try {
-    const response = await axiosInstance.post("/admin/wallet-requests", {
+    const response = await axiosInstanceAdmin.post("/admin/wallet-requests", {
       status: "PENDING",
       type: "WITHDRAWAL",
     });
@@ -263,7 +264,7 @@ export const getAllPendingWithdrawlRequests = async () => {
 
 export const getAllPendingRechargeRequests = async () => {
   try {
-    const response = await axiosInstance.post("/admin/wallet-requests", {
+    const response = await axiosInstanceAdmin.post("/admin/wallet-requests", {
       status: "PENDING",
       type: "RECHARGE",
     });
@@ -276,7 +277,7 @@ export const getAllPendingRechargeRequests = async () => {
 
 export const approveWithdrawlRequest = async (id) => {
   try {
-    const response = await axiosInstance.post("/admin/update/wallet-requests", {
+    const response = await axiosInstanceAdmin.post("/admin/update/wallet-requests", {
       transactionId: id,
       action: "APPROVED",
     });
@@ -352,7 +353,7 @@ export const getAllTeamsInAuction = async (auctionId) => {
 
 export const getRegistrationrequest = async () => {
   try {
-    const response = await axiosInstance.get(`/admin/registration-requests`);
+    const response = await axiosInstanceAdmin.get(`/admin/registration-requests`);
     if (response) return response?.data;
   } catch (error) {
     console.error("Error Validating User", error);
@@ -362,7 +363,7 @@ export const getRegistrationrequest = async () => {
 
 export const updateRegistrationRequest = async (requestId) => {
   try {
-    const response = await axiosInstance.post(
+    const response = await axiosInstanceAdmin.post(
       `/admin/update-registration-request`,
       {
         requestId: requestId,
@@ -396,6 +397,21 @@ export const priorityUpdate = async (teamId, auctionId, arr) => {
       priorityOrder: arr,
     });
     if (response) {
+      return response?.data;
+    }
+  } catch (error) {
+    console.error("Error Validating User", error);
+    throw error;
+  }
+};
+
+export const Admin_Login = async (data) => {
+  try {
+    const response = await axiosInstance.post(`/user/login`, {
+      data: JSON.stringify(data),
+    });
+    if (response) {
+      console.log(response?.data);
       return response?.data;
     }
   } catch (error) {

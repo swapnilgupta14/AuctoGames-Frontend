@@ -48,7 +48,8 @@ const AuctionDetail = () => {
         if (userBalance >= auction.registrationFee) {
           status = "not_registered";
         } else {
-          status = "insufficient_balance";
+          // status = "insufficient_balance";
+          status = "not_registered";
         }
       } else {
         status = "ineligible";
@@ -300,7 +301,6 @@ const AuctionDetail = () => {
           </div>
         ) : validationResult?.status === "not_registered" ? (
           <button
-            disabled
             onClick={() => navigate(`/register/${id}`, { state: { auction } })}
             className="px-4 py-3 bg-blue-700 text-gray-100 rounded-lg w-full font-medium text-[16px] cursor-not-allowed"
           >
