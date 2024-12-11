@@ -277,10 +277,13 @@ export const getAllPendingRechargeRequests = async () => {
 
 export const approveWithdrawlRequest = async (id) => {
   try {
-    const response = await axiosInstanceAdmin.post("/admin/update/wallet-requests", {
-      transactionId: id,
-      action: "APPROVED",
-    });
+    const response = await axiosInstanceAdmin.post(
+      "/admin/update/wallet-requests",
+      {
+        transactionId: id,
+        action: "APPROVED",
+      }
+    );
     if (response) return response;
   } catch (error) {
     console.error("Error fetching getAllPendingWithdrawalRequests:", error);
@@ -336,7 +339,7 @@ export const getAuctionsOfUser = async (userId) => {
     });
     if (response) return response?.data;
   } catch (error) {
-    console.error("Error Validating User", error);
+    console.error("Error getAuctionsOfUser", error);
     throw error;
   }
 };
@@ -346,17 +349,19 @@ export const getAllTeamsInAuction = async (auctionId) => {
     const response = await axiosInstance.get(`/auction/${auctionId}/teams`);
     if (response) return response?.data;
   } catch (error) {
-    console.error("Error Validating User", error);
+    console.error("Error getAllTeamsInAuction", error);
     throw error;
   }
 };
 
 export const getRegistrationrequest = async () => {
   try {
-    const response = await axiosInstanceAdmin.get(`/admin/registration-requests`);
+    const response = await axiosInstanceAdmin.get(
+      `/admin/registration-requests`
+    );
     if (response) return response?.data;
   } catch (error) {
-    console.error("Error Validating User", error);
+    console.error("Error getRegistrationrequest", error);
     throw error;
   }
 };
@@ -372,7 +377,7 @@ export const updateRegistrationRequest = async (requestId) => {
     );
     if (response) return response?.data;
   } catch (error) {
-    console.error("Error Validating User", error);
+    console.error("Error updateRegistrationRequest of User", error);
     throw error;
   }
 };
@@ -384,7 +389,7 @@ export const checkTeamComposition = async (teamId) => {
     });
     if (response) return response?.data;
   } catch (error) {
-    console.error("Error Validating User", error);
+    console.error("Error checking team composition", error);
     throw error;
   }
 };
@@ -400,7 +405,7 @@ export const priorityUpdate = async (teamId, auctionId, arr) => {
       return response?.data;
     }
   } catch (error) {
-    console.error("Error Validating User", error);
+    console.error("Error updating priority", error);
     throw error;
   }
 };
@@ -415,7 +420,47 @@ export const Admin_Login = async (data) => {
       return response?.data;
     }
   } catch (error) {
-    console.error("Error Validating User", error);
+    console.error("Error Login Admin", error);
+    throw error;
+  }
+};
+
+export const createNewAuction = async (data, image) => {
+  try {
+    const {
+      title,
+      registrationFee,
+      description,
+      startTime,
+      scheduledDate,
+      budgetLimit,
+    } = data.formData;
+    const response = await axiosInstance.post(`/auctions/register`, {
+      title,
+      registrationFee: Number(registrationFee),
+      description,
+      startTime,
+      scheduledDate,
+      budgetLimit: Number(budgetLimit),
+      token: localStorage.getItem("shopCoToken") || "",
+    });
+    if (response) {
+      console.log(response?.data);
+      if (response?.errorMsg) {
+        console.error("Error message received...");
+        return;
+      }
+      const auctionId = 3;
+      const imageRes = await axiosInstance.post("upload/auctionImage", {
+        auctionId,
+        file: image,
+      });
+      if (imageRes) {
+        return response?.data;
+      }
+    }
+  } catch (error) {
+    console.error("Error creating auction", error);
     throw error;
   }
 };

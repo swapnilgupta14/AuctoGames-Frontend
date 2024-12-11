@@ -6,7 +6,7 @@ import AdminLayout from "./components/AdminLayout";
 import Auctions from "./pages/Auctions";
 import Users from "./pages/Users";
 import Payments from "./pages/Payments";
-import Analytics from "./pages/Analytics";
+import AnalyticsPage from "./pages/Analytics";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import HowToPlay from "./pages/HowToPlay";
 import HowToPay from "./pages/HowToPay";
@@ -133,7 +133,7 @@ const Admin = () => {
         <Route path="wallet-requests" element={<WalletRequests />} />
         <Route path="transactions" element={<Payments />} />
         <Route path="players" element={<Players />} />
-        <Route path="analytics" element={<Analytics />} />
+        <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="privacy" element={<PrivacyPolicy />} />
         <Route path="how-to-play" element={<HowToPlay />} />
         <Route path="how-to-pay" element={<HowToPay />} />
