@@ -121,7 +121,7 @@ const MyAuctions = () => {
 
   return (
     <div className="h-dvh w-full bg-gray-100 ">
-      <Header heading={"My Auctions"} />
+      <Header heading={"Auction Results"} />
 
       {isError ? (
         <div className="flex flex-col gap-3 justify-center items-center h-full">

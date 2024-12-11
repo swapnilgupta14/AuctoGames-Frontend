@@ -239,58 +239,6 @@ export const getAllAuctions = async () => {
   }
 };
 
-export const getTransactionHistory = async () => {
-  try {
-    const response = await axiosInstanceAdmin.get("/admin/transactions");
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching auction players:", error);
-    throw error;
-  }
-};
-
-export const getAllPendingWithdrawlRequests = async () => {
-  try {
-    const response = await axiosInstanceAdmin.post("/admin/wallet-requests", {
-      status: "PENDING",
-      type: "WITHDRAWAL",
-    });
-    if (response) return response;
-  } catch (error) {
-    console.error("Error fetching getAllPendingWithdrawalRequests:", error);
-    throw error;
-  }
-};
-
-export const getAllPendingRechargeRequests = async () => {
-  try {
-    const response = await axiosInstanceAdmin.post("/admin/wallet-requests", {
-      status: "PENDING",
-      type: "RECHARGE",
-    });
-    if (response) return response;
-  } catch (error) {
-    console.error("Error fetching getAllPending Recharge Requests:", error);
-    throw error;
-  }
-};
-
-export const approveWithdrawlRequest = async (id) => {
-  try {
-    const response = await axiosInstanceAdmin.post(
-      "/admin/update/wallet-requests",
-      {
-        transactionId: id,
-        action: "APPROVED",
-      }
-    );
-    if (response) return response;
-  } catch (error) {
-    console.error("Error fetching getAllPendingWithdrawalRequests:", error);
-    throw error;
-  }
-};
-
 export const getStaticData = async (type) => {
   try {
     const response = await axiosInstance.get(`/static-content/${type}`);
@@ -354,34 +302,6 @@ export const getAllTeamsInAuction = async (auctionId) => {
   }
 };
 
-export const getRegistrationrequest = async () => {
-  try {
-    const response = await axiosInstanceAdmin.get(
-      `/admin/registration-requests`
-    );
-    if (response) return response?.data;
-  } catch (error) {
-    console.error("Error getRegistrationrequest", error);
-    throw error;
-  }
-};
-
-export const updateRegistrationRequest = async (requestId) => {
-  try {
-    const response = await axiosInstanceAdmin.post(
-      `/admin/update-registration-request`,
-      {
-        requestId: requestId,
-        action: "APPROVED",
-      }
-    );
-    if (response) return response?.data;
-  } catch (error) {
-    console.error("Error updateRegistrationRequest of User", error);
-    throw error;
-  }
-};
-
 export const checkTeamComposition = async (teamId) => {
   try {
     const response = await axiosInstance.post(`/teams/validate-composition`, {
@@ -410,22 +330,105 @@ export const priorityUpdate = async (teamId, auctionId, arr) => {
   }
 };
 
+// ----------------------------------ADMIN----Routes-------------------------------------------------
+
+export const getTransactionHistory = async () => {
+  try {
+    const response = await axiosInstanceAdmin.get("/admin/transactions");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching auction players:", error);
+    throw error;
+  }
+};
+
+export const getAllPendingWithdrawlRequests = async () => {
+  try {
+    const response = await axiosInstanceAdmin.post("/admin/wallet-requests", {
+      status: "PENDING",
+      type: "WITHDRAWAL",
+    });
+    if (response) return response;
+  } catch (error) {
+    console.error("Error fetching getAllPendingWithdrawalRequests:", error);
+    throw error;
+  }
+};
+
+export const getAllPendingRechargeRequests = async () => {
+  try {
+    const response = await axiosInstanceAdmin.post("/admin/wallet-requests", {
+      status: "PENDING",
+      type: "RECHARGE",
+    });
+    if (response) return response;
+  } catch (error) {
+    console.error("Error fetching getAllPending Recharge Requests:", error);
+    throw error;
+  }
+};
+
+export const approveWithdrawlRequest = async (id) => {
+  try {
+    const response = await axiosInstanceAdmin.post(
+      "/admin/update/wallet-requests",
+      {
+        transactionId: id,
+        action: "APPROVED",
+      }
+    );
+    if (response) return response;
+  } catch (error) {
+    console.error("Error fetching getAllPendingWithdrawalRequests:", error);
+    throw error;
+  }
+};
+
+export const getRegistrationrequest = async () => {
+  try {
+    const response = await axiosInstanceAdmin.get(
+      `/admin/registration-requests`
+    );
+    if (response) return response?.data;
+  } catch (error) {
+    console.error("Error getRegistrationrequest", error);
+    throw error;
+  }
+};
+
+export const updateRegistrationRequest = async (requestId) => {
+  try {
+    const response = await axiosInstanceAdmin.post(
+      `/admin/update-registration-request`,
+      {
+        requestId: requestId,
+        action: "APPROVED",
+      }
+    );
+    if (response) return response?.data;
+  } catch (error) {
+    console.error("Error updateRegistrationRequest of User", error);
+    throw error;
+  }
+};
+
 export const Admin_Login = async (data) => {
   try {
-    const response = await axiosInstanceAdmin.post(`/user/login`, {
+    const response = await axiosInstanceAdmin.post(`/admin-login`, {
       data: JSON.stringify(data),
     });
-    if (response) {
+    if (response?.status === 200) {
       console.log(response?.data);
       return response?.data;
     }
+    console.log(response?.data);
   } catch (error) {
     console.error("Error Login Admin", error);
     throw error;
   }
 };
 
-export const createNewAuction = async (data, image) => {
+export const createNewAuction = async ({ formData, imagePreview }) => {
   try {
     const {
       title,
@@ -434,7 +437,9 @@ export const createNewAuction = async (data, image) => {
       startTime,
       scheduledDate,
       budgetLimit,
-    } = data.formData;
+    } = formData;
+
+    // First, create the auction
     const response = await axiosInstanceAdmin.post(`/auctions/register`, {
       title,
       registrationFee: Number(registrationFee),
@@ -442,28 +447,39 @@ export const createNewAuction = async (data, image) => {
       startTime,
       scheduledDate,
       budgetLimit: Number(budgetLimit),
-      token: localStorage.getItem("shopCoToken") || "",
+      token: localStorage.getItem("adminToken") || "",
     });
-    if (response) {
-      console.log(response?.data);
-      if (response?.errorMsg) {
-        console.error("Error message received...");
-        return;
-      }
-      const auctionId = 3;
-      const imageRes = await axiosInstanceAdmin.post("upload/auctionImage", {
-        auctionId,
-        file: image,
-      });
-      if (imageRes) {
-        return response?.data;
-      }
+
+    if (response?.data?.auction?.id && imagePreview) {
+      const auctionId = response.data.auction.id;
+
+      const imageBlob = await (await fetch(imagePreview)).blob();
+
+      const formData = new FormData();
+      formData.append("auctionId", auctionId);
+      formData.append("file", imageBlob, "auction-image.jpg");
+
+      const imageRes = await axiosInstanceAdmin.post(
+        "upload/auctionImage",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      console.log("Image upload response", imageRes);
     }
+
+    return response?.data;
   } catch (error) {
     console.error("Error creating auction", error);
     throw error;
   }
 };
+
+// ----------------------------------OTHER---NEW-------------------------
 
 export const fetchAnalyticsData = async () => {
   try {
@@ -493,6 +509,22 @@ export const fetchAnalyticsData = async () => {
     };
   } catch (error) {
     console.error("Error fetching analytics data:", error);
+    throw error;
+  }
+};
+
+export const getTeamByTeamId = async (teamId) => {
+  try {
+    const response = await axiosInstanceAdmin.post(`/team/details`, {
+      teamId,
+    });
+    if (response?.status === 200) {
+      console.log(response?.data);
+      return response?.data;
+    }
+    console.log(response?.data);
+  } catch (error) {
+    console.error("Error fetching team by teamId", error);
     throw error;
   }
 };

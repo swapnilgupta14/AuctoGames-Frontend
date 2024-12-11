@@ -26,7 +26,7 @@ const AdminLogin = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    let url = "https://server.rishabh17704.workers.dev/api/user/login";
+    let url = "https://server.rishabh17704.workers.dev/api/admin-login";
     const data = {
       email: username,
       password,
@@ -42,7 +42,9 @@ const AdminLogin = () => {
     if (finalRes?.status === 201) {
       localStorage.setItem("adminToken", finalRes.token);
       localStorage.setItem("adminAuth", true);
-      navigate("/admin/auctions")
+      navigate("/admin/auctions");
+    } else {
+      setError("Invalid Credentials");
     }
   };
 
@@ -56,7 +58,7 @@ const AdminLogin = () => {
           </h2>
         </div>
 
-        {error && (
+        {error && error.length > 0 && (
           <div className="bg-red-50 border border-red-300 text-red-800 px-4 py-3 rounded relative">
             {error}
           </div>
@@ -110,7 +112,7 @@ const AdminLogin = () => {
 
 const ProtectedRoute = () => {
   const isAuthenticated = localStorage.getItem("adminAuth") === "true";
-  console.log(isAuthenticated, "qwertyuitrewqwertyui")
+  console.log(isAuthenticated, "qwertyuitrewqwertyui");
   return isAuthenticated ? (
     <AdminLayout>
       <Outlet />

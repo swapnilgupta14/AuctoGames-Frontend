@@ -130,7 +130,7 @@ const Header = ({ heading }) => {
             <div className="flex justify-between items-center">
               <div className="flex justify-center items-center gap-5">
                 <img src={profile} alt="" />
-                <div>My Auctions</div>
+                <div>Auction Results</div>
               </div>
 
               <div>

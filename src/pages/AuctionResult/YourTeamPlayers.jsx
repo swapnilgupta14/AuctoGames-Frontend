@@ -7,6 +7,7 @@ import {
   checkTeamComposition,
   priorityUpdate,
 } from "../../api/fetch";
+import { useSelector } from "react-redux";
 
 const PlayerCard = ({
   player,
@@ -17,13 +18,14 @@ const PlayerCard = ({
   onTouchEnd,
   isDragging,
   draggedIndex,
+  isAuthorizedUser,
 }) => {
   return (
     <div
       data-player-index={index}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
+      onTouchStart={isAuthorizedUser ? onTouchStart : undefined}
+      onTouchMove={isAuthorizedUser ? onTouchMove : undefined}
+      onTouchEnd={isAuthorizedUser ? onTouchEnd : undefined}
       className={`
         w-full shadow-2xl bg-white select-none px-4 py-2 my-2 rounded-xl flex items-center gap-4 justify-between 
         transition-all duration-200 ease-in-out
@@ -49,7 +51,7 @@ const PlayerCard = ({
           </div>
         </div>
         <div>
-          <p className="font-medium text-md">{player?.player?.name || "N/A"} ({player?.id})</p>
+          <p className="font-medium text-md">{player?.player?.name || "N/A"}</p>
           <p className="text-red-700 font-semibold text-xs">
             Sold for - {player?.currentBid || "N/A"}Cr
           </p>
@@ -83,6 +85,9 @@ const YourTeamPlayers = () => {
   const [playerIds, setPlayerIds] = useState([]);
   const [isOrderChanged, setIsOrderChanged] = useState(false);
 
+  const myId = useSelector((state) => state.user).userId;
+  const isAuthorizedUser = myId == userId;
+
   const [dragState, setDragState] = useState({
     isDragging: false,
     startIndex: null,
@@ -111,7 +116,9 @@ const YourTeamPlayers = () => {
         setAuctionName(team.auction?.title);
 
         const players_beforeSorting = team.auctionPlayers || [];
-        const players = players_beforeSorting.sort((a, b) => (a?.order || 0) - (b?.order || 0));
+        const players = players_beforeSorting.sort(
+          (a, b) => (a?.order || 0) - (b?.order || 0)
+        );
 
         console.log(players, "players");
         setTeamData(players);
@@ -135,7 +142,6 @@ const YourTeamPlayers = () => {
       setIsValid(!!res);
     } catch (error) {
       console.error("Validation error:", error);
-      // For development, set to true
       setIsValid(true);
     }
   };
@@ -163,8 +169,7 @@ const YourTeamPlayers = () => {
 
   const handleTouchStart = useCallback(
     (e) => {
-      if (!isValid) return;
-
+      if (!isValid || !isAuthorizedUser) return;
       if (touchStartTimerRef.current) {
         clearTimeout(touchStartTimerRef.current);
       }
@@ -195,10 +200,7 @@ const YourTeamPlayers = () => {
 
   const handleTouchMove = useCallback(
     (e) => {
-      if (!dragState.isDragging) return;
-
-      // e.preventDefault();
-
+      if (!dragState.isDragging || !isAuthorizedUser) return;
       const touch = e.touches[0];
       const containerRect = listContainerRef.current.getBoundingClientRect();
       const touchY = touch.clientY;
@@ -329,23 +331,24 @@ const YourTeamPlayers = () => {
 
   return (
     <div className="flex flex-col h-dvh lg:h-screen relative">
-       <Header
-          heading={
-            <div className="text-xs">
-              <p>Team Name: {teamName}</p>
-              <p>Auction: {auctionName}</p>
-            </div>
-          }
-        />
+      <Header
+        heading={
+          <div className="text-xs">
+            <p>Team Name: {teamName}</p>
+            <p>Auction: {auctionName}</p>
+          </div>
+        }
+      />
 
       <div
         ref={listContainerRef}
         className="flex-1 flex flex-col px-4 overflow-y-scroll pb-16"
       >
-        {/* <div className="py-4 px-2 font-medium flex justify-between items-center">
-          
-        </div> */}
-
+        {isAuthorizedUser && (
+          <p className="text-bold py-2 text-blue-800">
+            You can change priority of your players!
+          </p>
+        )}
         {teamData.length > 0 ? (
           teamData.map((player, index) => (
             <PlayerCard
@@ -358,6 +361,7 @@ const YourTeamPlayers = () => {
               onTouchEnd={handleTouchEnd}
               isDragging={dragState.isDragging}
               draggedIndex={dragState.draggedIndex}
+              isAuthorizedUser={isAuthorizedUser}
             />
           ))
         ) : (

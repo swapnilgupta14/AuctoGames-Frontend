@@ -73,6 +73,10 @@ function App() {
           path="/yourTeamPlayers/:auctionId/:userId"
           element={<YourTeamPlayers></YourTeamPlayers>}
         />
+        <Route
+          path="/yourTeamPlayers/:teamId"
+          element={<YourTeamPlayers></YourTeamPlayers>}
+        />
         <Route path="/result/:auctionId" element={<ResultPage />} />
 
         <Route path="/auctionHome" element={<AuctionHome />} />

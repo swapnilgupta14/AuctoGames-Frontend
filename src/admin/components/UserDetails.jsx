@@ -236,7 +236,6 @@ const UserDetails = ({ user, onClose }) => {
           </div>
         )}
       </div>
-      {/* </div> */}
     </div>
   );
 };

@@ -14,8 +14,19 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import {
+  TrendingUp,
+  DollarSign,
+  ArrowDownLeft,
+  Users,
+  User,
+  Percent,
+  UserPlus,
+  Check,
+  IndianRupee,
+} from "lucide-react";
 import { fetchAnalyticsData } from "../../api/fetch";
-import { IndianRupee } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 
 const AdvancedAnalytics = () => {
   const [analyticsData, setAnalyticsData] = useState(null);
@@ -41,8 +52,9 @@ const AdvancedAnalytics = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-blue-500"></div>
+      <div className="flex flex-col gap-3 justify-center items-center h-full">
+        <RefreshCw className="animate-spin text-gray-500" size={36} />
+        <p>Loading...</p>
       </div>
     );
   }
@@ -143,47 +155,74 @@ const AdvancedAnalytics = () => {
           {[
             {
               label: "Total Platform Gain",
+              className: "text-blue-600",
               value: `₹${analyticsData.financialSummary.totalPlatformGain}`,
+              icon: TrendingUp,
             },
             {
               label: "Total Deposited",
               value: `₹${analyticsData.financialSummary.totalDeposited}`,
               className: "text-green-600",
+              icon: IndianRupee,
             },
             {
               label: "Total Withdrawn",
+
               value: `₹${Math.abs(
                 analyticsData.financialSummary.totalWithdrawn
               )}`,
               className: "text-red-600",
+              icon: ArrowDownLeft,
             },
-            { label: "Total Users", value: userInsights.totalUsers },
-            { label: "Active Users", value: userInsights.activeUsers },
+            {
+              label: "Total Users",
+              value: userInsights.totalUsers,
+              icon: Users,
+            },
+            {
+              label: "Active Users",
+              value: userInsights.activeUsers,
+              icon: User,
+            },
             {
               label: "Active User Rate",
               value: `${userInsights.activeUserPercentage}%`,
+              className: "text-blue-600",
+              icon: Percent,
             },
             {
               label: "Total Registrations",
               value: registrationInsights.totalRegistrations,
+              icon: UserPlus,
             },
             {
               label: "Registration Approval Rate",
+              className: "text-blue-600",
               value: `${registrationInsights.approvalRate}%`,
+              icon: Check,
             },
-          ].map((item, index) => (
-            <div
-              key={index}
-              className="bg-gray-100 shadow-md rounded-lg p-6 border border-gray-200 w-full"
-            >
-              <h3 className="text-sm font-medium text-gray-500 mb-2">
-                {item.label}
-              </h3>
-              <p className={`text-lg font-bold ${item.className || ""}`}>
-                {item.value}
-              </p>
-            </div>
-          ))}
+          ].map((item, index) => {
+            const IconComponent = item.icon;
+            return (
+              <div
+                key={index}
+                className="bg-gray-100 shadow-md rounded-lg p-6 border border-gray-200 w-full flex flex-col"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-medium text-gray-500">
+                    {item.label}
+                  </h3>
+                  <IconComponent
+                    className="text-black bg-zinc-300 p-1 w-6 h-6 rounded-full"
+                    size={20}
+                  />
+                </div>
+                <p className={`text-lg font-bold ${item.className || ""}`}>
+                  {item.value}
+                </p>
+              </div>
+            );
+          })}
         </div>
 
         <div className=" flex flex-row-reverse gap-6">

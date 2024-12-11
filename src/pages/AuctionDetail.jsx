@@ -195,7 +195,7 @@ const AuctionDetail = () => {
                   Register in the Auction
                 </h2>
                 <p className="text-center text-gray-600 mb-4">
-                  You have not registered yet in the Auction, Register Now!
+                  You are not registered yet in the Auction, Register Now!
                 </p>
               </div>
             </div>

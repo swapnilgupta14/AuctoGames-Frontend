@@ -3,7 +3,7 @@ import Header from "../components/Header";
 import { useEffect } from "react";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { getTeamResultOfAction } from "../api/fetch";
+import { getTeamResultOfAction, getAllTeamsInAuction } from "../api/fetch";
 import { RefreshCw } from "lucide-react";
 
 const TeamsPage = () => {
@@ -17,12 +17,14 @@ const TeamsPage = () => {
       try {
         setIsLoading(true);
         if (!userId || !auctionId) return;
-        const res = await getTeamResultOfAction(auctionId, userId);
+        const res = await getAllTeamsInAuction(auctionId);
         if (res) {
           setIsLoading(false);
+          console.log(res, "hiiiiiiii")
           setData(res.teams || []);
         }
-      } catch(error) {
+      } catch (error) {
+        console.log("dkeknden", error);
         setIsError(true);
       }
       setIsLoading(false);
@@ -39,11 +41,10 @@ const TeamsPage = () => {
     );
   }
 
-  console.log(data, "dataaaaa");
 
   return (
     <div className="h-dvh flex flex-col w-full">
-      <Header heading={`My Teams in Auction ${auctionId}`} />
+      <Header heading={`Teams in Auction ${auctionId}`} />
 
       {isError ? (
         <div className="flex flex-col gap-3 justify-center items-center h-full">

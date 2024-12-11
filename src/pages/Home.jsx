@@ -90,31 +90,12 @@ const Home = () => {
     };
 
     return (
-        <div className='w-[100%]'>
-            {/* Header */}
-            {/* <div className='w-full h-[65px] border border-black bg-[#1F41BB] flex justify-between items-center px-4'>
-                <div className='font-medium text-[24px] text-white'>
-                    Welcome, {username.split(" ")[0]}
-                </div>
-
-                <div className='flex justify-center items-center gap-6'>
-                    <div>
-                        <img src={bellIcon} alt="Notifications" />
-                    </div>
-                    <div className='border border-white w-[30px] h-[30px] rounded-full flex justify-center items-center text-white font-medium text-[16px]'>
-                        <div>{username.split(" ")[0].split("")[0].toUpperCase()}</div>
-                    </div>
-                </div>
-            </div> */}
+        <div className='w-[100%] '>
 
             <Header heading={`Welcome, ${username.split(" ")[0]}`}></Header>
 
-            {/* {JSON.stringify(liveAuctions)} */}
-
-            {/* Live Auctions Carousel */}
             {liveAuctions.length > 0 && (
                 <div className={carouselStyles.container}>
-                    {/* Slides */}
                     {liveAuctions.map((auction, index) => (
                         <div
                             key={auction.id}
@@ -135,7 +116,6 @@ const Home = () => {
                         </div>
                     ))}
 
-                    {/* Pagination Dots */}
                     <div className={carouselStyles.dotsContainer}>
                         {liveAuctions.map((_, index) => (
                             <div
@@ -147,7 +127,6 @@ const Home = () => {
                         ))}
                     </div>
 
-                    {/* Navigation Buttons */}
                     <button
                         className="absolute left-2 top-1/2 transform -translate-y-1/2  text-white p-2 rounded-full"
                         onClick={prevSlide}
@@ -163,19 +142,16 @@ const Home = () => {
                 </div>
             )}
 
-            {/* No Live Auctions */}
             {liveAuctions.length === 0 && (
                 <div className="mt-4 text-center text-gray-500">
                     No live auctions available.
                 </div>
             )}
 
-            {/* Scheduled Auctions Section */}
             <div className="mt-8 px-4">
                 <div className='flex justify-between items-center'>
                     <h2 className="text-2xl font-bold text-gray-700 mb-4">Upcoming Auctions</h2>
 
-                    {/* Filter by Date Button */}
                     <button
                         className=" px-4 py-2 rounded-lg mb-3"
                         onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
@@ -184,7 +160,6 @@ const Home = () => {
                     </button>
                 </div>
 
-                {/* Date Picker */}
                 {isDatePickerOpen && (
                     <div className="mb-4 flex justify-center">
                         <div className="w-[90%] max-w-md bg-white rounded-lg shadow-md overflow-y-auto">

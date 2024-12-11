@@ -23,6 +23,16 @@ const AuctionDetails = ({ auction, onClose }) => {
           </button>
         </div>
 
+        {auction.imageUrl && (
+          <div className="mb-6">
+            <img
+              src={auction.imageUrl}
+              alt={`${auction.title} auction image`}
+              className="w-full h-40 object-cover rounded-xl shadow-lg"
+            />
+          </div>
+        )}
+
         <div className="space-y-6">
           <section>
             <h2 className="text-md text-black font-medium mb-3">
@@ -127,6 +137,7 @@ const AuctionDetails = ({ auction, onClose }) => {
             </div>
           </section>
 
+          {/* <div className="grid md:grid-cols-2 gap-6"> */}
           <section>
             <h2 className="text-md text-black font-medium mb-3">
               Participants ({auction.participants.length})
@@ -137,18 +148,22 @@ const AuctionDetails = ({ auction, onClose }) => {
                   No participants registered
                 </p>
               ) : (
-                <div className="divide-y max-h-64 overflow-y-auto">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4">
                   {auction.participants.map((participant) => (
                     <div
                       key={participant.id}
-                      className="p-4 flex items-center text-sm hover:bg-slate-50"
+                      className="flex items-center text-sm bg-slate-50 p-3 rounded-lg hover:bg-slate-100 transition"
                     >
                       <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-3">
                         {participant.username.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-slate-700">{participant.username}</p>
-                        <p className="text-slate-500">{participant.email}</p>
+                        <p className="text-slate-700 text-xs font-medium">
+                          {participant.username}
+                        </p>
+                        <p className="text-slate-500 text-xs">
+                          {participant.email}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -167,50 +182,46 @@ const AuctionDetails = ({ auction, onClose }) => {
                   No players in the auction
                 </div>
               ) : (
-                auction.auctionPlayers.map((player) => (
-                  <div
-                    key={player.id}
-                    className="bg-white shadow-sm border rounded-lg p-4 flex items-center hover:bg-slate-50 transition-colors"
-                  >
-                    <img
-                      src={player.imageUrl}
-                      alt={player.player.name}
-                      className="w-12 h-12 rounded-full object-cover mr-4"
-                    />
-                    <div className="flex-grow">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="text-sm text-slate-700">
-                            {player.player.name}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {player.type}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-slate-500">Current Bid</p>
-                          <p className="text-sm text-green-600">
+                <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
+                  {auction.auctionPlayers.map((player) => (
+                    <div
+                      key={player.id}
+                      className="bg-white shadow-sm border rounded-lg p-3 flex flex-col items-center hover:bg-slate-50 transition-colors"
+                    >
+                      <img
+                        src={player.imageUrl}
+                        alt={player.player.name}
+                        className="w-16 h-16 rounded-full object-cover mb-2"
+                      />
+                      <div className="text-center w-full">
+                        <p className="text-sm text-slate-700 font-medium">
+                          {player.player.name}
+                        </p>
+                        <p className="text-xs text-slate-500 mb-1">
+                          {player.type}
+                        </p>
+                        <div className="flex justify-between items-center">
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full ${
+                              player.status === "sold"
+                                ? "bg-green-50 text-green-600"
+                                : "bg-slate-50 text-slate-600"
+                            }`}
+                          >
+                            {player.status.toUpperCase()}
+                          </span>
+                          <p className="text-xs text-green-600">
                             ₹{player.currentBid}
                           </p>
                         </div>
                       </div>
-                      <div className="mt-2 flex justify-between items-center">
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full ${
-                            player.status === "sold"
-                              ? "bg-green-50 text-green-600"
-                              : "bg-slate-50 text-slate-600"
-                          }`}
-                        >
-                          {player.status.toUpperCase()}
-                        </span>
-                      </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               )}
             </div>
           </section>
+          {/* </div> */}
         </div>
       </div>
     </div>

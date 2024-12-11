@@ -21,7 +21,7 @@ const Auctions = () => {
   const [selectedAuction, setSelectedAuction] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingReq, setIsFetchingRequest] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("liveAuctions");
   const [requests, setRequests] = useState([]);
   const [isCreateAuctionModalOpen, setIsCreateAuctionModalOpen] =
@@ -38,74 +38,75 @@ const Auctions = () => {
     totalRevenue: 0,
   });
 
+  const fetchAllAuctions = async () => {
+    setIsLoading(true);
+    try {
+      const res = await getAllAuctions();
+      if (res?.auctions) {
+        // Store all auctions
+        setAllAuctions(res.auctions);
+
+        // Separate auctions by status
+        const live = res.auctions.filter((a) => a.status === "LIVE");
+        const scheduled = res.auctions.filter((a) => a.status === "SCHEDULED");
+        const completed = res.auctions.filter((a) => a.status === "COMPLETED");
+
+        setLiveAuctions(live);
+        setScheduledAuctions(scheduled);
+        setCompletedAuctions(completed);
+
+        const stats = {
+          totalAuctions: res.auctions.length,
+          liveAuctions: live.length,
+          upcomingAuctions: scheduled.length,
+          completedAuctions: completed.length,
+          totalParticipants: res.auctions.reduce(
+            (sum, auction) => sum + (auction.participants?.length || 0),
+            0
+          ),
+          totalRevenue: res.auctions.reduce(
+            (sum, auction) =>
+              sum +
+              auction.registrationFee * (auction.participants?.length || 0),
+            0
+          ),
+        };
+
+        setStatsData(stats);
+      } else {
+        setError("Failed to fetch auctions");
+      }
+    } catch (err) {
+      setError("Some Error has Occurred!");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchAllAuctions = async () => {
-      setIsLoading(true);
-      try {
-        const res = await getAllAuctions();
-        if (res?.auctions) {
-          // Store all auctions
-          setAllAuctions(res.auctions);
-
-          // Separate auctions by status
-          const live = res.auctions.filter((a) => a.status === "LIVE");
-          const scheduled = res.auctions.filter(
-            (a) => a.status === "SCHEDULED"
-          );
-          const completed = res.auctions.filter(
-            (a) => a.status === "COMPLETED"
-          );
-
-          setLiveAuctions(live);
-          setScheduledAuctions(scheduled);
-          setCompletedAuctions(completed);
-
-          const stats = {
-            totalAuctions: res.auctions.length,
-            liveAuctions: live.length,
-            upcomingAuctions: scheduled.length,
-            completedAuctions: completed.length,
-            totalParticipants: res.auctions.reduce(
-              (sum, auction) => sum + (auction.participants?.length || 0),
-              0
-            ),
-            totalRevenue: res.auctions.reduce(
-              (sum, auction) =>
-                sum +
-                auction.registrationFee * (auction.participants?.length || 0),
-              0
-            ),
-          };
-
-          setStatsData(stats);
-        } else {
-          setError("Failed to fetch auctions");
-        }
-      } catch (err) {
-        setError("Some Error has Occurred!");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    const fetchRequests = async () => {
-      try {
-        setIsFetchingRequest(true);
-        const result = await getRegistrationrequest();
-        if (result) {
-          setRequests(result?.requests);
-          setIsFetchingRequest(false);
-        }
-      } catch (error) {
-        setIsFetchingRequest(false);
-        console.log(error);
-      }
-    };
-
     fetchAllAuctions();
-    fetchRequests();
   }, []);
+
+  const fetchRequests = async () => {
+    try {
+      setIsFetchingRequest(true);
+      const result = await getRegistrationrequest();
+      if (result) {
+        setRequests(result?.requests);
+        setIsFetchingRequest(false);
+      }
+    } catch (error) {
+      setIsFetchingRequest(false);
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "registrationRequests") {
+      fetchRequests();
+    }
+  }, [activeTab]);
 
   const handleViewDetails = (auction) => {
     setSelectedAuction(auction);
@@ -214,7 +215,7 @@ const Auctions = () => {
   }
 
   return (
-    <div className="p-6 min-h-screen">
+    <div className="p-6 bg-white overflow-y-scroll h-screen">
       <h1 className="text-xl font-semibold mb-6 text-gray-800">
         Auction Dashboard
       </h1>
@@ -318,7 +319,7 @@ const Auctions = () => {
 
           <button
             onClick={() => setIsCreateAuctionModalOpen(true)}
-            className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+            className="flex items-center bg-blue-600 text-white px-2 py-1 text-md mb-2 rounded-md hover:bg-blue-700 transition-colors"
           >
             <Plus className="mr-2 h-4 w-4" /> Create Auction
           </button>
@@ -433,7 +434,12 @@ const Auctions = () => {
           )}
         </div>
       </div>
-      {isCreateAuctionModalOpen && <CreateAuctionModal onClose={onClose} />}
+      {isCreateAuctionModalOpen && (
+        <CreateAuctionModal
+          onClose={onClose}
+          fetchAllAuctions={fetchAllAuctions}
+        />
+      )}
     </div>
   );
 };

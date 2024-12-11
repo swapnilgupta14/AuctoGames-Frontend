@@ -91,6 +91,7 @@ const AdminLayout = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("adminAuth");
+    localStorage.removeItem("adminToken");
     window.location.href = "/admin";
   };
 

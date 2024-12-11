@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Trash2, ImagePlus, X } from "lucide-react";
 import { createNewAuction } from "../../api/fetch";
 
-const CreateAuctionModal = ({ onClose }) => {
+const CreateAuctionModal = ({ onClose, fetchAllAuctions }) => {
   const [formData, setFormData] = useState({
     title: "",
     registrationFee: "",
@@ -40,9 +40,11 @@ const CreateAuctionModal = ({ onClose }) => {
     setIsLoading(true);
     setError(null);
 
+    console.log(imagePreview, "imagePreview....");
     try {
       const newAuction = await createNewAuction({
-        formData, image: imagePreview,
+        formData,
+        imagePreview,
       });
       if (newAuction) {
         setFormData({
@@ -56,6 +58,7 @@ const CreateAuctionModal = ({ onClose }) => {
         setImagePreview(null);
         onClose();
         setIsLoading(false);
+        fetchAllAuctions();
       }
     } catch (err) {
       setError(err.message || "Something went wrong.");
@@ -170,6 +173,7 @@ const CreateAuctionModal = ({ onClose }) => {
                   value={formData.scheduledDate}
                   onChange={handleInputChange}
                   placeholder="Select date"
+                  required
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -184,6 +188,7 @@ const CreateAuctionModal = ({ onClose }) => {
                   value={formData.startTime}
                   onChange={handleInputChange}
                   placeholder="Select time"
+                  required
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -199,6 +204,7 @@ const CreateAuctionModal = ({ onClose }) => {
                   name="budgetLimit"
                   value={formData.budgetLimit}
                   onChange={handleInputChange}
+                  required
                   placeholder="Enter maximum budget"
                   min="0"
                   className="text-sm w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -214,6 +220,7 @@ const CreateAuctionModal = ({ onClose }) => {
                   name="registrationFee"
                   value={formData.registrationFee}
                   onChange={handleInputChange}
+                  required
                   placeholder="Enter registration fee"
                   min="0"
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
