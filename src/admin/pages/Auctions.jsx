@@ -256,8 +256,6 @@ const Auctions = () => {
       </div>
 
       <div className="w-full p-4">
-        {/*  */}
-
         <div className="flex justify-between items-center border-b mb-6">
           <div className="flex">
             <button

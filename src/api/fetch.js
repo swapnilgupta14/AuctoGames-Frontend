@@ -412,7 +412,7 @@ export const priorityUpdate = async (teamId, auctionId, arr) => {
 
 export const Admin_Login = async (data) => {
   try {
-    const response = await axiosInstance.post(`/user/login`, {
+    const response = await axiosInstanceAdmin.post(`/user/login`, {
       data: JSON.stringify(data),
     });
     if (response) {
@@ -435,7 +435,7 @@ export const createNewAuction = async (data, image) => {
       scheduledDate,
       budgetLimit,
     } = data.formData;
-    const response = await axiosInstance.post(`/auctions/register`, {
+    const response = await axiosInstanceAdmin.post(`/auctions/register`, {
       title,
       registrationFee: Number(registrationFee),
       description,
@@ -451,7 +451,7 @@ export const createNewAuction = async (data, image) => {
         return;
       }
       const auctionId = 3;
-      const imageRes = await axiosInstance.post("upload/auctionImage", {
+      const imageRes = await axiosInstanceAdmin.post("upload/auctionImage", {
         auctionId,
         file: image,
       });
@@ -461,6 +461,38 @@ export const createNewAuction = async (data, image) => {
     }
   } catch (error) {
     console.error("Error creating auction", error);
+    throw error;
+  }
+};
+
+export const fetchAnalyticsData = async () => {
+  try {
+    const endpoints = [
+      "/admin/analytics/total-auctions",
+      "/admin/analytics/bids-per-user",
+      "/admin/analytics/successful-registrations",
+      "/admin/analytics/registrations-per-auction",
+      "/admin/analytics/all-registration-requests",
+      "/admin/analytics/event-completion-rate",
+      "/admin/analytics/financial-summary",
+    ];
+
+    const responses = await Promise.all(
+      endpoints.map((endpoint) => axiosInstanceAdmin.get(endpoint))
+    );
+
+    const data = responses.map((response) => response.data);
+    return {
+      totalAuctions: data[0],
+      bidsPerUser: data[1],
+      successfulRegistrations: data[2],
+      registrationsPerAuction: data[3],
+      allRegistrationRequests: data[4],
+      eventCompletionRate: data[5],
+      financialSummary: data[6],
+    };
+  } catch (error) {
+    console.error("Error fetching analytics data:", error);
     throw error;
   }
 };

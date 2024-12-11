@@ -96,7 +96,7 @@ const AdminLayout = () => {
 
   return (
     <div className="flex min-h-screen bg-zinc-100">
-      <div className="h-screen min-w-[16%] bg-gray-200 text-black flex flex-col p-6 space-y-8 shadow-lg">
+      <div className="h-screen md:min-w-[20%] lg:min-w-[16%] bg-gray-200 text-black flex flex-col p-6 space-y-8 shadow-lg">
         <div className="flex flex-col justify-start h-full">
           <nav className="space-y-2">
             <h3 className="text-xs text-black uppercase tracking-wider">
