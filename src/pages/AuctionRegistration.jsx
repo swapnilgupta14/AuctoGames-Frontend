@@ -1,16 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useEffect } from "react";
-import { Upload, AlertCircle } from "lucide-react";
+import { Upload, AlertCircle, Trash2, ImagePlus } from "lucide-react";
 import Header from "../components/Header";
 import heroImg from "../assets/image 1.png";
+import { submitRegistrationRequest } from "../api/fetch";
 
 const AuctionRegistration = () => {
   const { username, token, userId } = useSelector((state) => state.user);
   const navigate = useNavigate();
+
+  const fileInputRef = useRef(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const handleRemoveImage = () => setImagePreview(null);
+
   const location = useLocation();
-  const { auction } = location.state;
+  const { auction = { id: null, title: "", registrationFee: 0 } } =
+    location.state || {};
   const [errors, setErrors] = useState({
     teamName: "",
     mobileNumber: "",
@@ -19,7 +26,6 @@ const AuctionRegistration = () => {
 
   const [teamName, setTeamName] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
-  const [teamIcon, setTeamIcon] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateForm = () => {
@@ -50,23 +56,20 @@ const AuctionRegistration = () => {
     return isValid;
   };
 
-  const handleFileChange = (e) => {
+  const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        // 5MB limit
-        setErrors((prev) => ({
-          ...prev,
-          teamIcon: "File size should be less than 5MB",
-        }));
-        return;
-      }
-      setTeamIcon(file);
-      setErrors((prev) => ({
-        ...prev,
-        teamIcon: "",
-      }));
+    const newErrors = { ...errors };
+
+    if (file && file.size <= 5 * 1024 * 1024) {
+      const reader = new FileReader();
+      reader.onload = () => setImagePreview(reader.result);
+      reader.readAsDataURL(file);
+      newErrors.teamIcon = "";
+    } else {
+      newErrors.teamIcon = "File size must be under 5MB.";
     }
+
+    setErrors(newErrors);
   };
 
   const handleSubmit = async (e) => {
@@ -75,31 +78,23 @@ const AuctionRegistration = () => {
     if (!validateForm()) {
       return;
     }
-
     setIsSubmitting(true);
 
     try {
-      const data = {
-        auctionId: Number(auction.id),
-        teamName: teamName,
-        mobileNumber: mobileNumber,
-        registrationFee: auction.registrationFee,
-        token: token,
-        ownerId: Number(userId),
-      };
+      const formData = new FormData();
+      formData.append("auctionId", auction?.id);
+      formData.append("userId", userId);
+      formData.append("token", token);
+      formData.append("mobileNumber", mobileNumber);
+      formData.append("teamName", teamName);
 
-      const response = await fetch(
-        "https://server.rishabh17704.workers.dev/api/auctions/register-participant",
-        {
-          method: "POST",
-          body: JSON.stringify(data),
-          headers: {
-            "Content-type": "application/json; charset=UTF-8",
-          },
-        }
-      );
-      const finalRes = await response.json();
-      navigate("/successregister", { state: { auction } });
+      const result = await submitRegistrationRequest(formData, imagePreview);
+      if (result) {
+        console.log(result, "result");
+        navigate(`/auction/${auction?.id}`);
+      } else {
+        alert(result?.message || "Failed to register");
+      }
     } catch (error) {
       console.error("Error during registration:", error);
       alert("An error occurred. Please try again.");
@@ -186,16 +181,39 @@ const AuctionRegistration = () => {
               <input
                 id="team-icon-input"
                 type="file"
-                onChange={handleFileChange}
-                className="hidden"
+                ref={fileInputRef}
                 accept="image/*"
+                className="hidden"
+                onChange={handleImageUpload}
               />
-              <div className="flex flex-col items-center justify-center gap-2 text-gray-500">
-                <Upload size={24} />
-                <span className="text-lg">
-                  {teamIcon ? teamIcon.name : "Upload Team Icon"}
-                </span>
-              </div>
+
+              {imagePreview ? (
+                <div className="relative">
+                  <img
+                    src={imagePreview}
+                    alt="Auction Preview"
+                    className="w-full h-20 object-cover rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="cursor-pointer flex flex-col items-center justify-center w-full h-20 rounded-lg hover:border-blue-500 transition">
+                  <ImagePlus className="w-12 h-12 text-gray-400 mb-4" />
+                  <p className="text-gray-500 text-center">
+                    Upload Team Icon
+                    <br />
+                    <span className="text-xs text-gray-400">
+                      (Optional, Max 5MB)
+                    </span>
+                  </p>
+                </div>
+              )}
             </div>
             {/* {errors.teamIcon && (
               <div className="flex items-center gap-1 text-red-500 text-sm">
@@ -206,10 +224,10 @@ const AuctionRegistration = () => {
           </div>
 
           <div className="mt-8">
-            <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm">
+            <div className="flex items-center justify-between bg-zinc-200 p-4 rounded-xl shadow-sm">
               <div className="space-y-1">
-                <span className="text-gray-400 text-sm font-medium">TOTAL</span>
-                <p className="text-xl font-semibold">
+                <span className="text-blue-500 text-sm font-medium">TOTAL</span>
+                <p className="text-xl text-blue-700 font-semibold">
                   Rs. {auction.registrationFee}
                 </p>
               </div>
@@ -218,7 +236,7 @@ const AuctionRegistration = () => {
                 disabled={isSubmitting}
                 className="bg-blue-600 text-white px-6 py-3 rounded-xl font-medium text-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Processing..." : "Continue to pay"}
+                {isSubmitting ? "Processing..." : "Submit Request"}
               </button>
             </div>
           </div>

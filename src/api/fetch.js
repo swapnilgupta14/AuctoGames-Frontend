@@ -229,7 +229,9 @@ export const fetchTransactionHistory = async (userId) => {
 
 export const getAllAuctions = async () => {
   try {
-    const response = await axiosInstance.get("/auctions/getall");
+    // const response = await axiosInstance.get("/auctions/getall");
+    const response = await axiosInstance.get("/auctions/getallstatus");
+
     if (response?.status === 200) {
       return response.data;
     }
@@ -330,6 +332,22 @@ export const priorityUpdate = async (teamId, auctionId, arr) => {
   }
 };
 
+export const RegisterPlayerToIndividualAuction = async (data) => {
+  try {
+    const response = await axiosInstance.post(`/players/register-to-auctions`, {
+      data: JSON.stringify(data),
+    });
+    if (response?.status === 200) {
+      console.log(response?.data);
+      return response?.data;
+    }
+    console.log(response?.data);
+  } catch (error) {
+    console.error("Error Login Admin", error);
+    throw error;
+  }
+};
+
 // ----------------------------------ADMIN----Routes-------------------------------------------------
 
 export const getTransactionHistory = async () => {
@@ -396,13 +414,13 @@ export const getRegistrationrequest = async () => {
   }
 };
 
-export const updateRegistrationRequest = async (requestId) => {
+export const updateRegistrationRequest = async (requestId, type) => {
   try {
     const response = await axiosInstanceAdmin.post(
       `/admin/update-registration-request`,
       {
         requestId: requestId,
-        action: "APPROVED",
+        action: type === 1 ? "APPROVED" : "DENIED",
       }
     );
     if (response) return response?.data;
@@ -418,15 +436,70 @@ export const Admin_Login = async (data) => {
       data: JSON.stringify(data),
     });
     if (response?.status === 200) {
-      console.log(response?.data);
       return response?.data;
     }
-    console.log(response?.data);
   } catch (error) {
     console.error("Error Login Admin", error);
     throw error;
   }
 };
+
+export const banUnbanUsers = async (userId, type) => {
+  try {
+    const response = await axiosInstanceAdmin.post(`/admin/users/ban-unban`, {
+      userId,
+    });
+    if (response?.status === 200) {
+      return response?.data;
+    }
+  } catch (error) {
+    console.error("Error Login Admin", error);
+    throw error;
+  }
+};
+
+export const updateAuctionDetails = async (formData) => {
+  try {
+    const {
+      title,
+      registrationFee,
+      description,
+      startTime,
+      scheduledDate,
+      image,
+      budgetLimit,
+      auctionId,
+      status,
+    } = formData;
+
+    if (!auctionId) {
+      console.error("Error! auctionId not received");
+      return;
+    }
+
+    const response = await axiosInstanceAdmin.put(`/auctions/update`, {
+      title,
+      registrationFee: Number(registrationFee),
+      description,
+      status,
+      startTime,
+      scheduledDate,
+      image,
+      auctionId,
+      budgetLimit: Number(budgetLimit),
+      token: localStorage.getItem("adminToken") || "",
+    });
+
+    if (response) {
+      return response?.data;
+    }
+  } catch (error) {
+    console.error("Error updating auction", error);
+    throw error;
+  }
+};
+
+// -------------------------------------------------------------------------------
 
 export const createNewAuction = async ({ formData, imagePreview }) => {
   try {
@@ -439,7 +512,6 @@ export const createNewAuction = async ({ formData, imagePreview }) => {
       budgetLimit,
     } = formData;
 
-    // First, create the auction
     const response = await axiosInstanceAdmin.post(`/auctions/register`, {
       title,
       registrationFee: Number(registrationFee),
@@ -471,6 +543,28 @@ export const createNewAuction = async ({ formData, imagePreview }) => {
 
       console.log("Image upload response", imageRes);
     }
+
+    return response?.data;
+  } catch (error) {
+    console.error("Error creating auction", error);
+    throw error;
+  }
+};
+
+export const submitRegistrationRequest = async (formData, imagePreview) => {
+  try {
+    if(imagePreview){
+      const imageBlob = await (await fetch(imagePreview)).blob();
+      formData.append("file", imageBlob, "team-icon.jpg");
+    }
+
+    const response = await axiosInstance.post(
+      `/auctions/registration`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
 
     return response?.data;
   } catch (error) {

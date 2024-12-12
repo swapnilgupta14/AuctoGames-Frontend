@@ -128,6 +128,7 @@ const SignUp = () => {
                             type={showPassword ? "text" : "password"}
                             placeholder="Password"
                             value={password}
+                            minLength={6}
                             onChange={(e) => setPassword(e.target.value)}
                             className="border border-black rounded-lg h-[45px] bg-white px-3 w-full"
                         />

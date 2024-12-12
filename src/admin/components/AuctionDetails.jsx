@@ -1,8 +1,33 @@
 import React from "react";
 import { XCircle } from "lucide-react";
 import { ArrowLeft } from "lucide-react";
+import { convertTo12HourFormat } from "../../utils/TimeConversion";
+import { banUnbanUsers } from "../../api/fetch";
+import { useAuctionContext } from "../pages/Auctions";
 
-const AuctionDetails = ({ auction, onClose }) => {
+const AuctionDetails = ({ onClose }) => {
+  const { selectedAuction, fetchAllAuctions } = useAuctionContext();
+
+  const handleBanUnbanUsers = async (participantId, type) => {
+    try {
+      const res = await banUnbanUsers(participantId);
+      if (res) {
+        fetchAllAuctions();
+      }
+    } catch (err) {
+      console.error("Error Ban/Unban User", err);
+    }
+  };
+
+  // If no current auction, return null or a loading state
+  if (!selectedAuction) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <p className="text-slate-500">Loading auction details...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-screen overflow-y-auto">
       <div className="mx-auto w-full px-10 py-6">
@@ -12,7 +37,7 @@ const AuctionDetails = ({ auction, onClose }) => {
               <ArrowLeft />
             </button>
             <h1 className="text-xl text-slate-800 font-semibold">
-              {auction.title}
+              {selectedAuction.title}
             </h1>
           </div>
           <button
@@ -23,11 +48,11 @@ const AuctionDetails = ({ auction, onClose }) => {
           </button>
         </div>
 
-        {auction.imageUrl && (
+        {selectedAuction.imageUrl && (
           <div className="mb-6">
             <img
-              src={auction.imageUrl}
-              alt={`${auction.title} auction image`}
+              src={selectedAuction.imageUrl}
+              alt={`${selectedAuction.title} auction image`}
               className="w-full h-40 object-cover rounded-xl shadow-lg"
             />
           </div>
@@ -48,7 +73,7 @@ const AuctionDetails = ({ auction, onClose }) => {
                     </span>
                   </div>
                   <p className="text-slate-700 font-semibold text-base flex items-center">
-                    {auction.status}
+                    {selectedAuction.status}
                     <span className="ml-2 text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full">
                       Active
                     </span>
@@ -63,7 +88,7 @@ const AuctionDetails = ({ auction, onClose }) => {
                     </span>
                   </div>
                   <p className="text-blue-600 font-semibold text-base flex items-center">
-                    ₹{auction.budgetLimit}
+                    ₹{selectedAuction.budgetLimit}
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-4 w-4 ml-2 text-blue-400"
@@ -89,7 +114,12 @@ const AuctionDetails = ({ auction, onClose }) => {
                     </span>
                   </div>
                   <p className="text-slate-700 font-semibold text-base flex items-center">
-                    {new Date(auction.startTime).toLocaleString()}
+                    {convertTo12HourFormat(
+                      new Date(selectedAuction.startTime)
+                        .toISOString()
+                        .split("T")[1]
+                        .split(".")[0]
+                    )}
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-4 w-4 ml-2 text-green-400"
@@ -116,7 +146,7 @@ const AuctionDetails = ({ auction, onClose }) => {
                     </span>
                   </div>
                   <p className="text-slate-700 font-semibold text-base flex items-center">
-                    {new Date(auction.endTime).toLocaleString()}
+                    {new Date(selectedAuction.endTime).toLocaleString()}
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-4 w-4 ml-2 text-red-400"
@@ -137,33 +167,55 @@ const AuctionDetails = ({ auction, onClose }) => {
             </div>
           </section>
 
-          {/* <div className="grid md:grid-cols-2 gap-6"> */}
           <section>
             <h2 className="text-md text-black font-medium mb-3">
-              Participants ({auction.participants.length})
+              Participants ({selectedAuction.participants.length})
             </h2>
             <div className="bg-white shadow-sm rounded-lg border">
-              {auction.participants.length === 0 ? (
+              {selectedAuction.participants.length === 0 ? (
                 <p className="text-sm text-slate-500 p-4 text-center">
                   No participants registered
                 </p>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4">
-                  {auction.participants.map((participant) => (
+                  {selectedAuction.participants.map((participant) => (
                     <div
                       key={participant.id}
-                      className="flex items-center text-sm bg-slate-50 p-3 rounded-lg hover:bg-slate-100 transition"
+                      className="flex items-center justify-between text-sm bg-slate-50 p-3 rounded-lg hover:bg-slate-100 transition"
                     >
-                      <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-3">
-                        {participant.username.charAt(0).toUpperCase()}
+                      <div className="flex gap-2 items-center justify-between w-fit">
+                        <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-3">
+                          {participant.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-slate-700 text-xs font-medium">
+                            {participant.username}
+                          </p>
+                          <p className="text-slate-500 text-xs">
+                            {participant.email}
+                          </p>
+                        </div>
                       </div>
                       <div>
-                        <p className="text-slate-700 text-xs font-medium">
-                          {participant.username}
-                        </p>
-                        <p className="text-slate-500 text-xs">
-                          {participant.email}
-                        </p>
+                        {participant?.banned ? (
+                          <button
+                            onClick={() =>
+                              handleBanUnbanUsers(participant.id, 1)
+                            }
+                            className="bg-green-600 text-xs py-2 px-3 rounded-xl font-medium text-white"
+                          >
+                            Unban
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              handleBanUnbanUsers(participant.id, 0)
+                            }
+                            className="bg-red-600 py-2 text-xs rounded-xl px-3 font-medium text-white"
+                          >
+                            Ban
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -174,16 +226,16 @@ const AuctionDetails = ({ auction, onClose }) => {
 
           <section>
             <h2 className="text-md text-black font-medium mb-3">
-              Auction Players ({auction.auctionPlayers.length})
+              Auction Players ({selectedAuction.auctionPlayers.length})
             </h2>
             <div className="space-y-3 max-h-[500px] overflow-y-auto">
-              {auction.auctionPlayers.length === 0 ? (
+              {selectedAuction.auctionPlayers.length === 0 ? (
                 <div className="bg-white shadow-sm border rounded-lg p-4 text-center text-sm text-slate-500">
                   No players in the auction
                 </div>
               ) : (
                 <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
-                  {auction.auctionPlayers.map((player) => (
+                  {selectedAuction.auctionPlayers.map((player) => (
                     <div
                       key={player.id}
                       className="bg-white shadow-sm border rounded-lg p-3 flex flex-col items-center hover:bg-slate-50 transition-colors"
@@ -191,7 +243,7 @@ const AuctionDetails = ({ auction, onClose }) => {
                       <img
                         src={player.imageUrl}
                         alt={player.player.name}
-                        className="w-16 h-16 rounded-full object-cover mb-2"
+                        className="w-16 h-16 rounded-full object-cover mb-2 bg-zinc-500"
                       />
                       <div className="text-center w-full">
                         <p className="text-sm text-slate-700 font-medium">
@@ -221,7 +273,6 @@ const AuctionDetails = ({ auction, onClose }) => {
               )}
             </div>
           </section>
-          {/* </div> */}
         </div>
       </div>
     </div>

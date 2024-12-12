@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import {
   Home,
@@ -9,10 +10,15 @@ import {
   Book,
   LogOut,
   Group,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 
 const AdminLayout = () => {
   const location = useLocation();
+
+  const [isLegalOpen, setIsLegalOpen] = useState(false); // Tracks legal submenu
+  const [isInstructionOpen, setIsInstructionOpen] = useState(false); // Tracks instruction submenu
 
   const menuItems = [
     {
@@ -107,7 +113,7 @@ const AdminLayout = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 ${
+                className={`flex items-center space-x-3 p-2 lg:p-3 rounded-lg transition-all duration-200 ${
                   item.active
                     ? "bg-blue-600 text-white"
                     : "text-black hover:bg-gray-500 hover:text-white"
@@ -119,44 +125,68 @@ const AdminLayout = () => {
             ))}
           </nav>
 
-          <nav className="space-y-2 mt-6">
-            <h3 className="text-xs text-black uppercase tracking-wider">
+          <nav className="mt-4">
+            <h3
+              className="flex items-center justify-between text-xs text-black uppercase tracking-wider cursor-pointer"
+              onClick={() => setIsLegalOpen(!isLegalOpen)}
+            >
               Legal Pages
+              {isLegalOpen ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
             </h3>
-            {legalItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 ${
-                  item.active
-                    ? "bg-blue-600 text-white"
-                    : "text-black hover:bg-gray-500 hover:text-white"
-                }`}
-              >
-                {item.icon}
-                <span className="text-sm font-medium">{item.text}</span>
-              </Link>
-            ))}
+            {isLegalOpen && (
+              <div className="space-y-2 mt-2">
+                {legalItems.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 ${
+                      item.active
+                        ? "bg-blue-600 text-white"
+                        : "text-black hover:bg-gray-500 hover:text-white"
+                    }`}
+                  >
+                    {item.icon}
+                    <span className="text-sm font-medium">{item.text}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
           </nav>
 
-          <nav className="space-y-2 mt-6">
-            <h3 className="text-xs text-black uppercase tracking-wider">
+          <nav className="mt-4">
+            <h3
+              className="flex items-center justify-between text-xs text-black uppercase tracking-wider cursor-pointer"
+              onClick={() => setIsInstructionOpen(!isInstructionOpen)}
+            >
               Instruction Pages
+              {isInstructionOpen ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
             </h3>
-            {instructionTerms.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 ${
-                  item.active
-                    ? "bg-blue-600 text-white"
-                    : "text-black hover:bg-gray-500 hover:text-white"
-                }`}
-              >
-                {item.icon}
-                <span className="text-sm font-medium">{item.text}</span>
-              </Link>
-            ))}
+            {isInstructionOpen && (
+              <div className="space-y-2 mt-2">
+                {instructionTerms.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 ${
+                      item.active
+                        ? "bg-blue-600 text-white"
+                        : "text-black hover:bg-gray-500 hover:text-white"
+                    }`}
+                  >
+                    {item.icon}
+                    <span className="text-sm font-medium">{item.text}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
           </nav>
         </div>
 

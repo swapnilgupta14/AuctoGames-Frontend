@@ -147,9 +147,19 @@ const AdvancedAnalytics = () => {
   return (
     <div className="p-6 bg-white overflow-y-scroll h-screen">
       <div className="container mx-auto">
-        <h1 className="text-xl font-semibold text-gray-800 mb-8">
-          Comprehensive Analytics Dashboard
-        </h1>
+        <div className="flex justify-between items-start">
+          <h1 className="text-xl font-semibold text-gray-800 mb-8">
+            Analytics Dashboard
+          </h1>
+          <a
+            href="https://analytics.google.com/analytics/web/?authuser=2#/p469787007/reports/intelligenthome?params=_u..nav%3Dmaui"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-blue-600 text-white font-semibold py-2 px-3 rounded-xl text-sm hover:bg-blue-950"
+          >
+            Google Analytics Dashboard
+          </a>
+        </div>
 
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
           {[

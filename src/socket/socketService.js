@@ -3,7 +3,8 @@ import { io } from "socket.io-client";
 class SocketService {
   constructor() {
     this.socket = null;
-    this.SOCKET_URL = "https://expressbackend-production-b19c.up.railway.app";
+    // this.SOCKET_URL = "https://expressbackend-production-b19c.up.railway.app";
+    this.SOCKET_URL = "http://localhost:3009";
   }
 
   // ------------------------------------------------
@@ -96,10 +97,6 @@ class SocketService {
 
   emitGetActivePlayer() {
     this.socket.emit("getActivePlayer");
-    // this.socket.on("activePlayerDetail", (playerData) => {
-    //   console.log("Active Player Data:", playerData);
-    //   return playerData;
-    // });
   }
 
   emitGetPlayerCount() {
@@ -110,6 +107,12 @@ class SocketService {
 
   onCurrentBids(callback) {
     this.on("currentPlayerBids", (data) => {
+      callback(data);
+    });
+  }
+
+  playerSold(callback) {
+    this.on("playerSold", (data) => {
       callback(data);
     });
   }

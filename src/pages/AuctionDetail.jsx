@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { ArrowUpLeftFromCircleIcon, RefreshCw, X } from "lucide-react";
+import {
+  ArrowUpLeftFromCircleIcon,
+  RefreshCw,
+  WatchIcon,
+  X,
+  Youtube,
+} from "lucide-react";
 import Header from "../components/Header";
 import { validateAuctionRegistration, getWalletBalance } from "../api/fetch";
 
@@ -42,15 +48,17 @@ const AuctionDetail = () => {
       setRegistrationData(res);
 
       let status = "error";
-      if (res?.status === "registered") {
+      if (res?.status === "registered" || res?.status === "APPROVED") {
         status = "success";
       } else if (res?.status === "not_registered") {
         if (userBalance >= auction.registrationFee) {
           status = "not_registered";
         } else {
-          // status = "insufficient_balance";
-          status = "not_registered";
+          status = "insufficient_balance";
+          // status = "not_registered";
         }
+      } else if (res?.status === "PENDING") {
+        status = "PENDING";
       } else {
         status = "ineligible";
       }
@@ -98,7 +106,7 @@ const AuctionDetail = () => {
                 Validating registration...
               </p>
             </div>
-          ) : validationResult?.status === "success" ? (
+          ) : validationResult?.status === "success" || validationResult?.status === "APPROVED" ? (
             <div className="flex flex-col items-center">
               <div className="bg-green-100 text-green-800 p-2 rounded-full mb-4">
                 <svg
@@ -148,7 +156,7 @@ const AuctionDetail = () => {
             </div>
           ) : validationResult?.status === "insufficient_balance" ? (
             <div className="flex flex-col items-center">
-              <div className="bg-yellow-100 text-yellow-800 p-2 rounded-full mb-4">
+              <div className="bg-orange-100 text-orange-800 p-2 rounded-full mb-4">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-12 w-12"
@@ -164,7 +172,7 @@ const AuctionDetail = () => {
                   />
                 </svg>
               </div>
-              <h2 className="text-xl font-bold mb-4 text-yellow-800">
+              <h2 className="text-xl font-bold mb-4 text-orange-600">
                 Insufficient Balance
               </h2>
               <p className="text-center text-gray-600 mb-4">
@@ -182,7 +190,7 @@ const AuctionDetail = () => {
                 Cannot Participate
               </h2>
               <p className="text-center text-gray-600 mb-4">
-                You do not meet the requirements to enter this auction. frdc
+                You do not meet the requirements to enter this auction.
               </p>
             </div>
           ) : validationResult?.status === "not_registered" ? (
@@ -196,6 +204,20 @@ const AuctionDetail = () => {
                 </h2>
                 <p className="text-center text-gray-600 mb-4">
                   You are not registered yet in the Auction, Register Now!
+                </p>
+              </div>
+            </div>
+          ) : validationResult?.status === "PENDING" ? (
+            <div>
+              <div className="flex flex-col items-center">
+                <div className="bg-yellow-100 text-yellow-800 p-2 rounded-full mb-4">
+                  <WatchIcon className="h-8 w-8" />
+                </div>
+                <h2 className="text-xl font-bold mb-4 text-yellow-800">
+                  Wait! Request Pending
+                </h2>
+                <p className="text-center text-gray-600 mb-4">
+                  Your Team Registration Request is Pending!
                 </p>
               </div>
             </div>
@@ -223,12 +245,16 @@ const AuctionDetail = () => {
 
       <Header heading={"Upcoming Auction"}></Header>
 
-      <div className="p-4 ">
+      <div className="p-4 relative">
         <img
           src={"https://via.placeholder.com/600x300"}
           alt={auction.title}
           className="w-full h-64 object-cover rounded-lg"
         />
+
+        <div className="bg-red-500  rounded-full p-2 text-white absolute top-[70%] right-2">
+          <Youtube className="w-6 h-6" />
+        </div>
 
         <h1 className="text-[20px] font-bold mt-4 px-3">{auction.title}</h1>
 
@@ -260,7 +286,7 @@ const AuctionDetail = () => {
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white">
-        {validationResult?.status === "success" ? (
+        {validationResult?.status === "success" || validationResult?.status === "APPROVED" ? (
           validationResult?.team !== null ? (
             <button
               className="px-4 py-3 bg-[#1F41BB] text-white rounded-lg w-full font-medium text-[16px]"
@@ -306,10 +332,17 @@ const AuctionDetail = () => {
           >
             Register Now
           </button>
+        ) : validationResult?.status === "PENDING" ? (
+          <button
+            onClick={() => navigate(`/register/${id}`, { state: { auction } })}
+            className="px-4 py-3 bg-gray-300 text-gray-600 rounded-lg w-full font-medium text-[16px] cursor-not-allowed"
+          >
+            Wait! Request Pending
+          </button>
         ) : (
           <button
             disabled
-            className="px-4 py-3 bg-gray-300 text-gray-500 rounded-lg w-full font-medium text-[16px] cursor-not-allowed"
+            className="px-4 py-3 bg-gray-300 text-gray-600 rounded-lg w-full font-medium text-[16px] cursor-not-allowed"
           >
             Waiting for Validation
           </button>

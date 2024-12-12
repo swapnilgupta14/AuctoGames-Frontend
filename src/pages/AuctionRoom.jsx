@@ -322,6 +322,7 @@ const AuctionRoom = () => {
     SocketService.onBudgetUpdate((data) => console.log("Budget Update", data));
 
     SocketService.onPlayerReAdded((data) => {
+      toast.success(`${data?.message}`);
       fetchAllPlayerInAuction(auctionId);
       SocketService.emitGetActivePlayer();
       SocketService.emitGetPlayerCount();
@@ -351,6 +352,12 @@ const AuctionRoom = () => {
     SocketService.onUserDisconnected((data) =>
       console.log("user disconnected", data)
     );
+
+    SocketService.playerSold((data) => {
+      toast.success(
+        `${data?.playerDetails?.name} is sold to ${data?.userId}`
+      );
+    });
 
     SocketService.onGetChatHistory((data) => {
       const user_id = localStorage.getItem("userId");
@@ -406,7 +413,6 @@ const AuctionRoom = () => {
 
     SocketService.onAskNewPlayer(() => {
       fetchAllPlayerInAuction(auctionId);
-      toast.success(`Current Player is successfully sold`);
       // if (timerRef.current) {
       //   timerRef.current.startTimer();
       // }

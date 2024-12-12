@@ -11,6 +11,7 @@ const TeamsPage = () => {
   const { auctionId, userId } = useParams();
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [totalPlayerCount, setTotalPlayerCount] = useState(null);
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -20,7 +21,7 @@ const TeamsPage = () => {
         const res = await getAllTeamsInAuction(auctionId);
         if (res) {
           setIsLoading(false);
-          console.log(res, "hiiiiiiii")
+          setTotalPlayerCount(res?.totalPlayerCount);
           setData(res.teams || []);
         }
       } catch (error) {
@@ -57,13 +58,14 @@ const TeamsPage = () => {
         </div>
       ) : (
         <div className="flex-1 w-full pt-4">
-          <div className="flex flex-col gap-5 w-full justify-center items-center">
+          <div className="flex flex-col gap-5 w-full justify-center items-center px-3">
             {data?.map((item) => (
               <TeamCard
                 key={item?.id}
                 item={item}
                 auctionId={auctionId}
                 userId={userId}
+                totalPlayerCount = {totalPlayerCount}
               ></TeamCard>
             ))}
           </div>

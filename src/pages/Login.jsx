@@ -21,7 +21,6 @@ const Login = () => {
 
     async function loginUser(data) {
         setLoading(true);
-        console.log("data is : ", data);
 
         try {
             let url = "https://server.rishabh17704.workers.dev/api/user/login";
@@ -53,13 +52,10 @@ const Login = () => {
             }
 
             if (finalRes.status === 201) {
-                console.log(finalRes);
                 const {user , token} = finalRes;
                 localStorage.setItem("shopCoToken", finalRes.token)
                 localStorage.setItem("userId", finalRes.user.id)
                 localStorage.setItem("email", finalRes.user.email)
-                console.log("the user id while login is : " , finalRes.user.id)
-                // Dispatch action to update Redux state
                 dispatch(setUser({
                     userId:finalRes.user.id,
                     email: user.email,
@@ -99,7 +95,6 @@ const Login = () => {
     const handleLogin = () => {
         if (validateForm()) {
             const userDetails = { email, password };
-            console.log("User Details:", userDetails);
             loginUser(userDetails);
         }
     };
