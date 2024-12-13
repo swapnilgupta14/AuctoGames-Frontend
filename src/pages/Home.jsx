@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { DateRangePicker } from "react-date-range";
 import "react-date-range/dist/styles.css";
@@ -11,9 +11,9 @@ import Header from "../components/Header";
 
 const carouselStyles = {
   container:
-    "relative w-full h-[300px] overflow-hidden flex flex-col items-center mt-4",
+    "relative w-full h-[300px] overflow-hidden flex flex-col items-center",
   slide:
-    "w-[95%] rounded-xl h-[300px] flex items-center justify-center text-white font-bold bg-gray-500",
+    "w-[full] rounded-xl h-[300px] flex gap-4 items-center justify-center text-white font-bold bg-gray-500 absolute top-0 left-0 transition-transform duration-500",
   dotsContainer: "absolute bottom-2 flex gap-2",
   dot: "w-3 h-3 rounded-full bg-gray-300 cursor-pointer",
   activeDot: "w-3 h-3 rounded-full bg-blue-500",
@@ -40,21 +40,11 @@ const Home = () => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const calculateDefaultDateRange = () => {
-    const today = new Date();
-    const twoWeeksFromToday = new Date(today);
-    twoWeeksFromToday.setDate(today.getDate() + 14);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
-    return [
-      {
-        startDate: today,
-        endDate: twoWeeksFromToday,
-        key: "selection",
-      },
-    ];
-  };
-
-  const [dateRange, setDateRange] = useState(calculateDefaultDateRange());
+  const carouselRef = useRef(null);
+  const autoSlideTimerRef = useRef(null);
 
   useEffect(() => {
     const fetchAuctions = async () => {
@@ -86,6 +76,76 @@ const Home = () => {
     fetchAuctions();
   }, []);
 
+  const startAutoSlide = useCallback(() => {
+    if (autoSlideTimerRef.current) {
+      clearInterval(autoSlideTimerRef.current);
+    }
+
+    autoSlideTimerRef.current = setInterval(() => {
+      setCurrentLiveSlide((prev) => (prev + 1) % liveAuctions.length);
+    }, 5000);
+  }, [liveAuctions.length]);
+
+  const stopAutoSlide = useCallback(() => {
+    if (autoSlideTimerRef.current) {
+      clearInterval(autoSlideTimerRef.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (liveAuctions.length > 0) {
+      startAutoSlide();
+    }
+    return () => stopAutoSlide();
+  }, [liveAuctions, startAutoSlide, stopAutoSlide]);
+
+  const handleTouchStart = (e) => {
+    stopAutoSlide();
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStart - touchEnd > 75) {
+      nextSlide();
+    }
+
+    if (touchStart - touchEnd < -75) {
+      prevSlide();
+    }
+
+    startAutoSlide();
+  };
+
+  const nextSlide = () => {
+    setCurrentLiveSlide((prev) => (prev + 1) % liveAuctions.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentLiveSlide(
+      (prev) => (prev - 1 + liveAuctions.length) % liveAuctions.length
+    );
+  };
+
+  const calculateDefaultDateRange = () => {
+    const today = new Date();
+    const twoWeeksFromToday = new Date(today);
+    twoWeeksFromToday.setDate(today.getDate() + 14);
+
+    return [
+      {
+        startDate: today,
+        endDate: twoWeeksFromToday,
+        key: "selection",
+      },
+    ];
+  };
+
+  const [dateRange, setDateRange] = useState(calculateDefaultDateRange());
+
   useEffect(() => {
     const { startDate, endDate } = dateRange[0];
     if (!startDate || !endDate) {
@@ -99,17 +159,7 @@ const Home = () => {
     }
   }, [dateRange, scheduledAuctions]);
 
-  const nextSlide = () => {
-    setCurrentLiveSlide((prev) => (prev + 1) % liveAuctions.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentLiveSlide(
-      (prev) => (prev - 1 + liveAuctions.length) % liveAuctions.length
-    );
-  };
-
-  const truncateText = (text, maxLength = 25) => {
+  const truncateText = (text, maxLength = 20) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + "...";
   };
@@ -134,55 +184,67 @@ const Home = () => {
           <LiveAuctionSkeleton />
         </div>
       ) : liveAuctions.length > 0 ? (
-        <div className={carouselStyles.container}>
-          {liveAuctions.map((auction, index) => (
-            <div
-              key={auction.id}
-              className={`${carouselStyles.slide} ${
-                currentLiveSlide === index ? "block" : "hidden"
-              }`}
-              onClick={() =>
-                navigate(`/auction/${auction.id}`, { state: { auction } })
-              }
-            >
-              <div>
-                <img
-                  src={`https://via.placeholder.com/600x300?text=${auction.title}`}
-                  alt={auction.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="absolute top-4 right-4 bg-red-500 px-4  rounded-lg font-light flex justify-center items-center gap-2 py-[1px]">
-                <div className="mb-[3px]">Live</div>
-                <div className="w-[5px] h-[5px] bg-white rounded-full "></div>
-              </div>
-            </div>
-          ))}
-
-          <div className={carouselStyles.dotsContainer}>
-            {liveAuctions.map((_, index) => (
+        <div className="p-3">
+          <div
+            className={carouselStyles.container}
+            ref={carouselRef}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {liveAuctions.map((auction, index) => (
               <div
-                key={index}
-                className={`${carouselStyles.dot} ${
-                  currentLiveSlide === index ? carouselStyles.activeDot : ""
-                }`}
-                onClick={() => setCurrentLiveSlide(index)}
-              />
+                key={auction.id}
+                className={`${carouselStyles.slide}`}
+                style={{
+                  transform: `translateX(${(index - currentLiveSlide) * 100}%)`,
+                  zIndex: index === currentLiveSlide ? 10 : 1,
+                }}
+                onClick={() =>
+                  navigate(`/auction/${auction.id}`, { state: { auction } })
+                }
+              >
+                <div className="w-full h-full">
+                  <img
+                    src={`https://via.placeholder.com/600x300?text=${auction.title}`}
+                    alt={auction.title}
+                    className="w-full h-full object-cover rounded-xl"
+                  />
+                </div>
+                <div className="absolute top-4 right-4 bg-red-500 px-4 rounded-lg font-light flex justify-center items-center gap-2 py-[1px]">
+                  <div className="mb-[3px]">Live</div>
+                  <div className="w-[5px] h-[5px] bg-white rounded-full "></div>
+                </div>
+              </div>
             ))}
-          </div>
 
-          <button
-            className="absolute left-2 top-1/2 transform -translate-y-1/2  text-white p-2 rounded-full"
-            onClick={prevSlide}
-          >
-            &lt;
-          </button>
-          <button
-            className="absolute right-2 top-1/2 transform -translate-y-1/2  text-white p-2 rounded-full"
-            onClick={nextSlide}
-          >
-            &gt;
-          </button>
+            <button
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white bg-zinc-400 p-2 rounded-full z-20"
+              onClick={prevSlide}
+              aria-label="Previous slide"
+            >
+              &lt;
+            </button>
+            <button
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white bg-zinc-400 p-2 rounded-full z-20"
+              onClick={nextSlide}
+              aria-label="Next slide"
+            >
+              &gt;
+            </button>
+
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
+              {liveAuctions.map((_, index) => (
+                <span
+                  key={index}
+                  className={`w-3 h-3 rounded-full cursor-pointer ${
+                    index === currentLiveSlide ? "bg-white" : "bg-gray-400"
+                  }`}
+                  onClick={() => setCurrentLiveSlide(index)}
+                ></span>
+              ))}
+            </div>
+          </div>
         </div>
       ) : (
         <div className="mt-4 text-center text-gray-500">
