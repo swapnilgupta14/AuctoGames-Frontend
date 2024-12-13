@@ -130,7 +130,7 @@ const AuctionDetail = () => {
 
               {validationResult?.team !== null ? (
                 <div className="w-full bg-gray-100 rounded-lg p-4 text-sm">
-                  <h3 className="font-semibold mb-2">Team Details</h3>
+                  <h3 className="font-semibold mb-2 text-blue-700">Registered Team Details Found!</h3>
                   <p>
                     <strong>Team Name:</strong> {validationResult.team.name}
                   </p>
@@ -141,10 +141,6 @@ const AuctionDetail = () => {
                   <p>
                     <strong>Total Players:</strong>{" "}
                     {validationResult.team.auctionPlayers?.length || 0}
-                  </p>
-                  <p className="mt-2">
-                    <strong>Current Balance:</strong> {validationResult.balance}{" "}
-                    Cr
                   </p>
                 </div>
               ) : (

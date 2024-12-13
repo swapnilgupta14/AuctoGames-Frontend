@@ -1,8 +1,7 @@
 import React, { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useEffect } from "react";
-import { Upload, AlertCircle, Trash2, ImagePlus } from "lucide-react";
+import { Upload, AlertCircle, Trash2, ImagePlus, X } from "lucide-react";
 import Header from "../components/Header";
 import heroImg from "../assets/image 1.png";
 import { submitRegistrationRequest } from "../api/fetch";
@@ -27,6 +26,9 @@ const AuctionRegistration = () => {
   const [teamName, setTeamName] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
 
   const validateForm = () => {
     let isValid = true;
@@ -72,6 +74,19 @@ const AuctionRegistration = () => {
     setErrors(newErrors);
   };
 
+  const openModal = (type, message) => {
+    setModalType(type);
+    setModalMessage(message);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    if (modalType === "success") {
+      navigate(-2);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -90,21 +105,23 @@ const AuctionRegistration = () => {
 
       const result = await submitRegistrationRequest(formData, imagePreview);
       if (result) {
-        console.log(result, "result");
-        navigate(`/auction/${auction?.id}`);
+        openModal(
+          "success",
+          "The team registration request has been successfully submitted."
+        );
       } else {
-        alert(result?.message || "Failed to register");
+        openModal("error", result?.message || "Failed to register");
       }
     } catch (error) {
       console.error("Error during registration:", error);
-      alert("An error occurred. Please try again.");
+      openModal("error", "An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="w-full min-h-screen bg-gray-50">
+    <div className="w-full min-h-screen bg-gray-50 relative">
       <Header heading="Auction Registration" />
 
       <div className="relative">
@@ -215,12 +232,6 @@ const AuctionRegistration = () => {
                 </div>
               )}
             </div>
-            {/* {errors.teamIcon && (
-              <div className="flex items-center gap-1 text-red-500 text-sm">
-                <AlertCircle size={16} />
-                <span>{errors.teamIcon}</span>
-              </div>
-            )} */}
           </div>
 
           <div className="mt-8">
@@ -242,6 +253,74 @@ const AuctionRegistration = () => {
           </div>
         </form>
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-[85%] relative">
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <X size={24} />
+            </button>
+            <div className="text-center">
+              {modalType === "success" ? (
+                <>
+                  <div className="mb-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-10 w-10 mx-auto text-green-500"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                    Success! Request Submitted
+                  </h2>
+                </>
+              ) : (
+                <>
+                  <div className="mb-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-10 w-10 mx-auto text-red-500"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                    Error!
+                  </h2>
+                </>
+              )}
+              <p className="text-gray-600 mb-6">{modalMessage}</p>
+              <button
+                onClick={closeModal}
+                className={`w-full py-3 rounded-xl font-medium transition-colors ${
+                  modalType === "success"
+                    ? "bg-blue-600 text-white text-sm hover:bg-blue-700"
+                    : "bg-red-600 text-white text-sm hover:bg-red-700"
+                }`}
+              >
+                {modalType === "success"
+                  ? "Wait for Approval! Go Back"
+                  : "Try Again"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

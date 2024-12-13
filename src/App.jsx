@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 import { Suspense, lazy } from "react";
-import LoginPage from "./pages/Login";
 import { Routes, Route, useLocation } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import { initGA, trackPageView, trackEvent } from "./analytics";
+import LoginPage from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import ForgotPassPage from "./pages/ForgotPassPage";
-import { Toaster } from "react-hot-toast";
 import ResetPassword from "./pages/ResetPassword";
 import Splash from "./pages/Splash";
 import Home from "./pages/Home";
@@ -27,8 +28,6 @@ import MyAuctions from "./pages/MyAuctions";
 import TeamsPage from "./pages/TeamsPage";
 const Admin = lazy(() => import("./admin"));
 
-import { initGA, trackPageView } from "./analytics";
-
 const PAGE_TITLES = {
   "/home": "Home",
   "/login": "Login",
@@ -46,7 +45,7 @@ const PAGE_TITLES = {
   "/auctionHome": "Auction",
   "/auction-room": "Auction Room",
   "/how-to-play": "How to Play",
-  "/how-to-register": "Registeration Instructions",
+  "/how-to-register": "Registration Instructions",
   "/how-to-withdraw": "Withdraw Instructions",
   "/privacy-policy": "Privacy Policy",
   "/terms-and-conditions": "Terms and Conditions",
@@ -62,12 +61,25 @@ function App() {
 
   useEffect(() => {
     initGA();
+
+    const sessionStartTime = new Date().toISOString();
+    trackEvent("Session Start", { sessionStartTime });
+
+    return () => {
+      const sessionEndTime = new Date().toISOString();
+      trackEvent("Session End", { sessionEndTime });
+    };
   }, []);
 
   useEffect(() => {
-    trackPageView(location.pathname);
-
     const pathName = location.pathname;
+
+    trackPageView(pathName);
+
+    const bounceTimer = setTimeout(() => {
+      trackEvent("User Engaged", { page: pathName });
+    }, 30000);
+
     const matchingRoute = Object.keys(PAGE_TITLES).find((route) => {
       const routeParts = route.split("/");
       const pathParts = pathName.split("/");
@@ -82,6 +94,10 @@ function App() {
     document.title = matchingRoute
       ? `${PAGE_TITLES[matchingRoute]} | Aucto Games`
       : "Aucto Games";
+
+    return () => {
+      clearTimeout(bounceTimer);
+    };
   }, [location]);
 
   return (
@@ -103,7 +119,6 @@ function App() {
           path="/yourTeamPlayers/:auctionId/:userId"
           element={<YourTeamPlayers />}
         />
-        <Route path="/yourTeamPlayers/:teamId" element={<YourTeamPlayers />} />
         <Route path="/result/:auctionId" element={<ResultPage />} />
         <Route path="/auctionHome" element={<AuctionHome />} />
         <Route path="/auction-room" element={<AuctionRoom />} />
