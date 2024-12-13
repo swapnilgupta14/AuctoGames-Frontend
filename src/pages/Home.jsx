@@ -17,12 +17,12 @@ const carouselStyles = {
   dotsContainer: "absolute bottom-2 flex gap-2",
   dot: "w-3 h-3 rounded-full bg-gray-300 cursor-pointer",
   activeDot: "w-3 h-3 rounded-full bg-blue-500",
-  skeletonContainer: "w-[95%] h-[300px] bg-gray-200 animate-pulse rounded-xl",
+  skeletonContainer: "relative w-[96%] h-[300px] m-4 bg-gray-200 animate-pulse rounded-xl",
 };
 
 const LiveAuctionSkeleton = () => (
-  <div className={carouselStyles.skeletonContainer}>
-    <div className="absolute top-4 right-4 bg-zinc-400 px-4 rounded-lg h-6 w-20"></div>
+  <div className={carouselStyles.skeletonContainer} >
+    <div className="absolute top-4 right-6 bg-zinc-400 px-4 rounded-lg h-6 w-20"></div>
   </div>
 );
 
@@ -206,12 +206,15 @@ const Home = () => {
               >
                 <div className="w-full h-full">
                   <img
-                    src={`https://via.placeholder.com/600x300?text=${auction.title}`}
+                    src={auction?.imageUrl || `https://via.placeholder.com/600x300?text=${auction.title}`}
                     alt={auction.title}
                     className="w-full h-full object-cover rounded-xl"
                   />
                 </div>
-                <div className="absolute top-4 right-4 bg-red-500 px-4 rounded-lg font-light flex justify-center items-center gap-2 py-[1px]">
+                <div className="absolute top-0 left-0 bg-zinc-200 shadow-xl text-black font-normal px-4 flex justify-center rounded-r-2xl items-center gap-2 py-[4px]">
+                  <div className="mb-[3px]">{auction.title}</div>
+                </div>
+                <div className="absolute top-4 right-4 bg-red-500 px-4 rounded-3xl font-light flex justify-center items-center gap-2 py-[1px]">
                   <div className="mb-[3px]">Live</div>
                   <div className="w-[5px] h-[5px] bg-white rounded-full "></div>
                 </div>
@@ -238,7 +241,7 @@ const Home = () => {
                 <span
                   key={index}
                   className={`w-3 h-3 rounded-full cursor-pointer ${
-                    index === currentLiveSlide ? "bg-white" : "bg-gray-400"
+                    index === currentLiveSlide ? "bg-blue-700" : "bg-gray-200"
                   }`}
                   onClick={() => setCurrentLiveSlide(index)}
                 ></span>
@@ -252,7 +255,7 @@ const Home = () => {
         </div>
       )}
 
-      <div className="mt-8 px-4">
+      <div className="my-4 px-4">
         <div className="flex justify-between items-start">
           <div className="flex flex-col gap-1 mb-4">
             <h2 className="text-xl font-semibold text-gray-700">
