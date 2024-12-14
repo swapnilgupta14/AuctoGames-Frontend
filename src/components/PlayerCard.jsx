@@ -18,8 +18,6 @@ const PlayerCard = ({
   const location = useLocation();
   const auctionId = location?.state?.auction?.id;
 
-  console.log(idToUsernameMap)
-
   return (
     <div className="w-full shadow-2xl bg-white px-4 py-2 my-2 rounded-xl flex items-center gap-4 justify-between border border-gray-200">
       <div className="flex gap-3 items-center">
@@ -115,7 +113,6 @@ const PlayerCard = ({
                 );
 
                 if (data) {
-                  console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
                   const auctionPlayerId = item?.auctionPlayerId;
                   if (data[auctionPlayerId]) {
                     if (data[auctionPlayerId].remaining > 0) {

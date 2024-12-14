@@ -3,6 +3,8 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
   ArrowUpLeftFromCircleIcon,
+  ArrowUpRightFromCircleIcon,
+  ListEndIcon,
   RefreshCw,
   WatchIcon,
   X,
@@ -59,6 +61,10 @@ const AuctionDetail = () => {
         }
       } else if (res?.status === "PENDING") {
         status = "PENDING";
+      } else if (
+        res?.message === "Auction Ended, Current Time is Greater than End Time"
+      ) {
+        status = "ENDED";
       } else {
         status = "ineligible";
       }
@@ -106,7 +112,8 @@ const AuctionDetail = () => {
                 Validating registration...
               </p>
             </div>
-          ) : validationResult?.status === "success" || validationResult?.status === "APPROVED" ? (
+          ) : validationResult?.status === "success" ||
+            validationResult?.status === "APPROVED" ? (
             <div className="flex flex-col items-center">
               <div className="bg-green-100 text-green-800 p-2 rounded-full mb-4">
                 <svg
@@ -130,7 +137,9 @@ const AuctionDetail = () => {
 
               {validationResult?.team !== null ? (
                 <div className="w-full bg-gray-100 rounded-lg p-4 text-sm">
-                  <h3 className="font-semibold mb-2 text-blue-700">Registered Team Details Found!</h3>
+                  <h3 className="font-semibold mb-2 text-blue-700">
+                    Registered Team Details Found!
+                  </h3>
                   <p>
                     <strong>Team Name:</strong> {validationResult.team.name}
                   </p>
@@ -217,6 +226,20 @@ const AuctionDetail = () => {
                 </p>
               </div>
             </div>
+          ) : validationResult?.status === "ENDED" ? (
+            <div>
+              <div className="flex flex-col items-center">
+                <div className="bg-blue-100 text-blue-800 p-2 rounded-full mb-4">
+                  <ArrowUpRightFromCircleIcon className="h-8 w-8" />
+                </div>
+                <h2 className="text-xl font-bold mb-4 text-blue-800">
+                  Auction Ended!
+                </h2>
+                <p className="text-center text-gray-600 mb-4">
+                  Auction is Ended! Check the Results
+                </p>
+              </div>
+            </div>
           ) : (
             <div className="flex flex-col items-center">
               <div className="bg-red-100 text-red-800 p-2 rounded-full mb-4">
@@ -282,7 +305,8 @@ const AuctionDetail = () => {
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white">
-        {validationResult?.status === "success" || validationResult?.status === "APPROVED" ? (
+        {validationResult?.status === "success" ||
+        validationResult?.status === "APPROVED" ? (
           validationResult?.team !== null ? (
             <button
               className="px-4 py-3 bg-[#1F41BB] text-white rounded-lg w-full font-medium text-[16px]"
@@ -317,7 +341,7 @@ const AuctionDetail = () => {
         ) : validationResult?.status === "ineligible" ? (
           <div
             className="px-4 py-3 bg-red-500 text-white rounded-lg w-full font-medium text-[16px] text-center"
-            onClick={() => navigate(`/register/${id}`, { state: { auction } })}
+            onClick={() => navigate(-1)}
           >
             You cannot participate in this auction! Exit
           </div>
@@ -329,11 +353,15 @@ const AuctionDetail = () => {
             Register Now
           </button>
         ) : validationResult?.status === "PENDING" ? (
-          <button
-            onClick={() => navigate(`/register/${id}`, { state: { auction } })}
-            className="px-4 py-3 bg-gray-300 text-gray-600 rounded-lg w-full font-medium text-[16px] cursor-not-allowed"
-          >
+          <button className="px-4 py-3 bg-gray-300 text-gray-600 rounded-lg w-full font-medium text-[16px] cursor-not-allowed">
             Wait! Request Pending
+          </button>
+        ) : validationResult?.status === "ENDED" ? (
+          <button
+            onClick={() => navigate(`/teamPage/${auction?.id}/${userId}`)}
+            className="px-4 py-3 bg-blue-700 text-white rounded-lg w-full font-medium text-[16px] cursor-not-allowed"
+          >
+            Auction Ended! Check Result
           </button>
         ) : (
           <button

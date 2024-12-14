@@ -1,12 +1,15 @@
-import React from "react";
-import { XCircle } from "lucide-react";
+import { Users, XCircle } from "lucide-react";
 import { ArrowLeft } from "lucide-react";
-import { convertTo12HourFormat } from "../../utils/TimeConversion";
 import { banUnbanUsers } from "../../api/fetch";
 import { useAuctionContext } from "../pages/Auctions";
+import PlayersPopup from "./PlayerPopup";
+import { useState } from "react";
 
 const AuctionDetails = ({ onClose }) => {
   const { selectedAuction, fetchAllAuctions } = useAuctionContext();
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+  console.log(selectedAuction)
 
   const handleBanUnbanUsers = async (participantId, type) => {
     try {
@@ -19,7 +22,6 @@ const AuctionDetails = ({ onClose }) => {
     }
   };
 
-  // If no current auction, return null or a loading state
   if (!selectedAuction) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
@@ -27,6 +29,14 @@ const AuctionDetails = ({ onClose }) => {
       </div>
     );
   }
+
+  const openPopup = () => {
+    setIsPopupOpen(true);
+  };
+
+  const closePopup = () => {
+    setIsPopupOpen(false);
+  };
 
   return (
     <div className="w-full h-screen overflow-y-auto">
@@ -114,12 +124,13 @@ const AuctionDetails = ({ onClose }) => {
                     </span>
                   </div>
                   <p className="text-slate-700 font-semibold text-base flex items-center">
-                    {convertTo12HourFormat(
-                      new Date(selectedAuction.startTime)
+                    {selectedAuction.startTime}
+                    {/* {convertTo12HourFormat(
+                      new Date()
                         .toISOString()
                         .split("T")[1]
                         .split(".")[0]
-                    )}
+                    )} */}
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-4 w-4 ml-2 text-green-400"
@@ -146,7 +157,8 @@ const AuctionDetails = ({ onClose }) => {
                     </span>
                   </div>
                   <p className="text-slate-700 font-semibold text-base flex items-center">
-                    {new Date(selectedAuction.endTime).toLocaleString()}
+                    {selectedAuction.endTime}
+                    {/* {new Date().toLocaleString()} */}
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-4 w-4 ml-2 text-red-400"
@@ -225,9 +237,26 @@ const AuctionDetails = ({ onClose }) => {
           </section>
 
           <section>
-            <h2 className="text-md text-black font-medium mb-3">
-              Auction Players ({selectedAuction.auctionPlayers.length})
-            </h2>
+            <div className="flex justify-between items-end mb-4 ">
+              <h2 className="text-md text-black font-medium mb-3 ">
+                Auction Players ({selectedAuction.auctionPlayers.length})
+              </h2>
+              <div className="p-4">
+                <button
+                  onClick={openPopup}
+                  className="flex items-center px-2 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  <Users className="mr-2" /> Players Registration
+                </button>
+
+                <PlayersPopup
+                  isOpen={isPopupOpen}
+                  onClose={closePopup}
+                  auctionId={selectedAuction?.id}
+                />
+              </div>
+            </div>
+
             <div className="space-y-3 max-h-[500px] overflow-y-auto">
               {selectedAuction.auctionPlayers.length === 0 ? (
                 <div className="bg-white shadow-sm border rounded-lg p-4 text-center text-sm text-slate-500">

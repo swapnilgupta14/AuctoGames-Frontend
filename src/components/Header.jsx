@@ -1,21 +1,19 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import bellIcon from "../assets/bellIcon.svg";
 import rightArr from "../assets/rightArrWhite.svg";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import profile from "../assets/profile.svg";
 import privacy from "../assets/privacy.svg";
 import rules from "../assets/rules.svg";
 import tnc from "../assets/t&c.svg";
 import leftArr from "../assets/leftArr.png";
-import whatsapp from "../assets/whatsapp.svg";
 import user from "../assets/user (2).png";
 import { Wallet, ChevronRight, Download, LogOut, HomeIcon } from "lucide-react";
 import { getWalletBalance } from "../api/fetch";
 
 const Header = ({ heading }) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { userId } = useSelector((state) => state.user);
   const { username } = useSelector((state) => state.user);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -35,6 +33,14 @@ const Header = ({ heading }) => {
     } catch (error) {
       console.error("Failed to fetch wallet data", error);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("shopCoToken");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("email");
+    localStorage.removeItem("SessionExpiryTime");
+    navigate("/");
   };
 
   return (
@@ -264,10 +270,7 @@ const Header = ({ heading }) => {
         </div>
         <div className="flex items-center justify-center py-3 w-full">
           <button
-            onClick={() => {
-              localStorage.removeItem("shopCoToken");
-              navigate("/");
-            }}
+            onClick={handleLogout}
             className="w-full flex items-center justify-center py-2 text-red-600 hover:bg-red-50 active:bg-red-100 rounded-md px-4 transition-colors group"
           >
             Logout

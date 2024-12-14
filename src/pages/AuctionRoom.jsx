@@ -28,12 +28,16 @@ import {
   getAllPLayersInAuction,
   clearBids,
   getAllTeamsInAuction,
+  updateEndTime,
+  checkTeamComposition,
 } from "../api/fetch";
 
 const AuctionRoom = () => {
   const timerRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const bidPromiseRef = useRef(null);
+
   const auctionId = location?.state?.auction?.id;
 
   const { userId, token } = useSelector((state) => state.user);
@@ -46,7 +50,6 @@ const AuctionRoom = () => {
   const [activePlayer, setActivePlayer] = useState(null);
   const [activePlayerId, setActivePlayerId] = useState(null);
   const [expandPullBack, setExpandPullBack] = useState(false);
-  // const [activePlayerName, setActivePlayerName] = useState("");
   const [remainingPlayers, setRemainingPlayers] = useState(0);
 
   const [auctionPlayers, setAuctionPlayers] = useState(
@@ -59,7 +62,6 @@ const AuctionRoom = () => {
 
   const [jump, setJump] = useState(2);
   const [editJump, setEditJump] = useState(false);
-  // const [basePrice, setBasePrice] = useState(3);
   const [currentBid, setCurrentBid] = useState(0);
 
   const chatContainerRef = useRef(null);
@@ -67,10 +69,26 @@ const AuctionRoom = () => {
   const [message, setMessage] = useState("");
 
   const [showPopup, setShowPopup] = useState(false);
-
-  // const [allTeams, setAllTeams] = useState([]);
   const [teamMap, setTeamMap] = useState(undefined);
+  const [ownTeamId, setOwnTeamId] = useState(null);
 
+  const getComposition = async (teamId) => {
+    try {
+      const res = await checkTeamComposition(teamId);
+      return res;
+    } catch (error) {
+      console.error("Validation error:", error);
+      throw error;
+    }
+  };
+
+  // useEffect(() => {
+  //   if (ownTeamId) {
+  //     getComposition(ownTeamId);
+  //   }
+  // }, [ownTeamId]);
+
+  console.log(teamMap);
   useEffect(() => {
     const fetchTeams = async () => {
       if (!auctionId) return;
@@ -82,6 +100,9 @@ const AuctionRoom = () => {
             if (!acc[ownerId]) {
               acc[ownerId] = [];
             }
+            if (ownerId === userId) {
+              setOwnTeamId(item?.id);
+            }
             acc[ownerId].push(item.name);
             return acc;
           }, {});
@@ -91,7 +112,7 @@ const AuctionRoom = () => {
       }
     };
     fetchTeams(auctionId);
-  }, [auctionId]);
+  }, [auctionId, userId]);
 
   const handleJumpClick = () => {
     if (budget.remaining >= jump) {
@@ -101,6 +122,17 @@ const AuctionRoom = () => {
 
   const closePopup = () => {
     setShowPopup(false);
+  };
+
+  const updateAuctionEndTime = async (auctionId) => {
+    try {
+      const response = await updateEndTime(auctionId);
+      if (response) {
+        console.log("EndTime Updated", response);
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   useEffect(() => {
@@ -161,27 +193,8 @@ const AuctionRoom = () => {
     localStorage.setItem("pullCounts", JSON.stringify(savedPullCounts));
   }, [pullCount, activePlayer?.id]);
 
-  // const [jumpCount, setJumpCount] = useState(() => {
-  //   const savedJumpCounts =
-  //     JSON.parse(localStorage.getItem("jumpCounts")) || {};
-  //   return (
-  //     savedJumpCounts[activePlayerId] || {
-  //       total: 5,
-  //       remaining: 5,
-  //     }
-  //   );
-  // });
-
-  // useEffect(() => {
-  //   const savedJumpCounts =
-  //     JSON.parse(localStorage.getItem("jumpCounts")) || {};
-  //   savedJumpCounts[activePlayerId] = jumpCount;
-  //   localStorage.setItem("jumpCounts", JSON.stringify(savedJumpCounts));
-  // }, [jumpCount, activePlayerId]);
-
   useEffect(() => {
     SocketService.emitGetPlayerCount();
-    console.log(auctionPlayers, "auction players are");
     console.log(activePlayer, "active players are");
   }, [activePlayer, auctionPlayers]);
 
@@ -199,21 +212,16 @@ const AuctionRoom = () => {
   const [currentBids, setCurrentBids] = useState([]);
   const [highestBidderId, sethighestBidderId] = useState(null);
   const [value, setValue] = useState(2);
+  const [teamComposition, setTeamComposition] = useState(null);
 
-  // const handleSliderChange = (e) => {
-  //   setValue(Number(e.target.value));
-  // };
-
-  // const isEligibleForFetch = useMemo(
-  //   () => roomSize >= 2 && !!activePlayer?.playerId,
-  //   [roomSize, activePlayer?.playerId]
-  // );
-
+  console.log(teamComposition);
   useEffect(() => {
     const fetchPlayerById = async () => {
       setCurrentBid("N/A");
       try {
         if (roomSize >= 2 && remainingPlayers > 0 && activePlayer?.playerId) {
+          const composition = await getComposition(ownTeamId);
+          setTeamComposition(composition?.playerTypeCount);
           const res = await getAuctionPlayersByID(
             activePlayer?.playerId,
             auctionId
@@ -222,8 +230,6 @@ const AuctionRoom = () => {
           if (res && auctionId && activePlayer?.id) {
             await clearBids(auctionId, activePlayer.id);
           }
-
-          // console.log(res, "aaaaaaaaaaaaaaaaaaaaa");
 
           setActivePlayer((prevPlayer) => ({
             ...prevPlayer,
@@ -244,6 +250,43 @@ const AuctionRoom = () => {
     fetchPlayerById();
   }, [activePlayer?.playerId, auctionId, remainingPlayers, roomSize]);
 
+  function validatePlayerTypeCount(playerTypeCount) {
+    const MAX_PLAYERS = 11;
+    const rules = {
+      Batsman: { min: 3, max: 4 },
+      Bowler: { min: 4, max: 4 },
+      "Wicket Keeper": { min: 1, max: 2 },
+      "All Rounder": { min: 1, max: 2 },
+    };
+
+    const totalPlayers = Object.values(playerTypeCount).reduce(
+      (sum, count) => sum + count,
+      0
+    );
+    if (totalPlayers > MAX_PLAYERS) {
+      return {
+        valid: false,
+        message: "Total players exceed the maximum allowed limit of 11.",
+      };
+    }
+    for (const [type, count] of Object.entries(playerTypeCount)) {
+      const { min, max } = rules[type];
+      if (count > max) {
+        return {
+          valid: false,
+          message: `You cannot have more than ${max} ${type}(s).`,
+        };
+      }
+      // if (count < min && totalPlayers === MAX_PLAYERS) {
+      //   return {
+      //     valid: false,
+      //     message: `You need at least ${min} ${type}(s).`,
+      //   };
+      // }
+    }
+    return { valid: true, message: "Player selection is valid." };
+  }
+
   const fetchAllPlayerInAuction = useCallback(async () => {
     if (remainingPlayers < 1) return;
     try {
@@ -259,29 +302,6 @@ const AuctionRoom = () => {
   useEffect(() => {
     fetchAllPlayerInAuction();
   }, [fetchAllPlayerInAuction]);
-
-  // const fetchCurrentBids = useCallback(async (activePlayerId) => {
-  //   if (!activePlayerId || remainingPlayers < 1) {
-  //     return;
-  //   }
-  //   console.log(activePlayerId, "fetching current bids, if any on page render");
-  //   const res = await getBidHistoryOfPlayers(activePlayerId);
-
-  //   if (res?.bids.length > 1) {
-  //     const sortedBids = (res?.bids || []).sort(
-  //       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-  //     );
-  //     const latestBids = sortedBids.slice(0, 2);
-  //     console.log("sorted bids", sortedBids);
-  //     setCurrentBids(latestBids);
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   if (activePlayerId) {
-  //     fetchCurrentBids(activePlayerId);
-  //   }
-  // }, []);
 
   const handleInputChange = (e) => {
     const input = e.target.value;
@@ -322,7 +342,7 @@ const AuctionRoom = () => {
     SocketService.onBudgetUpdate((data) => console.log("Budget Update", data));
 
     SocketService.onPlayerReAdded((data) => {
-      toast.success(`${data?.message}`);
+      toast.error(`${data?.message}`);
       fetchAllPlayerInAuction(auctionId);
       SocketService.emitGetActivePlayer();
       SocketService.emitGetPlayerCount();
@@ -338,7 +358,7 @@ const AuctionRoom = () => {
       });
 
       const sliced = sortedBids.slice(0, 2);
-      console.log(sliced, sortedBids);
+      // console.log(sliced, sortedBids);
       setCurrentBids(sliced);
     });
 
@@ -354,9 +374,8 @@ const AuctionRoom = () => {
     );
 
     SocketService.playerSold((data) => {
-      toast.success(
-        `${data?.playerDetails?.name} is sold to ${data?.userId}`
-      );
+      toast.success(`${data?.playerDetails?.name} is sold to ${data?.userId}`);
+      updateAuctionEndTime(auctionId);
     });
 
     SocketService.onGetChatHistory((data) => {
@@ -390,10 +409,17 @@ const AuctionRoom = () => {
     // });
 
     SocketService.onNewBid((data) => {
-      // if (timerRef.current) {
-      //   timerRef.current.resetTimer();
-      // }
-      toast.success(`${data.amount}Cr Bid is Placed`);
+      if (bidPromiseRef.current) {
+        if (data) {
+          bidPromiseRef.current.resolve(data);
+        }
+        // } else if (data === "Error") {
+        //   bidPromiseRef.current.reject(
+        //     new Error(data?.errorMessage || "Something went wrong")
+        //   );
+        // }
+        bidPromiseRef.current = null;
+      }
 
       const remaining = data?.remainingPlayerCount;
       const highestBidder = data?.highestBidderId;
@@ -411,11 +437,12 @@ const AuctionRoom = () => {
       setCurrentBid(data.amount);
     });
 
-    SocketService.onAskNewPlayer(() => {
+    SocketService.onAskNewPlayer((data) => {
       fetchAllPlayerInAuction(auctionId);
       // if (timerRef.current) {
       //   timerRef.current.startTimer();
       // }
+      console.log(data, "onAskNewPlayer data");
       SocketService.emitGetPlayerCount();
       // resetJumpForNewPlayer();
     });
@@ -431,7 +458,7 @@ const AuctionRoom = () => {
       //   ...prev,
       //   remaining: prev.remaining - 1,
       // }));
-      placeBid(jump, "jump");
+      handlePlaceBid(jump, "jump");
     } else {
       jump < currentBid &&
         toast.error("Bid amount cannot be less than current bid!");
@@ -467,7 +494,6 @@ const AuctionRoom = () => {
   };
 
   useEffect(() => {
-    // const timerRefrence = timerRef.current;
     const initializeSocket = async () => {
       try {
         // const token = userId;
@@ -481,10 +507,6 @@ const AuctionRoom = () => {
           SocketService.emitGetPlayerCount();
           SocketService.emitGetBudget();
           SocketService.emitGetPlayerPurchasedCount();
-
-          // if (timerRefrence) {
-          //   timerRefrence.startTimer();
-          // }
         }
       } catch (error) {
         console.error("Failed to initialize socket:", error);
@@ -497,15 +519,58 @@ const AuctionRoom = () => {
       console.log("Cleaning up socket connection...");
       SocketService.disconnect();
       setIsConnected(false);
-
-      // if (timerRefrence) {
-      //   timerRefrence.resetTimer();
-      // }
     };
   }, [auctionId, userId, setupSocketListeners, token]);
 
+  const handlePlaceBid = (amount, type) => {
+    const isCompositionValid = validatePlayerTypeCount(teamComposition);
+    if (!isCompositionValid?.valid) {
+      toast.error(`${isCompositionValid?.message}`);
+      return;
+    }
+
+    const promise = new Promise((resolve, reject) => {
+      bidPromiseRef.current = { resolve, reject };
+
+      if (type == "increment") {
+        placeBid(amount, "increment");
+      } else if (type == "jump") {
+        placeBid(amount, "jump");
+      }
+    });
+
+    console.log("111");
+
+    toast.promise(
+      promise,
+      {
+        loading: "Placing your bid...",
+        success: (data) => `${data.amount}Cr Bid is Placed!`,
+        error: (err) => err.message || "Bid placement failed!",
+      },
+      {
+        success: { duration: 4000 },
+        error: { duration: 4000 },
+      }
+    );
+
+    console.log("111");
+
+    promise.catch((err) => {
+      console.error("Bid placement failed:", err);
+    });
+
+    console.log("111");
+  };
+
   const placeBid = (amount, type) => {
-    if (!isConnected || !activePlayer || roomSize < 2 || remainingPlayers < 1) {
+    if (
+      !isConnected ||
+      !activePlayer ||
+      roomSize < 2 ||
+      remainingPlayers < 1 ||
+      !teamComposition
+    ) {
       return;
     }
     if (type === "increment") {
@@ -520,6 +585,10 @@ const AuctionRoom = () => {
     } else if (type === "jump") {
       if (budget.remaining < amount) {
         toast.error("Cannot place bid! not enough money in purse");
+        return;
+      }
+      if (amount <= currentBid) {
+        toast.error("Cannot Jump! Amount Error");
         return;
       }
       if (activePlayerId) {
@@ -563,13 +632,20 @@ const AuctionRoom = () => {
               />
             </div>
 
-            <div className="text-xs text-gray-600 w-[70%]">
+            <div className="text-xs text-gray-600 w-[70%] font-medium">
+              <p className="border-2 border-b-zinc-200 py-1 px-2 text-end text-red-600 ">
+                {teamComposition != null
+                  ? `B${teamComposition?.Batsman ?? 0} | WK${
+                      teamComposition["Wicket Keeper"] ?? 0
+                    } | AR${teamComposition["All Rounder"] ?? 0} | B${
+                      teamComposition?.Bowler
+                    }`
+                  : `B0 | WK0 | AR0 | B0`}
+              </p>
               <p className="border-2 border-t-zinc-200 py-1 px-2 text-end">
                 Type: {activePlayer?.stats?.type || "N/A"}
               </p>
-              {/* <p className="border-2 border-b-zinc-200 py-1 px-2 text-end">
-                Matches: {activePlayer?.matches || 0}
-              </p> */}
+
               <p className="border-2 border-b-zinc-200 py-1 px-2 text-end">
                 Points: {800}
               </p>
@@ -792,7 +868,7 @@ const AuctionRoom = () => {
 
                 <button
                   onClick={() =>
-                    placeBid(
+                    handlePlaceBid(
                       currentBid < 5 && currentBid >= 0 ? 0.25 : 0.5,
                       "increment"
                     )
@@ -935,12 +1011,10 @@ const AuctionRoom = () => {
                   ).length < 1 && "No players to pull back"}
                 </div>
 
-                {/* {activeTab === "Your Team" && ( */}
                 <div className="overflow-y-auto h-[82%] rounded-lg">
                   {auctionPlayers.map((item, index) => {
                     if (item.status !== "unsold" || activePlayerId === item.id)
                       return;
-                    console.log(item);
                     return (
                       <div key={item.auctionID} className="px-4">
                         <PlayerCard
@@ -1050,7 +1124,7 @@ const AuctionRoom = () => {
           <div className="fixed right-2 top-[40%] transform -translate-y-1/2 flex flex-col items-center space-y-4">
             <button
               className="w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
-              onClick={() => console.log("Button 3 clicked")}
+              // onClick={() => console.log("Button 3 clicked")}
             >
               <TimerComponent ref={timerRef} onTimerEnd={handleTimerEnd} />
             </button>
@@ -1125,7 +1199,7 @@ const AuctionRoom = () => {
               <div className="flex gap-2">
                 <button
                   className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-900 focus:ring-2 focus:ring-blue-300 focus:outline-none flex items-center justify-center gap-2"
-                  onClick={() => navigate(`/result/${auctionId}`)}
+                  onClick={() => navigate(`/teamPage/${auctionId}/${userId}`)}
                 >
                   <Eye size={20} />
                   Auction Result

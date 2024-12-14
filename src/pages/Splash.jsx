@@ -6,7 +6,6 @@ const Splash = () => {
 
   const handleGetStarted = () => {
     const token = localStorage.getItem("shopCoToken");
-    console.log(token);
     if (token) {
       navigate("/home");
     } else {

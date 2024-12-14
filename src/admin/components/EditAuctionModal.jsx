@@ -1,30 +1,29 @@
 import { useState } from "react";
 
-export const EditAuctionModal = ({ auction, onClose, onUpdate }) => {
+export const EditAuctionModal = ({ auction, onClose, handleUpdateAuction }) => {
   const [formData, setFormData] = useState({
     title: auction.title,
     description: auction.description,
-    scheduledDate: new Date(auction.startTime).toISOString().split("T")[0],
-    startTime: new Date(auction.startTime)
-      .toISOString()
-      .split("T")[1]
-      .split(".")[0],
+    scheduledDate: auction.startTime.split(",")[0].trim(),
+    startTime: auction.startTime.split(",")[1].trim(),
     registrationFee: auction.registrationFee,
     budgetLimit: auction.budgetLimit,
-    status: auction?.status || "SCHEDULED", // Default to SCHEDULED if no status exists
+    status: auction?.status || "SCHEDULED",
+    image: auction?.imageUrl,
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+
+    setFormData((prev) => {
+      return { ...prev, [name]: value };
+    });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onUpdate(formData);
+
+    handleUpdateAuction(formData);
   };
 
   return (
@@ -58,6 +57,7 @@ export const EditAuctionModal = ({ auction, onClose, onUpdate }) => {
               required
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Status
@@ -70,22 +70,22 @@ export const EditAuctionModal = ({ auction, onClose, onUpdate }) => {
               required
             >
               <option value="LIVE">LIVE</option>
-              <option value="SCHEDULED" defaultValue={"SCHEDULED"}>
-                SCHEDULED
-              </option>
+              <option value="SCHEDULED">SCHEDULED</option>
               <option value="COMPLETED">COMPLETED</option>
             </select>
           </div>
+          
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Scheduled Date
             </label>
             <input
-              type="date"
+              type="text"
               name="scheduledDate"
               value={formData.scheduledDate}
               onChange={handleChange}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+              placeholder="YYYY-MM-DD"
               required
             />
           </div>
@@ -94,14 +94,16 @@ export const EditAuctionModal = ({ auction, onClose, onUpdate }) => {
               Start Time
             </label>
             <input
-              type="time"
+              type="text"
               name="startTime"
               value={formData.startTime}
               onChange={handleChange}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
+              placeholder="HH:mm:ss"
               required
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Registration Fee

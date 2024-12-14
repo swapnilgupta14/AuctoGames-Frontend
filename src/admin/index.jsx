@@ -25,26 +25,42 @@ const AdminLogin = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
 
-    let url = "https://server.rishabh17704.workers.dev/api/admin-login";
-    const data = {
-      email: username,
-      password,
-    };
-    const response = await fetch(url, {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-    });
-    const finalRes = await response.json();
-    if (finalRes?.status === 201) {
-      localStorage.setItem("adminToken", finalRes.token);
-      localStorage.setItem("adminAuth", true);
-      navigate("/admin/auctions");
-    } else {
-      setError("Invalid Credentials");
+    try {
+      let url = "https://server.rishabh17704.workers.dev/api/admin-login";
+      const data = {
+        email: username,
+        password,
+      };
+      const response = await fetch(url, {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Login request failed');
+      }
+
+      const finalRes = await response.json();
+      if (finalRes?.status === 201) {
+        localStorage.setItem("adminToken", finalRes.token);
+        localStorage.setItem("adminAuth", "true");
+
+        const sessionExpiryTime =
+          Date.now() + (finalRes?.session_timeout || 30) * 60 * 1000;
+        localStorage.setItem("AdminSessionTimeout", sessionExpiryTime.toString());
+
+        navigate("/admin/auctions");
+      } else {
+        setError(finalRes.message || "Invalid Credentials");
+      }
+    } catch (error) {
+      setError("An error occurred during login");
+      console.error("Login error:", error);
     }
   };
 
@@ -111,8 +127,24 @@ const AdminLogin = () => {
 };
 
 const ProtectedRoute = () => {
-  const isAuthenticated = localStorage.getItem("adminAuth") === "true";
-  console.log(isAuthenticated, "qwertyuitrewqwertyui");
+  const storedSessionExpiryTime = localStorage.getItem("AdminSessionTimeout");
+  const currentTime = Date.now();
+  const navigate = useNavigate();
+
+  if (!storedSessionExpiryTime) {
+    navigate("/admin/login");
+    return;
+  }
+  
+  const expiryTime = parseInt(storedSessionExpiryTime, 10);
+  if (currentTime >= expiryTime) {
+    localStorage.removeItem("AdminSessionTimeout");
+    localStorage.removeItem("adminToken");
+    localStorage.setItem("adminAuth", "false");
+    navigate("/admin/login");
+  }
+
+  const isAuthenticated = localStorage.getItem("adminAuth") === "true" && currentTime < expiryTime;
   return isAuthenticated ? (
     <AdminLayout>
       <Outlet />
@@ -140,7 +172,6 @@ const Admin = () => {
         <Route path="how-to-play" element={<HowToPlay />} />
         <Route path="how-to-pay" element={<HowToPay />} />
         <Route path="how-to-withdraw" element={<HowToWithdraw />} />
-        <Route path="how-to-pay" element={<HowToPay />} />
         <Route path="terms" element={<TermsAndConditions />} />
       </Route>
 

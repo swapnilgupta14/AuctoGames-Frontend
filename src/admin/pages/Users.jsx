@@ -25,7 +25,7 @@ const Users = () => {
       setIsLoading(true);
       const res = await getAllUsers();
       if (res) {
-        setAllUsers(res);
+        setAllUsers(res.filter((it) => it.role !== "ADMIN"));
         setIsLoading(false);
         setError(null);
       }
@@ -62,7 +62,7 @@ const Users = () => {
       case "Medium":
         return "bg-yellow-100 text-yellow-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-red-100 text-red-800";
     }
   };
 
@@ -103,7 +103,7 @@ const Users = () => {
         )}
 
         {!selectedUser && (
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {filteredUsers.map((user) => {
               const activityLevel = getUserActivityLevel(user);
               return (
@@ -112,7 +112,7 @@ const Users = () => {
                   className="bg-gray-50 border border-gray-300 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer hover:bg-gray-100"
                   onClick={() => setSelectedUser(user)}
                 >
-                  <div className="p-6">
+                  <div className="p-4">
                     <div className="flex items-center mb-4">
                       <div className="rounded-full bg-indigo-100 p-3 mr-4">
                         <User className="text-indigo-600 w-4 h-4" />
@@ -125,38 +125,21 @@ const Users = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div className="bg-white p-3 rounded-lg">
-                        <div className="flex items-center mb-1">
-                          <Award className="w-5 h-5 text-indigo-500 mr-2" />
-                          <span className="text-xs font-semibold text-gray-600">
-                            Role
-                          </span>
-                        </div>
-                        <p className="font-semibold text-center text-md text-gray-800">
-                          {user.role}
-                        </p>
-                      </div>
-                      <div className="bg-white p-3 rounded-lg">
-                        <div className="flex items-center mb-1">
-                          <Briefcase className="w-5 h-5 text-green-500 mr-2" />
-                          <span className="text-xs font-semibold text-gray-600">
-                            Teams
-                          </span>
-                        </div>
-                        <p className="font-semibold text-gray-800 text-center text-md">
-                          {user.ownedTeams.length}
-                        </p>
-                      </div>
-                    </div>
-
                     <div className="flex items-center justify-between">
-                      <div
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${getActivityColor(
-                          activityLevel
-                        )}`}
-                      >
-                        {activityLevel} Activity
+                      <div className="flex gap-2">
+                        <div className="flex items-center bg-white px-2 rounded-full border border-gray-400">
+                            <Briefcase className="w-5 h-5 text-green-500 mr-2" />
+                            <span className="text-xs font-semibold text-gray-600">
+                              Teams: {user.ownedTeams.length}
+                            </span>
+                        </div>
+                        <div
+                          className={`px-2 py-1 rounded-full text-xs font-semibold ${getActivityColor(
+                            activityLevel
+                          )}`}
+                        >
+                          {activityLevel} Activity
+                        </div>
                       </div>
                       <ChevronRight className="text-gray-400 w-5 h-5" />
                     </div>

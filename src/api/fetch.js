@@ -311,8 +311,7 @@ export const checkTeamComposition = async (teamId) => {
     });
     if (response) return response?.data;
   } catch (error) {
-    console.error("Error checking team composition", error);
-    throw error;
+    return error?.response?.data;
   }
 };
 
@@ -335,7 +334,8 @@ export const priorityUpdate = async (teamId, auctionId, arr) => {
 export const RegisterPlayerToIndividualAuction = async (data) => {
   try {
     const response = await axiosInstance.post(`/players/register-to-auctions`, {
-      data: JSON.stringify(data),
+      playerData: data?.playerData,
+      auctionIds: data?.auctionIds,
     });
     if (response?.status === 200) {
       console.log(response?.data);
@@ -343,7 +343,7 @@ export const RegisterPlayerToIndividualAuction = async (data) => {
     }
     console.log(response?.data);
   } catch (error) {
-    console.error("Error Login Admin", error);
+    console.error("Error Admin", error);
     throw error;
   }
 };
@@ -458,6 +458,18 @@ export const banUnbanUsers = async (userId, type) => {
   }
 };
 
+export const updateEndTime = async (auctionId) => {
+  try {
+    const response = await axiosInstance.patch(`auction/${auctionId}/endtime`);
+    if (response?.status === 200) {
+      return response?.data;
+    }
+  } catch (error) {
+    console.error("Error Login Admin", error);
+    throw error;
+  }
+};
+
 export const updateAuctionDetails = async (formData) => {
   try {
     const {
@@ -553,7 +565,7 @@ export const createNewAuction = async ({ formData, imagePreview }) => {
 
 export const submitRegistrationRequest = async (formData, imagePreview) => {
   try {
-    if(imagePreview){
+    if (imagePreview) {
       const imageBlob = await (await fetch(imagePreview)).blob();
       formData.append("file", imageBlob, "team-icon.jpg");
     }

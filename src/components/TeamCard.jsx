@@ -4,12 +4,12 @@ const TeamCard = ({ item, auctionId, userId, totalPlayerCount }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-white rounded-2xl shadow-md overflow-hidden w-full max-w-md mx-auto hover:shadow-lg transition-shadow duration-300 border-2 border-black">
+    <div className="bg-white rounded-2xl shadow-md overflow-hidden w-full max-w-md mx-auto hover:shadow-lg transition-shadow duration-300 border-2 border-blue-500">
       <div className="p-3">
         <div className="flex items-center space-x-3  p-2 overflow-hidden">
           <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 border-black">
             <img
-              src={item.imageUrl || "/default-team-image.png"}
+              src={item.imageUrl || "https://eu.ui-avatars.com/api/?name=John+Doe&size=250"}
               alt={`${item.name} team logo`}
               className="w-full h-full object-cover"
             />
@@ -34,7 +34,7 @@ const TeamCard = ({ item, auctionId, userId, totalPlayerCount }) => {
           <div className="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-500">
             <p className="text-xs text-blue-500 font-medium mb-1">Total Points</p>
             <p className="font-semibold text-gray-800">
-              {item?.totalPoints + item?.totalBonus ?? "N/A"}
+              {item?.totalPoints + item?.totalBonus}
             </p>
           </div>
 

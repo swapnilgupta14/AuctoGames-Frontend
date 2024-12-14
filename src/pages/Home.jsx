@@ -240,7 +240,7 @@ const Home = () => {
               {liveAuctions.map((_, index) => (
                 <span
                   key={index}
-                  className={`w-3 h-3 rounded-full cursor-pointer ${
+                  className={`w-2 h-2 rounded-full cursor-pointer ${
                     index === currentLiveSlide ? "bg-blue-700" : "bg-gray-200"
                   }`}
                   onClick={() => setCurrentLiveSlide(index)}

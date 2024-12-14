@@ -3,6 +3,8 @@ import { io } from "socket.io-client";
 class SocketService {
   constructor() {
     this.socket = null;
+    this.SOCKET_URL =
+      // "https://zany-couscous-76pvggx996xfr9gw-3009.app.github.dev/";
     this.SOCKET_URL = "https://expressbackend-production-b19c.up.railway.app";
     // this.SOCKET_URL = "http://localhost:3009";
   }
@@ -184,8 +186,6 @@ class SocketService {
     });
   }
 
-  // chat Room
-
   sendChatMessage(text) {
     if (text && text.length > 1) {
       this.emit("sendChatMessage", {
@@ -221,6 +221,13 @@ class SocketService {
 
   // ---------------------------
 
+  onAskNewPlayer(callback) {
+    this.on("askNewPlayer", (data) => {
+      this.emitGetActivePlayer();
+      callback(data);
+    });
+  }
+
   onRoomSize(callback) {
     this.on("auctionRoomSize", (data) => {
       console.log("Received room size:", data);
@@ -240,12 +247,6 @@ class SocketService {
     });
   }
 
-  onAskNewPlayer(callback) {
-    this.on("askNewPlayer", () => {
-      this.emitGetActivePlayer();
-      callback();
-    });
-  }
 
   // ----------------------------
 

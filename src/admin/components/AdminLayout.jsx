@@ -102,9 +102,10 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-zinc-100">
-      <div className="h-screen md:min-w-[20%] lg:min-w-[16%] bg-gray-200 text-black flex flex-col p-6 space-y-8 shadow-lg">
-        <div className="flex flex-col justify-start h-full">
+    <div className="flex bg-zinc-100">
+      <div className="h-screen min-w-[23%] lg:min-w-[17%] text-black flex flex-col space-y-8 shadow-lg pb-4">
+
+        <div className="flex-1 overflow-y-scroll flex flex-col justify-start p-4 bg-zinc-100">
           <nav className="space-y-2">
             <h3 className="text-xs text-black uppercase tracking-wider">
               Main Menu
@@ -190,7 +191,7 @@ const AdminLayout = () => {
           </nav>
         </div>
 
-        <div className="mt-auto">
+        <div className="m-4">
           <button
             onClick={handleLogout}
             className="w-full flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition-all duration-200"

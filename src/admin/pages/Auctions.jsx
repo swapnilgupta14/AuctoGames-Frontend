@@ -97,55 +97,55 @@ const Auctions = () => {
     fetchAllAuctions();
   }, []);
 
-  const approveRegistrationRequest = async (reqId) => {
-    try {
-      if (!reqId) {
-        console.log("Error! request id not received");
-        return;
-      }
-      const res = await updateRegistrationRequest(reqId, 1);
-      if (res) {
-        console.log(res);
-        fetchRequests();
-      }
-    } catch (err) {
-      console.log(err, "Error occured while updating the registration request");
-    }
-  };
+  // const approveRegistrationRequest = async (reqId) => {
+  //   try {
+  //     if (!reqId) {
+  //       console.log("Error! request id not received");
+  //       return;
+  //     }
+  //     const res = await updateRegistrationRequest(reqId, 1);
+  //     if (res) {
+  //       console.log(res);
+  //       fetchRequests();
+  //     }
+  //   } catch (err) {
+  //     console.log(err, "Error occured while updating the registration request");
+  //   }
+  // };
 
-  const declineRegistrationRequest = async (reqId) => {
-    try {
-      if (!reqId) {
-        console.log("Error! request id not received");
-        return;
-      }
-      const res = await updateRegistrationRequest(reqId, 0);
-      if (res) {
-        console.log(res);
-        fetchRequests();
-      }
-    } catch (err) {
-      console.log(err, "Error occured while updating the registration request");
-    }
-  };
+  // const declineRegistrationRequest = async (reqId) => {
+  //   try {
+  //     if (!reqId) {
+  //       console.log("Error! request id not received");
+  //       return;
+  //     }
+  //     const res = await updateRegistrationRequest(reqId, 0);
+  //     if (res) {
+  //       console.log(res);
+  //       fetchRequests();
+  //     }
+  //   } catch (err) {
+  //     console.log(err, "Error occured while updating the registration request");
+  //   }
+  // };
 
-  const fetchRequests = async () => {
-    try {
-      setIsFetchingRequest(true);
-      const result = await getRegistrationrequest();
-      if (result) {
-        setRequests(result?.requests);
-        setIsFetchingRequest(false);
-      }
-    } catch (error) {
-      setIsFetchingRequest(false);
-      console.log(error);
-    }
-  };
+  // const fetchRequests = async () => {
+  //   try {
+  //     setIsFetchingRequest(true);
+  //     const result = await getRegistrationrequest();
+  //     if (result) {
+  //       setRequests(result?.requests);
+  //       setIsFetchingRequest(false);
+  //     }
+  //   } catch (error) {
+  //     setIsFetchingRequest(false);
+  //     console.log(error);
+  //   }
+  // };
 
-  useEffect(() => {
-    fetchRequests();
-  }, []);
+  // useEffect(() => {
+  //   fetchRequests();
+  // }, []);
 
   const handleViewDetails = (auction) => {
     setSelectedAuction(auction);
@@ -163,25 +163,29 @@ const Auctions = () => {
   const onEditClose = () => {
     setEditingAuction(null);
     setIsEditAuctionModalOpen(null);
-  }
+  };
 
-  const onClose =() => {
+  const onClose = () => {
     setIsCreateAuctionModalOpen(false);
-  }
+  };
+
+  const convertDateFormat = (date) => {
+    const [day, month, year] = date.split("/");
+    return `${year}-${month}-${day}`;
+  };
 
   const handleUpdateAuction = async (updatedAuctionData) => {
     try {
       const payload = {
         title: updatedAuctionData.title,
         description: updatedAuctionData.description,
-        scheduledDate: updatedAuctionData.scheduledDate,
-        startTime: updatedAuctionData.startTime.includes(":")
-          ? `${updatedAuctionData.startTime}:00`
-          : updatedAuctionData.startTime,
+        scheduledDate: convertDateFormat(updatedAuctionData.scheduledDate),
+        startTime: updatedAuctionData.startTime,
         registrationFee: updatedAuctionData.registrationFee,
         budgetLimit: updatedAuctionData.budgetLimit,
         auctionId: editingAuction.id,
         status: updatedAuctionData?.status,
+        image: updateAuctionDetails?.imageUrl || editingAuction?.imageUrl,
       };
 
       console.log(payload);
@@ -227,22 +231,12 @@ const Auctions = () => {
         <div className="space-y-2 text-sm">
           <div className="flex items-center text-gray-500">
             <Calendar className="mr-2 h-4 w-4 text-blue-400" />
-            <span className="truncate">
-              {new Date(auction.startTime).toISOString().split("T")[0]},{" "}
-              {convertTo12HourFormat(
-                new Date(auction.startTime)
-                  .toISOString()
-                  .split("T")[1]
-                  .split(".")[0]
-              )}
-            </span>
+            <span className="truncate">Start Time: {auction.startTime}</span>
           </div>
 
           <div className="flex items-center text-gray-500">
             <Clock className="mr-2 h-4 w-4 text-green-400" />
-            <span className="truncate">
-              {new Date(auction.endTime).toLocaleString()}
-            </span>
+            <span className="truncate">End Time: {auction.endTime}</span>
           </div>
 
           <div className="flex items-center text-gray-500">
@@ -366,10 +360,24 @@ const Auctions = () => {
 
         <div className="w-full p-4">
           <div className="flex justify-between items-center border-b mb-6">
-            <div className="flex">
+            <div className="flex flex-1">
+              {/* <button
+                onClick={() => setActiveTab("registrationRequests")}
+                className={`px-4 text-start py-2 text-sm font-medium transition-colors duration-200 
+            ${
+              activeTab === "registrationRequests"
+                ? "border-b-2 border-green-500 text-green-500"
+                : "text-green-500 hover:text-green-800"
+            }`}
+              >
+                Pending Requests
+                <span className="ml-2 bg-gray-200 text-gray-700 rounded-full px-2 py-0.5 text-xs">
+                  {requests.length}
+                </span>
+              </button> */}
               <button
                 onClick={() => setActiveTab("liveAuctions")}
-                className={`px-4 py-2 text-sm font-medium transition-colors duration-200 
+                className={`px-4 py-2 text-sm text-start font-medium transition-colors duration-200 
             ${
               activeTab === "liveAuctions"
                 ? "border-b-2 border-blue-600 text-blue-600"
@@ -381,9 +389,10 @@ const Auctions = () => {
                   {liveAuctions.length}
                 </span>
               </button>
+
               <button
                 onClick={() => setActiveTab("upcomingAuctions")}
-                className={`px-4 py-2 text-sm font-medium transition-colors duration-200 
+                className={`px-4 py-2 text-start text-sm font-medium transition-colors duration-200 
             ${
               activeTab === "upcomingAuctions"
                 ? "border-b-2 border-blue-600 text-blue-600"
@@ -397,7 +406,7 @@ const Auctions = () => {
               </button>
               <button
                 onClick={() => setActiveTab("completedAuctions")}
-                className={`px-4 py-2 text-sm font-medium transition-colors duration-200 
+                className={`px-4 py-2 text-start text-sm font-medium transition-colors duration-200 
             ${
               activeTab === "completedAuctions"
                 ? "border-b-2 border-blue-600 text-blue-600"
@@ -409,25 +418,11 @@ const Auctions = () => {
                   {completedAuctions.length}
                 </span>
               </button>
-              <button
-                onClick={() => setActiveTab("registrationRequests")}
-                className={`px-4 py-2 text-sm font-medium transition-colors duration-200 
-            ${
-              activeTab === "registrationRequests"
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-black hover:text-gray-700"
-            }`}
-              >
-                Pending Registration Requests
-                <span className="ml-2 bg-gray-200 text-gray-700 rounded-full px-2 py-0.5 text-xs">
-                  {requests.length}
-                </span>
-              </button>
             </div>
 
             <button
               onClick={() => setIsCreateAuctionModalOpen(true)}
-              className="flex items-center bg-blue-600 text-white px-2 py-1 text-md mb-2 rounded-md hover:bg-blue-700 transition-colors"
+              className="w-fit flex items-center bg-blue-600 text-white px-2 py-1 text-md mb-2 rounded-md hover:bg-blue-700 transition-colors"
             >
               <Plus className="mr-2 h-4 w-4" /> Create Auction
             </button>
@@ -592,7 +587,7 @@ const Auctions = () => {
           <EditAuctionModal
             auction={editingAuction}
             onClose={onEditClose}
-            onUpdate={handleUpdateAuction}
+            handleUpdateAuction={handleUpdateAuction}
           />
         )}
       </div>
