@@ -52,9 +52,7 @@ const AuctionRoom = () => {
   const [expandPullBack, setExpandPullBack] = useState(false);
   const [remainingPlayers, setRemainingPlayers] = useState(0);
 
-  const [auctionPlayers, setAuctionPlayers] = useState(
-    auctionData?.auctionPlayers || []
-  );
+  const [auctionPlayers, setAuctionPlayers] = useState(auctionData?.auctionPlayers || []);
 
   const [activeTab, setActiveTab] = useState("My Team");
   const [expandChat, setExpandChat] = useState(false);
@@ -81,13 +79,7 @@ const AuctionRoom = () => {
       throw error;
     }
   };
-
-  // useEffect(() => {
-  //   if (ownTeamId) {
-  //     getComposition(ownTeamId);
-  //   }
-  // }, [ownTeamId]);
-
+  
   console.log(teamMap);
   useEffect(() => {
     const fetchTeams = async () => {

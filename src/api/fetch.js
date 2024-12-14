@@ -333,7 +333,7 @@ export const priorityUpdate = async (teamId, auctionId, arr) => {
 
 export const RegisterPlayerToIndividualAuction = async (data) => {
   try {
-    const response = await axiosInstance.post(`/players/register-to-auctions`, {
+    const response = await axiosInstance.post(`/players/register-to-auctions-2`, {
       playerData: data?.playerData,
       auctionIds: data?.auctionIds,
     });

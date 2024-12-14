@@ -17,6 +17,7 @@ const AuctionRegistration = () => {
   const location = useLocation();
   const { auction = { id: null, title: "", registrationFee: 0 } } =
     location.state || {};
+
   const [errors, setErrors] = useState({
     teamName: "",
     mobileNumber: "",

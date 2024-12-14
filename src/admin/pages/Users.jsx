@@ -127,14 +127,14 @@ const Users = () => {
 
                     <div className="flex items-center justify-between">
                       <div className="flex gap-2">
-                        <div className="flex items-center bg-white px-2 rounded-full border border-gray-400">
-                            <Briefcase className="w-5 h-5 text-green-500 mr-2" />
+                        <div className="flex items-center bg-white px-1 rounded-full border border-gray-400">
+                            <Briefcase className="w-3 h-3 text-green-500 mr-2" />
                             <span className="text-xs font-semibold text-gray-600">
                               Teams: {user.ownedTeams.length}
                             </span>
                         </div>
                         <div
-                          className={`px-2 py-1 rounded-full text-xs font-semibold ${getActivityColor(
+                          className={`px-1 rounded-full text-xs font-semibold ${getActivityColor(
                             activityLevel
                           )}`}
                         >

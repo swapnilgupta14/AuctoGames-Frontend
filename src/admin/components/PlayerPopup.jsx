@@ -60,41 +60,32 @@ const PlayersPopup = ({ isOpen, onClose, auctionId }) => {
 
   const registerPlayers = async () => {
     setIsRegisterLoading(true);
-  
+    
     if (!auctionId) {
       toast.error("Auction ID is required");
       setIsRegisterLoading(false);
       return;
     }
-  
+
     if (!Array.isArray(jsonOutput) || jsonOutput.length === 0) {
       toast.error("No players to register");
       setIsRegisterLoading(false);
       return;
     }
-  
+
     // Correctly transform the array
     const arrFile = jsonOutput;
     const auctionIdArr = [auctionId];
-  
+
     const payload = {
       playerData: arrFile,
       auctionIds: auctionIdArr,
     };
-  
-    const simulateApiCall = (payload) => {
-      return new Promise((resolve) => {
-        console.log("Simulating API call with payload:", payload);
-        setTimeout(() => {
-          resolve({ success: true });
-        }, (10000 + 10000 + 10000));
-      });
-    };
-  
+
     try {
-      const res = await simulateApiCall(payload);
-  
-      if (res && res.success) {
+      const res = await RegisterPlayerToIndividualAuction(payload);
+      
+      if (res) {
         toast.success("Players registered successfully");
         setFile(null);
         setJsonOutput(null);
@@ -110,7 +101,6 @@ const PlayersPopup = ({ isOpen, onClose, auctionId }) => {
       setIsRegisterLoading(false);
     }
   };
-  
 
   if (!isOpen) return null;
 

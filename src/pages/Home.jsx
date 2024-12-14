@@ -11,17 +11,18 @@ import Header from "../components/Header";
 
 const carouselStyles = {
   container:
-    "relative w-full h-[300px] overflow-hidden flex flex-col items-center",
+    "relative w-full h-[280px] overflow-hidden flex flex-col items-center",
   slide:
-    "w-[full] rounded-xl h-[300px] flex gap-4 items-center justify-center text-white font-bold bg-gray-500 absolute top-0 left-0 transition-transform duration-500",
+    "w-[full] rounded-xl h-[280px] flex gap-4 items-center justify-center text-white font-bold bg-gray-500 absolute top-0 left-0 transition-transform duration-500",
   dotsContainer: "absolute bottom-2 flex gap-2",
   dot: "w-3 h-3 rounded-full bg-gray-300 cursor-pointer",
   activeDot: "w-3 h-3 rounded-full bg-blue-500",
-  skeletonContainer: "relative w-[96%] h-[300px] m-4 bg-gray-200 animate-pulse rounded-xl",
+  skeletonContainer:
+    "relative w-[96%] h-[280px] m-4 bg-gray-200 animate-pulse rounded-xl",
 };
 
 const LiveAuctionSkeleton = () => (
-  <div className={carouselStyles.skeletonContainer} >
+  <div className={carouselStyles.skeletonContainer}>
     <div className="absolute top-4 right-6 bg-zinc-400 px-4 rounded-lg h-6 w-20"></div>
   </div>
 );
@@ -206,30 +207,40 @@ const Home = () => {
               >
                 <div className="w-full h-full">
                   <img
-                    src={auction?.imageUrl || `https://via.placeholder.com/600x300?text=${auction.title}`}
+                    src={
+                      auction?.imageUrl ||
+                      `https://via.placeholder.com/600x300?text=${auction.title}`
+                    }
                     alt={auction.title}
                     className="w-full h-full object-cover rounded-xl"
                   />
                 </div>
+
                 <div className="absolute top-0 left-0 bg-zinc-200 shadow-xl text-black font-normal px-4 flex justify-center rounded-r-2xl items-center gap-2 py-[4px]">
                   <div className="mb-[3px]">{auction.title}</div>
                 </div>
-                <div className="absolute top-4 right-4 bg-red-500 px-4 rounded-3xl font-light flex justify-center items-center gap-2 py-[1px]">
-                  <div className="mb-[3px]">Live</div>
+                
+                <div className={`text-xs absolute top-4 right-4 ${auction?.currStatusofAuction === "COMPLETED" ? "bg-green-600" : "bg-red-500"} px-4 rounded-3xl font-light flex justify-center items-center gap-2 py-[1px]`}>
+                  <div className="mb-[3px]">
+                    {auction?.currStatusofAuction === "LIVE" ||
+                    auction?.currStatusofAuction === "COMPLETED"
+                      ? auction?.currStatusofAuction
+                      : auction?.status === "LIVE" && auction?.status}
+                  </div>
                   <div className="w-[5px] h-[5px] bg-white rounded-full "></div>
                 </div>
               </div>
             ))}
 
             <button
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white bg-zinc-400 p-2 rounded-full z-20"
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white bg-blue-600 h-6 w-6 rounded-full z-20"
               onClick={prevSlide}
               aria-label="Previous slide"
             >
               &lt;
             </button>
             <button
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white bg-zinc-400 p-2 rounded-full z-20"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white bg-blue-600 h-6 w-6 rounded-full z-20"
               onClick={nextSlide}
               aria-label="Next slide"
             >
