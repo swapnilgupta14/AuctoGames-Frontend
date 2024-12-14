@@ -39,31 +39,24 @@ const AuctionDetail = () => {
   };
 
   const validateUser = async (auctionId, userId) => {
+
     try {
       setIsValidating(true);
-
       const userBalance = await fetchWalletData(userId);
-
       const res = await validateAuctionRegistration(Number(auctionId), userId);
 
       console.log("Validation Response:", res);
       setRegistrationData(res);
 
       let status = "error";
-      if (res?.status === "registered" || res?.status === "APPROVED") {
+
+      if (res?.status === "REGISTERED") {
         status = "success";
-      } else if (res?.status === "not_registered") {
-        if (userBalance >= auction.registrationFee) {
-          status = "not_registered";
-        } else {
-          status = "insufficient_balance";
-          // status = "not_registered";
-        }
-      } else if (res?.status === "PENDING") {
-        status = "PENDING";
-      } else if (
-        res?.message === "Auction Ended, Current Time is Greater than End Time"
-      ) {
+      } else if (res?.status === "ELIGIBLE") {
+        status = "not_registered";
+      } else if (res?.status === "INSUFFICIENT_BALANCE") {
+        status = "insufficient_balance";
+      } else if (res?.status === "COMPLETED") {
         status = "ENDED";
       } else {
         status = "ineligible";
@@ -71,7 +64,7 @@ const AuctionDetail = () => {
 
       setValidationResult({
         status: status,
-        team: res?.team || null,
+        team: res?.teams[0] || null,
         balance: userBalance,
       });
     } catch (error) {
