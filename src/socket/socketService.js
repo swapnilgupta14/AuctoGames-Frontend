@@ -5,7 +5,7 @@ class SocketService {
     this.socket = null;
     this.SOCKET_URL =
       // "https://zany-couscous-76pvggx996xfr9gw-3009.app.github.dev/";
-    this.SOCKET_URL = "https://expressbackend-production-b19c.up.railway.app";
+    this.SOCKET_URL = "http://192.168.29.86:3009";
     // this.SOCKET_URL = "http://localhost:3009";
   }
 
@@ -230,8 +230,12 @@ class SocketService {
 
   onRoomSize(callback) {
     this.on("auctionRoomSize", (data) => {
+      if (data.roomSize >= 2 ){
+        this.emitGetActivePlayer();
+        callback(data);
+      }
+
       console.log("Received room size:", data);
-      callback(data);
     });
   }
 

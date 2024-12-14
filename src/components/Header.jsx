@@ -90,7 +90,7 @@ const Header = ({ heading }) => {
       )}
 
       <div
-        className={`fixed top-0 left-0 h-full bg-white shadow-lg z-50 flex flex-col justify-between transition-transform duration-300 text-black ${
+        className={`fixed top-0 left-0 h-full overflow-y-auto bg-white shadow-lg z-50 flex flex-col justify-between transition-transform duration-300 text-black ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-[100%]"
         }`}
         style={{ width: "300px" }}

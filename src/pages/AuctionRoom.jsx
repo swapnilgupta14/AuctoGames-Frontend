@@ -28,16 +28,12 @@ import {
   getAllPLayersInAuction,
   clearBids,
   getAllTeamsInAuction,
-  updateEndTime,
-  checkTeamComposition,
 } from "../api/fetch";
 
 const AuctionRoom = () => {
   const timerRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const bidPromiseRef = useRef(null);
-
   const auctionId = location?.state?.auction?.id;
 
   const { userId, token } = useSelector((state) => state.user);
@@ -50,9 +46,12 @@ const AuctionRoom = () => {
   const [activePlayer, setActivePlayer] = useState(null);
   const [activePlayerId, setActivePlayerId] = useState(null);
   const [expandPullBack, setExpandPullBack] = useState(false);
+  // const [activePlayerName, setActivePlayerName] = useState("");
   const [remainingPlayers, setRemainingPlayers] = useState(0);
 
-  const [auctionPlayers, setAuctionPlayers] = useState(auctionData?.auctionPlayers || []);
+  const [auctionPlayers, setAuctionPlayers] = useState(
+      auctionData?.auctionPlayers || []
+  );
 
   const [activeTab, setActiveTab] = useState("My Team");
   const [expandChat, setExpandChat] = useState(false);
@@ -60,6 +59,7 @@ const AuctionRoom = () => {
 
   const [jump, setJump] = useState(2);
   const [editJump, setEditJump] = useState(false);
+  // const [basePrice, setBasePrice] = useState(3);
   const [currentBid, setCurrentBid] = useState(0);
 
   const chatContainerRef = useRef(null);
@@ -67,20 +67,10 @@ const AuctionRoom = () => {
   const [message, setMessage] = useState("");
 
   const [showPopup, setShowPopup] = useState(false);
-  const [teamMap, setTeamMap] = useState(undefined);
-  const [ownTeamId, setOwnTeamId] = useState(null);
 
-  const getComposition = async (teamId) => {
-    try {
-      const res = await checkTeamComposition(teamId);
-      return res;
-    } catch (error) {
-      console.error("Validation error:", error);
-      throw error;
-    }
-  };
-  
-  console.log(teamMap);
+  // const [allTeams, setAllTeams] = useState([]);
+  const [teamMap, setTeamMap] = useState(undefined);
+
   useEffect(() => {
     const fetchTeams = async () => {
       if (!auctionId) return;
@@ -92,9 +82,6 @@ const AuctionRoom = () => {
             if (!acc[ownerId]) {
               acc[ownerId] = [];
             }
-            if (ownerId === userId) {
-              setOwnTeamId(item?.id);
-            }
             acc[ownerId].push(item.name);
             return acc;
           }, {});
@@ -104,7 +91,7 @@ const AuctionRoom = () => {
       }
     };
     fetchTeams(auctionId);
-  }, [auctionId, userId]);
+  }, [auctionId]);
 
   const handleJumpClick = () => {
     if (budget.remaining >= jump) {
@@ -116,21 +103,10 @@ const AuctionRoom = () => {
     setShowPopup(false);
   };
 
-  const updateAuctionEndTime = async (auctionId) => {
-    try {
-      const response = await updateEndTime(auctionId);
-      if (response) {
-        console.log("EndTime Updated", response);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =
-        chatContainerRef.current.scrollHeight;
+          chatContainerRef.current.scrollHeight;
     }
   }, [chats]);
 
@@ -148,10 +124,10 @@ const AuctionRoom = () => {
     const idSaved = localStorage.getItem("userId");
     const compositeKey = `${idSaved}-${auctionId}`;
     return (
-      savedBudgets[compositeKey] || {
-        remaining: auctionData?.budgetLimit || 100,
-        total: auctionData?.budgetLimit || 100,
-      }
+        savedBudgets[compositeKey] || {
+          remaining: auctionData?.budgetLimit || 100,
+          total: auctionData?.budgetLimit || 100,
+        }
     );
   });
 
@@ -168,25 +144,44 @@ const AuctionRoom = () => {
   useEffect(() => {
     if (activePlayer?.id) {
       const savedPullCounts =
-        JSON.parse(localStorage.getItem("pullCounts")) || {};
+          JSON.parse(localStorage.getItem("pullCounts")) || {};
       setPullCount(
-        savedPullCounts[activePlayer.id] || {
-          total: 1,
-          remaining: 1,
-        }
+          savedPullCounts[activePlayer.id] || {
+            total: 1,
+            remaining: 1,
+          }
       );
     }
   }, [activePlayer?.id]);
 
   useEffect(() => {
     const savedPullCounts =
-      JSON.parse(localStorage.getItem("pullCounts")) || {};
+        JSON.parse(localStorage.getItem("pullCounts")) || {};
     savedPullCounts[activePlayer?.id] = pullCount;
     localStorage.setItem("pullCounts", JSON.stringify(savedPullCounts));
   }, [pullCount, activePlayer?.id]);
 
+  // const [jumpCount, setJumpCount] = useState(() => {
+  //   const savedJumpCounts =
+  //     JSON.parse(localStorage.getItem("jumpCounts")) || {};
+  //   return (
+  //     savedJumpCounts[activePlayerId] || {
+  //       total: 5,
+  //       remaining: 5,
+  //     }
+  //   );
+  // });
+
+  // useEffect(() => {
+  //   const savedJumpCounts =
+  //     JSON.parse(localStorage.getItem("jumpCounts")) || {};
+  //   savedJumpCounts[activePlayerId] = jumpCount;
+  //   localStorage.setItem("jumpCounts", JSON.stringify(savedJumpCounts));
+  // }, [jumpCount, activePlayerId]);
+
   useEffect(() => {
     SocketService.emitGetPlayerCount();
+    console.log(auctionPlayers, "auction players are");
     console.log(activePlayer, "active players are");
   }, [activePlayer, auctionPlayers]);
 
@@ -204,79 +199,53 @@ const AuctionRoom = () => {
   const [currentBids, setCurrentBids] = useState([]);
   const [highestBidderId, sethighestBidderId] = useState(null);
   const [value, setValue] = useState(2);
-  const [teamComposition, setTeamComposition] = useState(null);
 
-  console.log(teamComposition);
-  useEffect(() => {
-    const fetchPlayerById = async () => {
-      setCurrentBid("N/A");
-      try {
-        if (roomSize >= 2 && remainingPlayers > 0 && activePlayer?.playerId) {
-          const composition = await getComposition(ownTeamId);
-          setTeamComposition(composition?.playerTypeCount);
-          const res = await getAuctionPlayersByID(
-            activePlayer?.playerId,
+  // const handleSliderChange = (e) => {
+  //   setValue(Number(e.target.value));
+  // };
+
+  // const isEligibleForFetch = useMemo(
+  //   () => roomSize >= 2 && !!activePlayer?.playerId,
+  //   [roomSize, activePlayer?.playerId]
+  // );
+
+  const prevPlayerId = useRef(null)
+
+  const fetchPlayerById = async (dataToGet) => {
+    setCurrentBid("N/A");
+
+    console.log("GET PLAYER BY ID",dataToGet,prevPlayerId.current);
+
+
+
+    try {
+      if (dataToGet.roomSize >= 2 && dataToGet?.playerId && dataToGet.playerId !== prevPlayerId.current) {
+        const res = await getAuctionPlayersByID(
+            dataToGet?.playerId,
             auctionId
-          );
+        );
 
-          if (res && auctionId && activePlayer?.id) {
-            await clearBids(auctionId, activePlayer.id);
-          }
-
-          setActivePlayer((prevPlayer) => ({
-            ...prevPlayer,
-            ...res?.player,
-            id: prevPlayer.id,
-            imageUrl: res?.imageUrl,
-          }));
-
-          setCurrentBids([]);
-          setActivePlayerId(res?.id);
-          setCurrentBid(res.currentBid !== null ? res.currentBid : 0);
+        if (res && auctionId && dataToGet?.id) {
+          await clearBids(auctionId, dataToGet.id);
         }
-      } catch (error) {
-        console.error("Error fetching player by ID:", error);
+        prevPlayerId.current = dataToGet.playerId;
+        // console.log(res, "aaaaaaaaaaaaaaaaaaaaa");
+
+        setActivePlayer((prevPlayer) => ({
+          ...dataToGet,
+          ...prevPlayer,
+          ...res?.player,
+          id: prevPlayer.id,
+          imageUrl: res?.imageUrl,
+        }));
+
+        setCurrentBids([]);
+        setActivePlayerId(res?.id);
+        setCurrentBid(res.currentBid !== null ? res.currentBid : 0);
       }
-    };
-
-    fetchPlayerById();
-  }, [activePlayer?.playerId, auctionId, remainingPlayers, roomSize]);
-
-  function validatePlayerTypeCount(playerTypeCount) {
-    const MAX_PLAYERS = 11;
-    const rules = {
-      Batsman: { min: 3, max: 4 },
-      Bowler: { min: 4, max: 4 },
-      "Wicket Keeper": { min: 1, max: 2 },
-      "All Rounder": { min: 1, max: 2 },
-    };
-
-    const totalPlayers = Object.values(playerTypeCount).reduce(
-      (sum, count) => sum + count,
-      0
-    );
-    if (totalPlayers > MAX_PLAYERS) {
-      return {
-        valid: false,
-        message: "Total players exceed the maximum allowed limit of 11.",
-      };
+    } catch (error) {
+      console.error("Error fetching player by ID:", error);
     }
-    for (const [type, count] of Object.entries(playerTypeCount)) {
-      const { min, max } = rules[type];
-      if (count > max) {
-        return {
-          valid: false,
-          message: `You cannot have more than ${max} ${type}(s).`,
-        };
-      }
-      // if (count < min && totalPlayers === MAX_PLAYERS) {
-      //   return {
-      //     valid: false,
-      //     message: `You need at least ${min} ${type}(s).`,
-      //   };
-      // }
-    }
-    return { valid: true, message: "Player selection is valid." };
   }
 
   const fetchAllPlayerInAuction = useCallback(async () => {
@@ -295,11 +264,34 @@ const AuctionRoom = () => {
     fetchAllPlayerInAuction();
   }, [fetchAllPlayerInAuction]);
 
+  // const fetchCurrentBids = useCallback(async (activePlayerId) => {
+  //   if (!activePlayerId || remainingPlayers < 1) {
+  //     return;
+  //   }
+  //   console.log(activePlayerId, "fetching current bids, if any on page render");
+  //   const res = await getBidHistoryOfPlayers(activePlayerId);
+
+  //   if (res?.bids.length > 1) {
+  //     const sortedBids = (res?.bids || []).sort(
+  //       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  //     );
+  //     const latestBids = sortedBids.slice(0, 2);
+  //     console.log("sorted bids", sortedBids);
+  //     setCurrentBids(latestBids);
+  //   }
+  // }, []);
+
+  // useEffect(() => {
+  //   if (activePlayerId) {
+  //     fetchCurrentBids(activePlayerId);
+  //   }
+  // }, []);
+
   const handleInputChange = (e) => {
     const input = e.target.value;
     const numericValue = input
-      .replace(/[^0-9.]/g, "")
-      .replace(/(\..*?)\..*/g, "$1");
+        .replace(/[^0-9.]/g, "")
+        .replace(/(\..*?)\..*/g, "$1");
     if (numericValue.startsWith(".")) {
       setValue("0" + numericValue);
     } else {
@@ -325,6 +317,7 @@ const AuctionRoom = () => {
     SocketService.onActivePlayer((data) => {
       sethighestBidderId(null);
       setActivePlayer(data);
+      fetchPlayerById(data)
       // setActivePlayerName(data?.player?.name);
     });
 
@@ -334,7 +327,7 @@ const AuctionRoom = () => {
     SocketService.onBudgetUpdate((data) => console.log("Budget Update", data));
 
     SocketService.onPlayerReAdded((data) => {
-      toast.error(`${data?.message}`);
+      toast.success(`${data?.message}`);
       fetchAllPlayerInAuction(auctionId);
       SocketService.emitGetActivePlayer();
       SocketService.emitGetPlayerCount();
@@ -350,7 +343,7 @@ const AuctionRoom = () => {
       });
 
       const sliced = sortedBids.slice(0, 2);
-      // console.log(sliced, sortedBids);
+      console.log(sliced, sortedBids);
       setCurrentBids(sliced);
     });
 
@@ -362,12 +355,13 @@ const AuctionRoom = () => {
     });
 
     SocketService.onUserDisconnected((data) =>
-      console.log("user disconnected", data)
+        console.log("user disconnected", data)
     );
 
     SocketService.playerSold((data) => {
-      toast.success(`${data?.playerDetails?.name} is sold to ${data?.userId}`);
-      updateAuctionEndTime(auctionId);
+      toast.success(
+          `${data?.playerDetails?.name} is sold to ${data?.userId}`
+      );
     });
 
     SocketService.onGetChatHistory((data) => {
@@ -401,17 +395,10 @@ const AuctionRoom = () => {
     // });
 
     SocketService.onNewBid((data) => {
-      if (bidPromiseRef.current) {
-        if (data) {
-          bidPromiseRef.current.resolve(data);
-        }
-        // } else if (data === "Error") {
-        //   bidPromiseRef.current.reject(
-        //     new Error(data?.errorMessage || "Something went wrong")
-        //   );
-        // }
-        bidPromiseRef.current = null;
-      }
+      // if (timerRef.current) {
+      //   timerRef.current.resetTimer();
+      // }
+      toast.success(`${data.amount}Cr Bid is Placed`);
 
       const remaining = data?.remainingPlayerCount;
       const highestBidder = data?.highestBidderId;
@@ -429,12 +416,11 @@ const AuctionRoom = () => {
       setCurrentBid(data.amount);
     });
 
-    SocketService.onAskNewPlayer((data) => {
+    SocketService.onAskNewPlayer(() => {
       fetchAllPlayerInAuction(auctionId);
       // if (timerRef.current) {
       //   timerRef.current.startTimer();
       // }
-      console.log(data, "onAskNewPlayer data");
       SocketService.emitGetPlayerCount();
       // resetJumpForNewPlayer();
     });
@@ -450,12 +436,12 @@ const AuctionRoom = () => {
       //   ...prev,
       //   remaining: prev.remaining - 1,
       // }));
-      handlePlaceBid(jump, "jump");
+      placeBid(jump, "jump");
     } else {
       jump < currentBid &&
-        toast.error("Bid amount cannot be less than current bid!");
+      toast.error("Bid amount cannot be less than current bid!");
       jump > budget.remaining &&
-        toast.error("Your purse is less than bid amount!");
+      toast.error("Your purse is less than bid amount!");
     }
   };
 
@@ -486,6 +472,7 @@ const AuctionRoom = () => {
   };
 
   useEffect(() => {
+    // const timerRefrence = timerRef.current;
     const initializeSocket = async () => {
       try {
         // const token = userId;
@@ -499,6 +486,10 @@ const AuctionRoom = () => {
           SocketService.emitGetPlayerCount();
           SocketService.emitGetBudget();
           SocketService.emitGetPlayerPurchasedCount();
+
+          // if (timerRefrence) {
+          //   timerRefrence.startTimer();
+          // }
         }
       } catch (error) {
         console.error("Failed to initialize socket:", error);
@@ -511,64 +502,21 @@ const AuctionRoom = () => {
       console.log("Cleaning up socket connection...");
       SocketService.disconnect();
       setIsConnected(false);
+
+      // if (timerRefrence) {
+      //   timerRefrence.resetTimer();
+      // }
     };
   }, [auctionId, userId, setupSocketListeners, token]);
 
-  const handlePlaceBid = (amount, type) => {
-    const isCompositionValid = validatePlayerTypeCount(teamComposition);
-    if (!isCompositionValid?.valid) {
-      toast.error(`${isCompositionValid?.message}`);
-      return;
-    }
-
-    const promise = new Promise((resolve, reject) => {
-      bidPromiseRef.current = { resolve, reject };
-
-      if (type == "increment") {
-        placeBid(amount, "increment");
-      } else if (type == "jump") {
-        placeBid(amount, "jump");
-      }
-    });
-
-    console.log("111");
-
-    toast.promise(
-      promise,
-      {
-        loading: "Placing your bid...",
-        success: (data) => `${data.amount}Cr Bid is Placed!`,
-        error: (err) => err.message || "Bid placement failed!",
-      },
-      {
-        success: { duration: 4000 },
-        error: { duration: 4000 },
-      }
-    );
-
-    console.log("111");
-
-    promise.catch((err) => {
-      console.error("Bid placement failed:", err);
-    });
-
-    console.log("111");
-  };
-
   const placeBid = (amount, type) => {
-    if (
-      !isConnected ||
-      !activePlayer ||
-      roomSize < 2 ||
-      remainingPlayers < 1 ||
-      !teamComposition
-    ) {
+    if (!isConnected || !activePlayer || roomSize < 2 || remainingPlayers < 1) {
       return;
     }
     if (type === "increment") {
       if (amount > budget.remaining) {
         toast.error(
-          `Cannot place bid! not enough money in purse - ${amount} and ${currentBid}`
+            `Cannot place bid! not enough money in purse - ${amount} and ${currentBid}`
         );
       }
       if (activePlayerId) {
@@ -579,10 +527,6 @@ const AuctionRoom = () => {
         toast.error("Cannot place bid! not enough money in purse");
         return;
       }
-      if (amount <= currentBid) {
-        toast.error("Cannot Jump! Amount Error");
-        return;
-      }
       if (activePlayerId) {
         SocketService.emitBid(activePlayerId, amount);
       }
@@ -590,181 +534,174 @@ const AuctionRoom = () => {
   };
 
   const ConnectionStatus = () => (
-    <div
-      className={`px-4 py-2 rounded-full text-sm ${
-        isConnected ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-      }`}
-    >
-      {isConnected ? "Connected" : "Disconnected"}
-    </div>
+      <div
+          className={`px-4 py-2 rounded-full text-sm ${
+              isConnected ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+          }`}
+      >
+        {isConnected ? "Connected" : "Disconnected"}
+      </div>
   );
 
   // console.log("activePLare", activePlayer);
 
   return (
-    <div className="flex flex-col h-dvh lg:h-screen">
-      <Header heading={`Auction Room #${auctionId}`}>
-        <ConnectionStatus />
-      </Header>
+      <div className="flex flex-col h-dvh lg:h-screen">
+        <Header heading={`Auction Room #${auctionId}`}>
+          <ConnectionStatus />
+        </Header>
 
-      {/* {error && (
+        {/* {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative m-4">
           {error}
         </div>
       )} */}
 
-      {remainingPlayers > 0 && roomSize >= 2 ? (
-        <div className="flex-1 w-full font-sans flex flex-col items-center justify-between relative">
-          <div className="rounded-lg p-4 mt-4 w-full flex justify-center relative">
-            <div className="absolute top-0 left-10">
-              <img
-                src={activePlayer?.imageUrl}
-                alt="Player Image"
-                className="w-36 h-36 rounded-full border-4 border-gray-200 bg-zinc-300"
-              />
-            </div>
+        {remainingPlayers > 0 && roomSize >= 2 ? (
+            <div className="flex-1 w-full font-sans flex flex-col items-center justify-between relative">
+              <div className="rounded-lg p-4 mt-4 w-full flex justify-center relative">
+                <div className="absolute top-0 left-10">
+                  <img
+                      src={activePlayer?.imageUrl}
+                      alt="Player Image"
+                      className="w-36 h-36 rounded-full border-4 border-gray-200 bg-zinc-300"
+                  />
+                </div>
 
-            <div className="text-xs text-gray-600 w-[70%] font-medium">
-              <p className="border-2 border-b-zinc-200 py-1 px-2 text-end text-red-600 ">
-                {teamComposition != null
-                  ? `B${teamComposition?.Batsman ?? 0} | WK${
-                      teamComposition["Wicket Keeper"] ?? 0
-                    } | AR${teamComposition["All Rounder"] ?? 0} | B${
-                      teamComposition?.Bowler
-                    }`
-                  : `B0 | WK0 | AR0 | B0`}
-              </p>
-              <p className="border-2 border-t-zinc-200 py-1 px-2 text-end">
-                Type: {activePlayer?.stats?.type || "N/A"}
-              </p>
+                <div className="text-xs text-gray-600 w-[70%]">
+                  <p className="border-2 border-t-zinc-200 py-1 px-2 text-end">
+                    Type: {activePlayer?.stats?.type || "N/A"}
+                  </p>
+                  {/* <p className="border-2 border-b-zinc-200 py-1 px-2 text-end">
+                Matches: {activePlayer?.matches || 0}
+              </p> */}
+                  <p className="border-2 border-b-zinc-200 py-1 px-2 text-end">
+                    Points: {800}
+                  </p>
+                  <p className="border-2 border-b-zinc-200 py-1 px-2 text-end">
+                    Base Price: {currentBid || "N/A"}
+                  </p>
+                </div>
+              </div>
 
-              <p className="border-2 border-b-zinc-200 py-1 px-2 text-end">
-                Points: {800}
-              </p>
-              <p className="border-2 border-b-zinc-200 py-1 px-2 text-end">
-                Base Price: {currentBid || "N/A"}
-              </p>
-            </div>
-          </div>
+              <h2 className="text-3xl font-semibold mt-10 text-center">
+                {activePlayer?.name || "Fetching player..."}
+              </h2>
 
-          <h2 className="text-3xl font-semibold mt-10 text-center">
-            {activePlayer?.name || "Fetching player..."}
-          </h2>
+              <div className="bg-white shadow-2xl mt-0 m-3 py-4 px-12 rounded-3xl text-center w-fit">
+                <p className="text-blue-600 text-5xl font-bold mb-2">
+                  {currentBid}
+                  <span className="text-2xl"> Cr</span>
+                </p>
+                <h3 className="text-black text-xl font-semibold">Current Bid</h3>
+              </div>
 
-          <div className="bg-white shadow-2xl mt-0 m-3 py-4 px-12 rounded-3xl text-center w-fit">
-            <p className="text-blue-600 text-5xl font-bold mb-2">
-              {currentBid}
-              <span className="text-2xl"> Cr</span>
-            </p>
-            <h3 className="text-black text-xl font-semibold">Current Bid</h3>
-          </div>
+              <div className="bg-white shadow mt-6 rounded-lg w-[95%] overflow-hidden">
+                <h3 className="text-black font-bold bg-zinc-300 py-2 px-4 text-start text-sm">
+                  PREVIOUS BIDS
+                </h3>
 
-          <div className="bg-white shadow mt-6 rounded-lg w-[95%] overflow-hidden">
-            <h3 className="text-black font-bold bg-zinc-300 py-2 px-4 text-start text-sm">
-              PREVIOUS BIDS
-            </h3>
+                {currentBids.length > 0 ? (
+                    <table className="w-full text-center py-4 px-4">
+                      <thead>
+                      <tr className="font-bold text-sm">
+                        <th className="py-2 px-2"></th>
+                        <th className="py-2 px-2">Bid</th>
+                        <th className="py-2 px-2">Player ID</th>
+                        <th className="py-2 px-2">User ID</th>
+                      </tr>
+                      </thead>
 
-            {currentBids.length > 0 ? (
-              <table className="w-full text-center py-4 px-4">
-                <thead>
-                  <tr className="font-bold text-sm">
-                    <th className="py-2 px-2"></th>
-                    <th className="py-2 px-2">Bid</th>
-                    <th className="py-2 px-2">Player ID</th>
-                    <th className="py-2 px-2">User ID</th>
-                  </tr>
-                </thead>
-
-                <tbody className="font-bold">
-                  {currentBids.map((bid, index) => (
-                    <tr key={index} className="border-b">
-                      <td className="py-2 px-4 flex items-center justify-start space-x-3">
-                        <img
-                          src={bid?.logo || "https://via.placeholder.com/50"}
-                          // alt={`${bid?.team} logo`}
-                          className="w-8 h-8 rounded-full"
-                        />
-                        <div className="flex flex-col items-start">
+                      <tbody className="font-bold">
+                      {currentBids.map((bid, index) => (
+                          <tr key={index} className="border-b">
+                            <td className="py-2 px-4 flex items-center justify-start space-x-3">
+                              <img
+                                  src={bid?.logo || "https://via.placeholder.com/50"}
+                                  // alt={`${bid?.team} logo`}
+                                  className="w-8 h-8 rounded-full"
+                              />
+                              <div className="flex flex-col items-start">
                           <span className="font-bold text-sm">
                             {bid?.team || "Team - N/A"}
                           </span>
-                          <span className="text-black text-sm font-bold">
+                                <span className="text-black text-sm font-bold">
                             {bid?.user?.username}
                           </span>
-                        </div>
-                      </td>
+                              </div>
+                            </td>
 
-                      <td className="py-1 px-2 text-sm">{bid?.amount}Cr</td>
-                      <td className="py-1 px-2 text-sm">
-                        {bid?.auctionPlayerId}
-                      </td>
-                      <td className="py-1 px-2 text-sm">{bid?.userId}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p className="font-medium text-center py-2 text-red-500">
-                No Bids for this Player Yet
-              </p>
-            )}
-          </div>
+                            <td className="py-1 px-2 text-sm">{bid?.amount}Cr</td>
+                            <td className="py-1 px-2 text-sm">
+                              {bid?.auctionPlayerId}
+                            </td>
+                            <td className="py-1 px-2 text-sm">{bid?.userId}</td>
+                          </tr>
+                      ))}
+                      </tbody>
+                    </table>
+                ) : (
+                    <p className="font-medium text-center py-2 text-red-500">
+                      No Bids for this Player Yet
+                    </p>
+                )}
+              </div>
 
-          <div className="bg-white mt-4 p-4 rounded-lg w-full">
-            <div className="flex justify-between items-center mb-2">
+              <div className="bg-white mt-4 p-4 rounded-lg w-full">
+                <div className="flex justify-between items-center mb-2">
               <span className="text-red-500 font-bold text-xl">
                 {budget.remaining}Cr Left
               </span>
-            </div>
+                </div>
 
-            <div className="w-full bg-gray-200 rounded-full">
-              <div
-                className="bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 h-5 rounded-full"
-                style={{ width: `${(budget.remaining / budget.total) * 100}%` }}
-              ></div>
-            </div>
+                <div className="w-full bg-gray-200 rounded-full">
+                  <div
+                      className="bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 h-5 rounded-full"
+                      style={{ width: `${(budget.remaining / budget.total) * 100}%` }}
+                  ></div>
+                </div>
 
-            <div className="flex justify-between mt-2 font-bold text-md">
-              <span>Budget</span>
-              <span>
+                <div className="flex justify-between mt-2 font-bold text-md">
+                  <span>Budget</span>
+                  <span>
                 <span className="text-red-500">{budget.remaining}/</span>{" "}
-                {budget.total} Cr
+                    {budget.total} Cr
               </span>
-            </div>
-          </div>
+                </div>
+              </div>
 
-          {expandChat && <div className="min-h-[8%]"></div>}
+              {expandChat && <div className="min-h-[8%]"></div>}
 
-          <div
-            className={`${isExpanded && "h-[71%] fixed bottom-0 "} ${
-              expandPullBack && "h-[71%] fixed bottom-0"
-            } ${expandChat && ` h-[42%]  fixed bottom-0`} ${
-              editJump && ` h-[20%]  fixed bottom-0`
-            } w-full bg-white z-40`}
-          >
-            <div className="w-full p-2 py-3 border-t-[3px] border-black rounded-3xl relative">
-              <div className="absolute -top-9 left-[50vw] -translate-x-1/2">
-                <button
-                  onClick={() => {
-                    if (expandPullBack) {
-                      setExpandPullBack(false);
-                      setIsExpanded(false);
-                      return;
-                    }
-                    if (expandChat) {
-                      setExpandChat(false);
-                      setIsExpanded(false);
-                      return;
-                    }
+              <div
+                  className={`${isExpanded && "h-[71%] fixed bottom-0 "} ${
+                      expandPullBack && "h-[71%] fixed bottom-0"
+                  } ${expandChat && ` h-[42%]  fixed bottom-0`} ${
+                      editJump && ` h-[20%]  fixed bottom-0`
+                  } w-full bg-white z-40`}
+              >
+                <div className="w-full p-2 py-3 border-t-[3px] border-black rounded-3xl relative">
+                  <div className="absolute -top-9 left-[50vw] -translate-x-1/2">
+                    <button
+                        onClick={() => {
+                          if (expandPullBack) {
+                            setExpandPullBack(false);
+                            setIsExpanded(false);
+                            return;
+                          }
+                          if (expandChat) {
+                            setExpandChat(false);
+                            setIsExpanded(false);
+                            return;
+                          }
 
-                    if (editJump) {
-                      setEditJump(false);
-                      setIsExpanded(false);
-                      return;
-                    }
-                    setIsExpanded(!isExpanded);
-                  }}
-                  className={`
+                          if (editJump) {
+                            setEditJump(false);
+                            setIsExpanded(false);
+                            return;
+                          }
+                          setIsExpanded(!isExpanded);
+                        }}
+                        className={`
                     text-black 
                     flex items-center 
                     justify-center 
@@ -773,454 +710,456 @@ const AuctionRoom = () => {
                     ease-in-out 
                     transform 
                     ${
-                      isExpanded || expandChat || expandPullBack || editJump
-                        ? "rotate-180"
-                        : "rotate-0"
-                    }
+                            isExpanded || expandChat || expandPullBack || editJump
+                                ? "rotate-180"
+                                : "rotate-0"
+                        }
                     rounded-full 
                     p-2
                   `}
-                >
-                  <ChevronUp className="w-6 h-6" strokeWidth={3} />
-                </button>
-              </div>
-              <div className="flex justify-between items-center font-medium text-md">
-                <button
-                  className="flex-1/4  bg-blue-700 text-white py-[0.6rem] px-2 rounded-3xl text-center text-sm sm:text-base font-semibold"
-                  onClick={() => {
-                    setIsExpanded(false);
-                    setExpandPullBack(!expandPullBack);
-                    setExpandChat(false);
-                    setEditJump(false);
-                  }}
-                >
-                  {expandPullBack ? "CLOSE MENU" : "PULL BACK"}
-                </button>
+                    >
+                      <ChevronUp className="w-6 h-6" strokeWidth={3} />
+                    </button>
+                  </div>
+                  <div className="flex justify-between items-center font-medium text-md">
+                    <button
+                        className="flex-1/4  bg-blue-700 text-white py-[0.6rem] px-2 rounded-3xl text-center text-sm sm:text-base font-semibold"
+                        onClick={() => {
+                          setIsExpanded(false);
+                          setExpandPullBack(!expandPullBack);
+                          setExpandChat(false);
+                          setEditJump(false);
+                        }}
+                    >
+                      {expandPullBack ? "CLOSE MENU" : "PULL BACK"}
+                    </button>
 
-                <button
-                  onClick={handleJumpClick}
-                  // disabled={budget.remaining < jump}
-                  className={`flex-1/4 mx-1 ${
-                    budget.remaining < jump ? `bg-blue-400` : `bg-blue-700`
-                  }   text-white py-2 px-3 rounded-3xl flex items-center justify-between gap-1 text-center text-sm sm:text-base font-semibold`}
-                >
+                    <button
+                        onClick={handleJumpClick}
+                        // disabled={budget.remaining < jump}
+                        className={`flex-1/4 mx-1 ${
+                            budget.remaining < jump ? `bg-blue-400` : `bg-blue-700`
+                        }   text-white py-2 px-3 rounded-3xl flex items-center justify-between gap-1 text-center text-sm sm:text-base font-semibold`}
+                    >
                   <span
-                    className="inline-block text-[0.7rem] w-6 h-6 border-2 border-blue-950 rounded-full bg-white text-blue-700"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditJump(!editJump);
-                      setExpandChat(false);
-                      setIsExpanded(false);
-                      setExpandPullBack(false);
-                    }}
+                      className="inline-block text-[0.7rem] w-6 h-6 border-2 border-blue-950 rounded-full bg-white text-blue-700"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditJump(!editJump);
+                        setExpandChat(false);
+                        setIsExpanded(false);
+                        setExpandPullBack(false);
+                      }}
                   >
                     {jump}Cr
                   </span>
-                  JUMP
-                </button>
+                      JUMP
+                    </button>
 
-                {showPopup && (
-                  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-                    <div className="bg-white rounded-xl shadow-2xl w-96 p-6 border border-gray-200">
-                      <div className="flex flex-col items-center justify-center mb-4">
-                        <AlertCircle className="text-yellow-500 w-12 h-12 mb-3" />
-                        <h2 className="text-xl font-semibold text-gray-800">
-                          Confirm Your Bid
-                        </h2>
-                      </div>
+                    {showPopup && (
+                        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+                          <div className="bg-white rounded-xl shadow-2xl w-96 p-6 border border-gray-200">
+                            <div className="flex flex-col items-center justify-center mb-4">
+                              <AlertCircle className="text-yellow-500 w-12 h-12 mb-3" />
+                              <h2 className="text-xl font-semibold text-gray-800">
+                                Confirm Your Bid
+                              </h2>
+                            </div>
 
-                      <p className="text-center text-gray-600 mb-6">
-                        You are placing a bid of{" "}
-                        <strong className="text-blue-600">{jump}Cr</strong>
-                      </p>
+                            <p className="text-center text-gray-600 mb-6">
+                              You are placing a bid of{" "}
+                              <strong className="text-blue-600">{jump}Cr</strong>
+                            </p>
 
-                      <div className="flex justify-center space-x-4">
-                        <button
-                          onClick={closePopup}
-                          className="flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                        >
-                          <XCircle className="mr-2 w-5 h-5 text-gray-500" />
-                          Discard
-                        </button>
+                            <div className="flex justify-center space-x-4">
+                              <button
+                                  onClick={closePopup}
+                                  className="flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                              >
+                                <XCircle className="mr-2 w-5 h-5 text-gray-500" />
+                                Discard
+                              </button>
 
-                        <button
-                          onClick={() => {
-                            handleJumpCount();
-                            closePopup();
-                          }}
-                          className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                          <CheckCircle className="mr-2 w-5 h-5" />
-                          Place Bid
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                              <button
+                                  onClick={() => {
+                                    handleJumpCount();
+                                    closePopup();
+                                  }}
+                                  className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                              >
+                                <CheckCircle className="mr-2 w-5 h-5" />
+                                Place Bid
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                    )}
 
-                <button
-                  onClick={() =>
-                    handlePlaceBid(
-                      currentBid < 5 && currentBid >= 0 ? 0.25 : 0.5,
-                      "increment"
-                    )
-                  }
-                  disabled={budget.remaining < 1}
-                  className="flex-1/4 mx-1 bg-blue-700 text-white py-2 px-3 rounded-3xl text-center text-sm sm:text-base flex items-center justify-between gap-1 font-semibold"
-                >
+                    <button
+                        onClick={() =>
+                            placeBid(
+                                currentBid < 5 && currentBid >= 0 ? 0.25 : 0.5,
+                                "increment"
+                            )
+                        }
+                        disabled={budget.remaining < 1}
+                        className="flex-1/4 mx-1 bg-blue-700 text-white py-2 px-3 rounded-3xl text-center text-sm sm:text-base flex items-center justify-between gap-1 font-semibold"
+                    >
                   <span className="inline-block text-[0.7rem] w-6 h-6 border-2 border-blue-950 rounded-full bg-white text-blue-700">
                     {currentBid < 5 && currentBid >= 0
-                      ? "25L"
-                      : currentBid > 5 && "50L"}
+                        ? "25L"
+                        : currentBid > 5 && "50L"}
                   </span>
-                  INCREASE BID
-                </button>
-              </div>
-            </div>
-
-            {isExpanded && (
-              <div className="flex w-full gap-2 justify-center pb-2 rounded-lg px-4 py-2">
-                {["My Team", "Teams", "Upcoming"].map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`flex-1 px-1 py-2 rounded-sm font-semibold bg-white text-black border-b-4
-                    ${
-                      activeTab === tab
-                        ? "border-b-4 border-b-black"
-                        : "border-b-white hover:border-b-4 hover:border-b-blue-950"
-                    } transition-all duration-300`}
-                  >
-                    <span className="font-bold">{tab}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {isExpanded && (
-              <div className="h-full my-2 py-4">
-                {activeTab === "My Team" && (
-                  <div className="overflow-y-auto h-[75%] rounded-lg">
-                    {(() => {
-                      const yourTeamPlayers = auctionPlayers
-                        .filter(
-                          (item) =>
-                            item?.status === "sold" &&
-                            item?.highestBidderId === userId
-                        )
-                        .sort((a, b) => a.order - b.order);
-
-                      if (yourTeamPlayers.length === 0) {
-                        return (
-                          <div className="text-center py-4">
-                            No players in your team yet.
-                          </div>
-                        );
-                      }
-
-                      return yourTeamPlayers.map((item, index) => (
-                        <div key={item.auctionPlayerId} className="px-4">
-                          <PlayerCard
-                            tabType={"My Team"}
-                            item={item}
-                            index={index}
-                            ongoingPlayerID={activePlayerId}
-                            currentUserID={userId}
-                            idToUsernameMap={participantMap}
-                            pullCount={pullCount}
-                            setPullCount={setPullCount}
-                            teamMap={teamMap}
-                          />
-                        </div>
-                      ));
-                    })()}
+                      INCREASE BID
+                    </button>
                   </div>
+                </div>
+
+                {isExpanded && (
+                    <div className="flex w-full gap-2 justify-center pb-2 rounded-lg px-4 py-2">
+                      {["My Team", "Teams", "Upcoming"].map((tab) => (
+                          <button
+                              key={tab}
+                              onClick={() => setActiveTab(tab)}
+                              className={`flex-1 px-1 py-2 rounded-sm font-semibold bg-white text-black border-b-4
+                    ${
+                                  activeTab === tab
+                                      ? "border-b-4 border-b-black"
+                                      : "border-b-white hover:border-b-4 hover:border-b-blue-950"
+                              } transition-all duration-300`}
+                          >
+                            <span className="font-bold">{tab}</span>
+                          </button>
+                      ))}
+                    </div>
                 )}
 
-                {activeTab === "Teams" && (
-                  <TeamsTab
-                    auctionPlayers={auctionPlayers}
-                    activePlayerId={activePlayerId}
-                    userId={userId}
-                    participantMap={participantMap}
-                    pullCount={pullCount}
-                    setPullCount={setPullCount}
-                    teamMap={teamMap}
-                  />
-                )}
+                {isExpanded && (
+                    <div className="h-full my-2 py-4">
+                      {activeTab === "My Team" && (
+                          <div className="overflow-y-auto h-[75%] rounded-lg">
+                            {(() => {
+                              const yourTeamPlayers = auctionPlayers
+                                  .filter(
+                                      (item) =>
+                                          item?.status === "sold" &&
+                                          item?.highestBidderId === userId
+                                  )
+                                  .sort((a, b) => a.order - b.order);
 
-                {activeTab === "Upcoming" && (
-                  <div className="overflow-y-auto h-[75%] rounded-lg">
-                    {auctionPlayers
-                      .filter((it) => it.status === "available")
-                      .map((item, index) => {
-                        return (
-                          <div key={item.auctionID} className="px-4">
-                            <PlayerCard
-                              tabType={"Upcoming"}
-                              item={item}
-                              index={index}
-                              ongoingPlayerID={activePlayerId}
-                              currentUserID={userId}
-                              idToUsernameMap={participantMap}
+                              if (yourTeamPlayers.length === 0) {
+                                return (
+                                    <div className="text-center py-4">
+                                      No players in your team yet.
+                                    </div>
+                                );
+                              }
+
+                              return yourTeamPlayers.map((item, index) => (
+                                  <div key={item.auctionPlayerId} className="px-4">
+                                    <PlayerCard
+                                        tabType={"My Team"}
+                                        item={item}
+                                        index={index}
+                                        ongoingPlayerID={activePlayerId}
+                                        currentUserID={userId}
+                                        idToUsernameMap={participantMap}
+                                        pullCount={pullCount}
+                                        setPullCount={setPullCount}
+                                        teamMap={teamMap}
+                                    />
+                                  </div>
+                              ));
+                            })()}
+                          </div>
+                      )}
+
+                      {activeTab === "Teams" && (
+                          <TeamsTab
+                              auctionPlayers={auctionPlayers}
+                              activePlayerId={activePlayerId}
+                              userId={userId}
+                              participantMap={participantMap}
                               pullCount={pullCount}
                               setPullCount={setPullCount}
                               teamMap={teamMap}
-                            />
-                          </div>
-                        );
-                      })}
-                  </div>
-                )}
-              </div>
-            )}
+                          />
+                      )}
 
-            {expandPullBack && (
-              <div className="h-full py-4 ">
-                <div className="w-full px-4 pb-3 font-semibold flex justify-between items-center">
-                  <p>
-                    Player that can be pulled back (
-                    {auctionPlayers.filter(
-                      (it) => it.status === "unsold" && activePlayerId !== it.id
-                    ).length || 0}
-                    )
-                  </p>
-                  <span
-                    className="h-fit w-fit bg-black rounded-full p-1"
-                    onClick={() => {
-                      setIsExpanded(false);
-                      setExpandPullBack(!expandPullBack);
-                      setExpandChat(false);
-                    }}
-                  >
+                      {activeTab === "Upcoming" && (
+                          <div className="overflow-y-auto h-[75%] rounded-lg">
+                            {auctionPlayers
+                                .filter((it) => it.status === "available")
+                                .map((item, index) => {
+                                  return (
+                                      <div key={item.auctionID} className="px-4">
+                                        <PlayerCard
+                                            tabType={"Upcoming"}
+                                            item={item}
+                                            index={index}
+                                            ongoingPlayerID={activePlayerId}
+                                            currentUserID={userId}
+                                            idToUsernameMap={participantMap}
+                                            pullCount={pullCount}
+                                            setPullCount={setPullCount}
+                                            teamMap={teamMap}
+                                        />
+                                      </div>
+                                  );
+                                })}
+                          </div>
+                      )}
+                    </div>
+                )}
+
+                {expandPullBack && (
+                    <div className="h-full py-4 ">
+                      <div className="w-full px-4 pb-3 font-semibold flex justify-between items-center">
+                        <p>
+                          Player that can be pulled back (
+                          {auctionPlayers.filter(
+                              (it) => it.status === "unsold" && activePlayerId !== it.id
+                          ).length || 0}
+                          )
+                        </p>
+                        <span
+                            className="h-fit w-fit bg-black rounded-full p-1"
+                            onClick={() => {
+                              setIsExpanded(false);
+                              setExpandPullBack(!expandPullBack);
+                              setExpandChat(false);
+                            }}
+                        >
                     <X className="w-2 h-2 text-white" strokeWidth={3} />
                   </span>
-                </div>
-                <div className="flex-1 flex items-center justify-center text-red-700 font-medium px-6">
-                  {" "}
-                  {auctionPlayers.filter(
-                    (it) => it.status === "unsold" && activePlayerId !== it.id
-                  ).length < 1 && "No players to pull back"}
-                </div>
-
-                <div className="overflow-y-auto h-[82%] rounded-lg">
-                  {auctionPlayers.map((item, index) => {
-                    if (item.status !== "unsold" || activePlayerId === item.id)
-                      return;
-                    return (
-                      <div key={item.auctionID} className="px-4">
-                        <PlayerCard
-                          tabType={"pullback"}
-                          item={item}
-                          index={index}
-                          ongoingPlayerID={activePlayerId}
-                          currentUserID={userId}
-                          idToUsernameMap={participantMap}
-                          pullCount={pullCount}
-                          setPullCount={setPullCount}
-                          teamMap={teamMap}
-                        />
                       </div>
-                    );
-                  })}
-                </div>
-                {/* )} */}
-              </div>
-            )}
+                      <div className="flex-1 flex items-center justify-center text-red-700 font-medium px-6">
+                        {" "}
+                        {auctionPlayers.filter(
+                            (it) => it.status === "unsold" && activePlayerId !== it.id
+                        ).length < 1 && "No players to pull back"}
+                      </div>
 
-            {expandChat && (
-              <div className="h-full py-4 w-full">
-                <div className="h-[85%] flex flex-col justify-between">
-                  <div
-                    ref={chatContainerRef}
-                    className="flex-1 overflow-y-auto px-4 py-4"
-                  >
-                    {chats.map((chat, index) => (
-                      <div
-                        key={chat.id || index}
-                        className={`flex ${
-                          chat.sender === "You"
-                            ? "justify-end"
-                            : "justify-start"
-                        } mb-2`}
-                      >
+                      {/* {activeTab === "Your Team" && ( */}
+                      <div className="overflow-y-auto h-[82%] rounded-lg">
+                        {auctionPlayers.map((item, index) => {
+                          if (item.status !== "unsold" || activePlayerId === item.id)
+                            return;
+                          console.log(item);
+                          return (
+                              <div key={item.auctionID} className="px-4">
+                                <PlayerCard
+                                    tabType={"pullback"}
+                                    item={item}
+                                    index={index}
+                                    ongoingPlayerID={activePlayerId}
+                                    currentUserID={userId}
+                                    idToUsernameMap={participantMap}
+                                    pullCount={pullCount}
+                                    setPullCount={setPullCount}
+                                    teamMap={teamMap}
+                                />
+                              </div>
+                          );
+                        })}
+                      </div>
+                      {/* )} */}
+                    </div>
+                )}
+
+                {expandChat && (
+                    <div className="h-full py-4 w-full">
+                      <div className="h-[85%] flex flex-col justify-between">
                         <div
-                          className={`max-w-[75%] px-4 py-2 rounded-lg ${
-                            chat.sender === "You"
-                              ? "bg-blue-800 text-white"
-                              : "bg-gray-300 text-black"
-                          }`}
+                            ref={chatContainerRef}
+                            className="flex-1 overflow-y-auto px-4 py-4"
                         >
-                          {chat.text}
+                          {chats.map((chat, index) => (
+                              <div
+                                  key={chat.id || index}
+                                  className={`flex ${
+                                      chat.sender === "You"
+                                          ? "justify-end"
+                                          : "justify-start"
+                                  } mb-2`}
+                              >
+                                <div
+                                    className={`max-w-[75%] px-4 py-2 rounded-lg ${
+                                        chat.sender === "You"
+                                            ? "bg-blue-800 text-white"
+                                            : "bg-gray-300 text-black"
+                                    }`}
+                                >
+                                  {chat.text}
+                                </div>
+                              </div>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-2 p-4 shadow-lg h-fit">
+                          <button>
+                            <Smile className="w-6 h-6 text-gray-600" />
+                          </button>
+                          <input
+                              type="text"
+                              className="flex-grow px-4 py-2 border border-zinc-500 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-700"
+                              placeholder="Type a message..."
+                              value={message}
+                              onChange={(e) => setMessage(e.target.value)}
+                              onKeyPress={handleKeyPress}
+                          />
+                          <button>
+                            <Mic className="w-6 h-6 text-gray-600" />
+                          </button>
+                          <button onClick={sendMessage}>
+                            <Send className="w-6 h-6 text-blue-700" />
+                          </button>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-2 p-4 shadow-lg h-fit">
-                    <button>
-                      <Smile className="w-6 h-6 text-gray-600" />
-                    </button>
-                    <input
-                      type="text"
-                      className="flex-grow px-4 py-2 border border-zinc-500 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-700"
-                      placeholder="Type a message..."
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                    />
-                    <button>
-                      <Mic className="w-6 h-6 text-gray-600" />
-                    </button>
-                    <button onClick={sendMessage}>
-                      <Send className="w-6 h-6 text-blue-700" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {editJump && (
-              <div className="h-full w-full">
-                <div className="flex items-start justify-center gap-4 mt-5 px-6">
-                  <div className="flex-1 flex flex-col items-start w-full max-w-md">
-                    <div className="relative flex items-center w-full">
-                      <input
-                        id="jumpAmount"
-                        type="number"
-                        value={value}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700 text-black"
-                        placeholder="Enter amount"
-                      />
-                      <span className="absolute right-4 text-gray-500">Cr</span>
                     </div>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Enter a value between 2 and 100.
-                    </p>
-                  </div>
+                )}
 
-                  <div className="flex justify-center w-fit">
-                    <button
-                      className="w-fit flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg shadow-md hover:bg-blue-800 transition"
-                      onClick={handleSetClick}
-                    >
-                      <CheckCircle size={16} className="text-white" />
-                      Set
-                    </button>
-                  </div>
-                </div>
+                {editJump && (
+                    <div className="h-full w-full">
+                      <div className="flex items-start justify-center gap-4 mt-5 px-6">
+                        <div className="flex-1 flex flex-col items-start w-full max-w-md">
+                          <div className="relative flex items-center w-full">
+                            <input
+                                id="jumpAmount"
+                                type="number"
+                                value={value}
+                                onChange={handleInputChange}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700 text-black"
+                                placeholder="Enter amount"
+                            />
+                            <span className="absolute right-4 text-gray-500">Cr</span>
+                          </div>
+                          <p className="text-sm text-gray-500 mt-1">
+                            Enter a value between 2 and 100.
+                          </p>
+                        </div>
+
+                        <div className="flex justify-center w-fit">
+                          <button
+                              className="w-fit flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg shadow-md hover:bg-blue-800 transition"
+                              onClick={handleSetClick}
+                          >
+                            <CheckCircle size={16} className="text-white" />
+                            Set
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                )}
               </div>
-            )}
-          </div>
 
-          <div className="fixed right-2 top-[40%] transform -translate-y-1/2 flex flex-col items-center space-y-4">
-            <button
-              className="w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
-              // onClick={() => console.log("Button 3 clicked")}
-            >
-              <TimerComponent ref={timerRef} onTimerEnd={handleTimerEnd} />
-            </button>
-            <button
-              className="w-10 h-10 bg-yellow-100 text-yellow-400 rounded-full flex items-center justify-center hover:bg-yellow-200 border-yellow-400 border text-xs"
-              onClick={() => {
-                SocketService.emitMarkPlayerUnsold(activePlayer?.id, auctionId);
-              }}
-            >
-              New
-            </button>
-            <button
-              className="w-10 h-10 relative bg-green-100 text-green-400 rounded-full flex items-center justify-center hover:bg-green-200 border-green-400 border text-xs"
-              onClick={() => {
-                setExpandChat(!expandChat);
-                setIsExpanded(false);
-                setExpandPullBack(false);
-                setEditJump(false);
-                setNewNotification(false);
-              }}
-            >
-              Chat
-              {hasNewNotificationArrived && (
-                <span className="inline-block absolute -top-1 left-0 bg-red-600 w-3 h-3 rounded-full"></span>
-              )}
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="flex-1 flex items-center justify-center bg-gray-100">
-          <div className="p-6 text-center max-w-sm">
-            <div className="flex justify-center items-center mb-4">
-              <ArrowUpCircle className="h-10 w-10 text-blue-500" />
+              <div className="fixed right-2 top-[40%] transform -translate-y-1/2 flex flex-col items-center space-y-4">
+                <button
+                    className="w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
+                    onClick={() => console.log("Button 3 clicked")}
+                >
+                  <TimerComponent ref={timerRef} onTimerEnd={handleTimerEnd} />
+                </button>
+                <button
+                    className="w-10 h-10 bg-yellow-100 text-yellow-400 rounded-full flex items-center justify-center hover:bg-yellow-200 border-yellow-400 border text-xs"
+                    onClick={() => {
+                      SocketService.emitMarkPlayerUnsold(activePlayer?.id, auctionId);
+                    }}
+                >
+                  New
+                </button>
+                <button
+                    className="w-10 h-10 relative bg-green-100 text-green-400 rounded-full flex items-center justify-center hover:bg-green-200 border-green-400 border text-xs"
+                    onClick={() => {
+                      setExpandChat(!expandChat);
+                      setIsExpanded(false);
+                      setExpandPullBack(false);
+                      setEditJump(false);
+                      setNewNotification(false);
+                    }}
+                >
+                  Chat
+                  {hasNewNotificationArrived && (
+                      <span className="inline-block absolute -top-1 left-0 bg-red-600 w-3 h-3 rounded-full"></span>
+                  )}
+                </button>
+              </div>
             </div>
-            <h1 className="text-xl font-semibold text-gray-800">Room Status</h1>
-            {isConnected ? (
-              remainingPlayers < 1 ||
-              remainingPlayers === null ||
-              remainingPlayers === undefined ? (
-                <p className="text-gray-600 mt-2 font-medium my-4">
+        ) : (
+            <div className="flex-1 flex items-center justify-center bg-gray-100">
+              <div className="p-6 text-center max-w-sm">
+                <div className="flex justify-center items-center mb-4">
+                  <ArrowUpCircle className="h-10 w-10 text-blue-500" />
+                </div>
+                <h1 className="text-xl font-semibold text-gray-800">Room Status</h1>
+                {isConnected ? (
+                    remainingPlayers < 1 ||
+                    remainingPlayers === null ||
+                    remainingPlayers === undefined ? (
+                        <p className="text-gray-600 mt-2 font-medium my-4">
                   <span className="block font-bold text-3xl">
                     Auction is Ended
                   </span>
-                  <span className="block">No remaining players to be sold</span>
-                </p>
-              ) : (
-                <p className="text-gray-600 mt-2 font-medium my-4">
+                          <span className="block">No remaining players to be sold</span>
+                        </p>
+                    ) : (
+                        <p className="text-gray-600 mt-2 font-medium my-4">
                   <span className="block font-bold text-xl">
                     Waiting for other players to join
                   </span>
-                  <span className="block">
+                          <span className="block">
                     {" "}
-                    The room size is currently less than 2. Please wait or check
+                            The room size is currently less than 2. Please wait or check
                     back later.
                   </span>
-                </p>
-              )
-            ) : !isConnected || remainingPlayers > 1 ? (
-              <p className="text-gray-600 mt-2 font-medium">
-                Connecting to auction room...
-              </p>
-            ) : (
-              <p className="text-gray-600 mt-2 font-medium my-4">
+                        </p>
+                    )
+                ) : !isConnected || remainingPlayers > 1 ? (
+                    <p className="text-gray-600 mt-2 font-medium">
+                      Connecting to auction room...
+                    </p>
+                ) : (
+                    <p className="text-gray-600 mt-2 font-medium my-4">
                 <span className="block font-bold text-3xl">
                   Auction is Ended
                 </span>
-                <span className="block">No remaining players to be sold</span>
-              </p>
-            )}
+                      <span className="block">No remaining players to be sold</span>
+                    </p>
+                )}
 
-            {remainingPlayers < 1 && isConnected ? (
-              <div className="flex gap-2">
-                <button
-                  className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-900 focus:ring-2 focus:ring-blue-300 focus:outline-none flex items-center justify-center gap-2"
-                  onClick={() => navigate(`/teamPage/${auctionId}/${userId}`)}
-                >
-                  <Eye size={20} />
-                  Auction Result
-                </button>
-                <button
-                  className="mt-4 bg-white text-blue-600 py-2 px-4 rounded-lg border-2 border-blue-600 hover:bg-gray-400 focus:ring-2 focus:ring-blue-900 focus:outline-none flex items-center justify-center gap-2"
-                  onClick={() =>
-                    navigate(`/yourTeamPlayers/${auctionId}/${userId}`)
-                  }
-                >
-                  <PersonStanding size={20} />
-                  My Team
-                </button>
+                {remainingPlayers < 1 && isConnected ? (
+                    <div className="flex gap-2">
+                      <button
+                          className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-900 focus:ring-2 focus:ring-blue-300 focus:outline-none flex items-center justify-center gap-2"
+                          onClick={() => navigate(`/result/${auctionId}`)}
+                      >
+                        <Eye size={20} />
+                        Auction Result
+                      </button>
+                      <button
+                          className="mt-4 bg-white text-blue-600 py-2 px-4 rounded-lg border-2 border-blue-600 hover:bg-gray-400 focus:ring-2 focus:ring-blue-900 focus:outline-none flex items-center justify-center gap-2"
+                          onClick={() =>
+                              navigate(`/yourTeamPlayers/${auctionId}/${userId}`)
+                          }
+                      >
+                        <PersonStanding size={20} />
+                        My Team
+                      </button>
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-center">
+                      <button
+                          className="mt-4 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-900 focus:ring-2 focus:ring-red-300 focus:outline-none flex items-center justify-center gap-2"
+                          onClick={() => navigate("/home")}
+                      >
+                        Leave Room
+                        <LogOut size={20} />
+                      </button>
+                    </div>
+                )}
               </div>
-            ) : (
-              <div className="flex items-center justify-center">
-                <button
-                  className="mt-4 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-900 focus:ring-2 focus:ring-red-300 focus:outline-none flex items-center justify-center gap-2"
-                  onClick={() => navigate("/home")}
-                >
-                  Leave Room
-                  <LogOut size={20} />
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+            </div>
+        )}
+      </div>
   );
 };
 
