@@ -79,7 +79,7 @@ const YourTeamPlayers = () => {
   const [teamData, setTeamData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [teamName, setTeamName] = useState(null);
-  const [auctionName, setAuctionName] = useState(null);
+  const [auction, setAuction] = useState(null);
   const [teamId, setTeamId] = useState(null);
   const [isValid, setIsValid] = useState(false);
   const [playerIds, setPlayerIds] = useState([]);
@@ -111,10 +111,10 @@ const YourTeamPlayers = () => {
       const res = await getTeamResultOfAction(auctionId, userId);
 
       if (res && res.teams && res.teams.length > 0) {
+        console.log(res);
         const team = res.teams[0];
         setTeamId(team.id);
-        setAuctionName(team.auction?.title);
-
+        setAuction(team?.auction);
         const players_beforeSorting = team.auctionPlayers || [];
         const players = players_beforeSorting.sort(
           (a, b) => (a?.order || 0) - (b?.order || 0)
@@ -299,6 +299,80 @@ const YourTeamPlayers = () => {
     navigate("/home");
   };
 
+  const [remainingTime, setRemainingTime] = useState(null);
+
+  useEffect(() => {
+    if (!auction?.endTime) return;
+
+    const endTime = new Date(auction.endTime);
+
+    const updateCountdown = () => {
+      const currentTime = new Date();
+      const timeDiff = endTime - currentTime;
+
+      if (timeDiff <= 0) {
+        setRemainingTime(null); // Auction has ended
+        clearInterval(interval);
+      } else {
+        setRemainingTime({
+          days: Math.floor(timeDiff / (1000 * 60 * 60 * 24)),
+          hours: Math.floor(
+            (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+          ),
+          minutes: Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((timeDiff % (1000 * 60)) / 1000),
+        });
+      }
+    };
+
+    const interval = setInterval(updateCountdown, 1000);
+
+    updateCountdown(); // Run immediately to avoid delay
+
+    return () => clearInterval(interval);
+  }, [auction?.endTime]);
+
+  const handleAuctionTime = (auctionEndTime) => {
+    if (!auctionEndTime) return null;
+    const endTime = new Date(auctionEndTime);
+    const currentTime = new Date();
+
+    const formatTime = (date) => {
+      const options = {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        timeZoneName: "short",
+      };
+
+      return date.toLocaleString("en-US", options);
+    };
+
+    const isAuctionEnded = currentTime > endTime;
+
+    return {
+      formattedEndTime: formatTime(endTime),
+      originalEndTime: auctionEndTime,
+      isAuctionEnded,
+      remainingTime: !isAuctionEnded
+        ? {
+            days: Math.floor((endTime - currentTime) / (1000 * 60 * 60 * 24)),
+            hours: Math.floor(
+              ((endTime - currentTime) % (1000 * 60 * 60 * 24)) /
+                (1000 * 60 * 60)
+            ),
+            minutes: Math.floor(
+              ((endTime - currentTime) % (1000 * 60 * 60)) / (1000 * 60)
+            ),
+            seconds: Math.floor(((endTime - currentTime) % (1000 * 60)) / 1000),
+          }
+        : null,
+    };
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col h-dvh lg:h-screen">
@@ -314,14 +388,8 @@ const YourTeamPlayers = () => {
   if (error) {
     return (
       <div className="flex flex-col h-dvh lg:h-screen">
-        <Header
-          heading={
-            <div className="text-xs">
-              <p>Team Name: {teamName}</p>
-              <p>Auction: {auctionName}</p>
-            </div>
-          }
-        />
+        <Header heading={`My Team in Auction ${auctionId}`} />
+
         <div className="flex-1 flex items-center justify-center text-red-600 font-semibold">
           {error}
         </div>
@@ -329,26 +397,35 @@ const YourTeamPlayers = () => {
     );
   }
 
+  const auctionDetails = handleAuctionTime(auction?.endTime);
+
   return (
     <div className="flex flex-col h-dvh lg:h-screen relative">
-      <Header
-        heading={
-          <div className="text-xs">
-            <p>Team Name: {teamName}</p>
-            <p>Auction: {auctionName}</p>
-          </div>
-        }
-      />
+      <Header heading={`My Team in Auction ${auctionId}`} />
 
       <div
         ref={listContainerRef}
         className="flex-1 flex flex-col px-4 overflow-y-scroll pb-16"
       >
-        {isAuthorizedUser && (
-          <p className="text-bold py-2 text-blue-800">
-            You can change priority of your players!
-          </p>
-        )}
+        <div>
+          {auctionDetails.isAuctionEnded ? (
+            <div className="text-red-500">
+              Auction has ended. You cannot change priority now.
+            </div>
+          ) : remainingTime ? (
+            <div className="py-2">
+              You can change & set positions!
+              <div className="text-gray-600">
+                Auction will end in <span className="font-medium text-red-500"> {remainingTime.days}d {remainingTime.hours}h{" "}
+                {remainingTime.minutes}m {remainingTime.seconds}s </span>
+              </div>
+            </div>
+          ) : (
+            <div className="text-red-500">
+              Auction has ended. You cannot change priority now.
+            </div>
+          )}
+        </div>
         {teamData.length > 0 ? (
           teamData.map((player, index) => (
             <PlayerCard
@@ -361,7 +438,9 @@ const YourTeamPlayers = () => {
               onTouchEnd={handleTouchEnd}
               isDragging={dragState.isDragging}
               draggedIndex={dragState.draggedIndex}
-              isAuthorizedUser={isAuthorizedUser}
+              isAuthorizedUser={
+                isAuthorizedUser && !auctionDetails.isAuctionEnded
+              }
             />
           ))
         ) : (

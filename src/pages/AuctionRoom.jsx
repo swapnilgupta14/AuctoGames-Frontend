@@ -436,7 +436,6 @@ const AuctionRoom = () => {
         toast.error(`${data?.auctionPlayerId} is unsold!`);
       }
       SocketService.emitGetActivePlayer();
-      // fetchAllPlayerInAuction(auctionId);
       SocketService.emitGetPlayerCount();
     });
 
@@ -481,6 +480,8 @@ const AuctionRoom = () => {
     SocketService.playerSold((data) => {
       toast.success(`${data?.playerDetails?.name} is sold to ${data?.userId}`);
       updateAuctionEndTime(auctionId);
+      SocketService.emitGetPlayerCount();
+
     });
 
     SocketService.onGetChatHistory((data) => {
