@@ -37,7 +37,6 @@ const AuctionDetail = () => {
   };
 
   const validateUser = async (auctionId, userId) => {
-
     try {
       setIsValidating(true);
       const userBalance = await fetchWalletData(userId);
@@ -257,14 +256,19 @@ const AuctionDetail = () => {
 
       <div className="p-4 relative">
         <img
-          src={"https://via.placeholder.com/600x300"}
+          src={auction?.imageUrl}
           alt={auction.title}
           className="w-full h-64 object-cover rounded-lg"
         />
 
-        <div className="bg-red-500  rounded-full p-2 text-white absolute top-[70%] right-2">
+        {auction?.ytLink && <a
+          href={auction?.ytLink || "#"}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-red-500 rounded-full p-2 text-white absolute top-[70%] right-2"
+        >
           <Youtube className="w-6 h-6" />
-        </div>
+        </a>}
 
         <h1 className="text-[20px] font-bold mt-4 px-3">{auction.title}</h1>
 
