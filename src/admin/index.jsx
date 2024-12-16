@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Routes, Route, Navigate, useNavigate, Outlet } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { LogIn, ShieldAlert } from "lucide-react";
+import { axiosInstanceAdmin } from "../api/axiosInstance";
 
 import AdminLayout from "./components/AdminLayout";
 import Auctions from "./pages/Auctions";
@@ -28,38 +29,31 @@ const AdminLogin = () => {
     setError("");
 
     try {
-      let url = "https://server.rishabh17704.workers.dev/api/admin-login";
-      const data = {
+      const response = await axiosInstanceAdmin.post("/admin-login", {
         email: username,
-        password,
-      };
-      const response = await fetch(url, {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-        },
+        password: password,
       });
 
-      if (!response.ok) {
-        throw new Error('Login request failed');
-      }
-
-      const finalRes = await response.json();
-      if (finalRes?.status === 201) {
-        localStorage.setItem("adminToken", finalRes.token);
+      if (response.data?.status === 201) {
+        // Store authentication details
+        localStorage.setItem("adminToken", response.data.token);
         localStorage.setItem("adminAuth", "true");
 
+        // Set session timeout
         const sessionExpiryTime =
-          Date.now() + (finalRes?.session_timeout || 30) * 60 * 1000;
+          Date.now() + (response.data?.session_timeout || 30) * 60 * 1000;
         localStorage.setItem("AdminSessionTimeout", sessionExpiryTime.toString());
 
+        // Navigate to auctions page
         navigate("/admin/auctions");
       } else {
-        setError(finalRes.message || "Invalid Credentials");
+        setError(response.data.message || "Invalid Credentials");
       }
     } catch (error) {
-      setError("An error occurred during login");
+      setError(
+        error.response?.data?.message || 
+        "An error occurred during login"
+      );
       console.error("Login error:", error);
     }
   };
@@ -126,39 +120,76 @@ const AdminLogin = () => {
   );
 };
 
-const ProtectedRoute = () => {
-  const storedSessionExpiryTime = localStorage.getItem("AdminSessionTimeout");
-  const currentTime = Date.now();
+const useSessionTimeout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  if (!storedSessionExpiryTime) {
-    navigate("/admin/login");
-    return;
-  }
+  useEffect(() => {
+    const checkSessionTimeout = () => {
+      const storedSessionExpiryTime = localStorage.getItem("AdminSessionTimeout");
+      const adminToken = localStorage.getItem("adminToken");
+      const currentTime = Date.now();
+
+      // If no token or session timeout, redirect to login
+      if (!adminToken || !storedSessionExpiryTime) {
+        if (location.pathname !== "/admin/login") {
+          handleLogout();
+        }
+        return;
+      }
   
-  const expiryTime = parseInt(storedSessionExpiryTime, 10);
-  if (currentTime >= expiryTime) {
-    localStorage.removeItem("AdminSessionTimeout");
-    localStorage.removeItem("adminToken");
-    localStorage.setItem("adminAuth", "false");
-    navigate("/admin/login");
+      const expiryTime = parseInt(storedSessionExpiryTime, 10);
+      if (currentTime >= expiryTime) {
+        handleLogout();
+      }
+    };
+
+    const handleLogout = () => {
+      localStorage.removeItem("AdminSessionTimeout");
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("adminAuth");
+      
+      if (location.pathname !== "/admin/login") {
+        navigate("/admin/login");
+      }
+    };
+
+    checkSessionTimeout();
+
+    window.addEventListener('focus', checkSessionTimeout);
+    const intervalId = setInterval(checkSessionTimeout, 60000);
+
+    return () => {
+      window.removeEventListener('focus', checkSessionTimeout);
+      clearInterval(intervalId);
+    };
+  }, [navigate, location.pathname]);
+
+  return null;
+};
+
+const ProtectedRoute = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useSessionTimeout();
+
+  const isAuthenticated = 
+    localStorage.getItem("adminAuth") === "true" && 
+    !!localStorage.getItem("adminToken");
+
+  if (!isAuthenticated) {
+    return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
-  const isAuthenticated = localStorage.getItem("adminAuth") === "true" && currentTime < expiryTime;
-  return isAuthenticated ? (
-    <AdminLayout>
-      <Outlet />
-    </AdminLayout>
-  ) : (
-    <Navigate to="/admin/login" replace />
-  );
+  return <AdminLayout />;
 };
 
 const Admin = () => {
   return (
     <Routes>
+      <Route path="/" element={<Navigate to="/admin/login" replace />} />
       <Route path="login" element={<AdminLogin />} />
-
       <Route element={<ProtectedRoute />}>
         <Route index element={<Navigate to="auctions" replace />} />
         <Route path="auctions" element={<Auctions />} />

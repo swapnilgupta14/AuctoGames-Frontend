@@ -13,7 +13,7 @@ const carouselStyles = {
   container:
     "relative w-full h-[280px] overflow-hidden flex flex-col items-center",
   slide:
-    "w-[full] rounded-xl h-[280px] flex gap-4 items-center justify-center text-white font-bold bg-gray-500 absolute top-0 left-0 transition-transform duration-500",
+    "w-full overflow-hidden rounded-xl h-[280px] flex gap-4 items-center justify-center text-white font-bold bg-gray-500 rounded-xl absolute top-0 left-0 transition-transform duration-500",
   dotsContainer: "absolute bottom-2 flex gap-2",
   dot: "w-3 h-3 rounded-full bg-gray-300 cursor-pointer",
   activeDot: "w-3 h-3 rounded-full bg-blue-500",
@@ -111,10 +111,12 @@ const Home = () => {
 
   const handleTouchEnd = () => {
     if (touchStart - touchEnd > 75) {
+      setCurrentLiveSlide(currentLiveSlide)
       nextSlide();
     }
 
     if (touchStart - touchEnd < -75) {
+      setCurrentLiveSlide(currentLiveSlide)
       prevSlide();
     }
 
@@ -212,16 +214,16 @@ const Home = () => {
                       `https://via.placeholder.com/600x300?text=${auction.title}`
                     }
                     alt={auction.title}
-                    className="w-full h-full object-cover rounded-xl"
+                    className="w-full h-full object-cover rounded-2xl "
                   />
                 </div>
 
-                <div className="absolute top-0 left-0 bg-zinc-200 shadow-xl text-black font-normal px-4 flex justify-center rounded-r-2xl items-center gap-2 py-[4px]">
-                  <div className="mb-[3px]">{auction.title}</div>
+                <div className="w-[98%] truncate absolute bottom-1 left-1 bg-white shadow-xl text-gray-500 font-medium px-4 flex justify-center pb-7 pt-3 rounded-xl items-center">
+                  <div>{auction.title}</div>
                 </div>
                 
-                <div className={`text-xs absolute top-4 right-4 ${auction?.currStatusofAuction === "COMPLETED" ? "bg-green-600" : "bg-red-500"} px-4 rounded-3xl font-light flex justify-center items-center gap-2 py-[1px]`}>
-                  <div className="mb-[3px]">
+                <div className={`text-xs absolute top-4 right-4 ${auction?.currStatusofAuction === "COMPLETED" ? "bg-blue-600" : "bg-red-500"} px-3 py-1 rounded-3xl font-light flex justify-center items-center gap-2`}>
+                  <div className="font-medium py-1">
                     {auction?.currStatusofAuction === "LIVE" ||
                     auction?.currStatusofAuction === "COMPLETED"
                       ? auction?.currStatusofAuction
@@ -247,12 +249,12 @@ const Home = () => {
               &gt;
             </button>
 
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
+            <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
               {liveAuctions.map((_, index) => (
                 <span
                   key={index}
                   className={`w-2 h-2 rounded-full cursor-pointer ${
-                    index === currentLiveSlide ? "bg-blue-700" : "bg-gray-200"
+                    index === currentLiveSlide ? "bg-blue-700" : "bg-gray-300"
                   }`}
                   onClick={() => setCurrentLiveSlide(index)}
                 ></span>
@@ -335,7 +337,7 @@ const Home = () => {
             </ul>
           </>
         ) : (
-          <div className="text-gray-500 text-center">
+          <div className="text-gray-400 text-center bg-gray-100 rounded-xl py-4">
             No scheduled auctions available within the selected date range.
           </div>
         )}

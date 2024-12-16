@@ -571,7 +571,7 @@ export const submitRegistrationRequest = async (formData, imagePreview) => {
     }
 
     const response = await axiosInstance.post(
-      `/auctions/registration`,
+      `/auctions/registration-2`,
       formData,
       {
         headers: { "Content-Type": "multipart/form-data" },
