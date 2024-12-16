@@ -276,7 +276,8 @@ const AuctionRoom = () => {
       const fetchTeamComposition = async () => {
         try {
           const idSaved = localStorage.getItem("userId");
-          const ownTeamId = localStorage.getItem(`ownTeamId-${idSaved}-${auctionId}`) || "";
+          const ownTeamId =
+            localStorage.getItem(`ownTeamId-${idSaved}-${auctionId}`) || "";
           const composition = await getComposition(Number(ownTeamId));
           console.log("11111111111111111 Composition", composition, ownTeamId);
           setTeamComposition(composition);
@@ -404,9 +405,19 @@ const AuctionRoom = () => {
     toast.success(`Jump amount updated to ${value}Cr!`);
   };
 
+  const handleJumpCount = () => {
+    if (jump > currentBid && jump < budget.remaining) {
+      handlePlaceBid(jump, "jump");
+    } else {
+      jump < currentBid &&
+        toast.error("Bid amount cannot be less than current bid!");
+      jump > budget.remaining &&
+        toast.error("Your purse is less than bid amount!");
+    }
+  };
   // ----------------------------------------------------------
 
-  const setupSocketListeners = useCallback(() => {
+  const setupSocketListeners = () => {
     SocketService.onRoomSize((data) => {
       setRoomSize(data.roomSize);
     });
@@ -416,6 +427,7 @@ const AuctionRoom = () => {
     });
 
     SocketService.onAskNewPlayer((data) => {
+      console.log(data);
       if (data?.status === "SOLD") {
         toast.success(
           `${data?.auctionPlayerId} is Sold Successfully to ${data?.userId}`
@@ -424,6 +436,7 @@ const AuctionRoom = () => {
         toast.error(`${data?.auctionPlayerId} is unsold!`);
       }
       SocketService.emitGetActivePlayer();
+      // fetchAllPlayerInAuction(auctionId);
       SocketService.emitGetPlayerCount();
     });
 
@@ -527,24 +540,14 @@ const AuctionRoom = () => {
         );
         bidPromiseRef.current = null;
       }
+      console.error(error);
       setError(error.message);
     });
 
     return () => {
       SocketService.removeAllListeners();
     };
-  }, []);
-
-  const handleJumpCount = () => {
-    if (jump > currentBid && jump < budget.remaining) {
-      handlePlaceBid(jump, "jump");
-    } else {
-      jump < currentBid &&
-        toast.error("Bid amount cannot be less than current bid!");
-      jump > budget.remaining &&
-        toast.error("Your purse is less than bid amount!");
-    }
-  };
+  }
 
   const setupSocketConnection = async (token, auctionId) => {
     console.log("Auction", token, auctionId);
@@ -573,7 +576,7 @@ const AuctionRoom = () => {
           SocketService.emitGetActivePlayer();
           SocketService.emitGetPlayerCount();
           SocketService.emitGetBudget();
-          SocketService.emitGetPlayerPurchasedCount();
+          // SocketService.emitGetPlayerPurchasedCount();
         }
       } catch (error) {
         console.error("Failed to initialize socket:", error);
@@ -587,7 +590,9 @@ const AuctionRoom = () => {
       setIsConnected(false);
       SocketService.disconnect();
     };
-  }, [auctionId, userId, setupSocketListeners, token]);
+  }, [auctionId, userId, token]);
+
+  // ---------------------------------------------------------------------
 
   const handlePlaceBid = (amount, type) => {
     console.log("teamComposition");

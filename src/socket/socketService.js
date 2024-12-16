@@ -6,7 +6,7 @@ class SocketService {
     this.SOCKET_URL =
       // "https://zany-couscous-76pvggx996xfr9gw-3009.app.github.dev/";
       // this.SOCKET_URL = "https://expressbackend-production-b19c.up.railway.app";
-      this.SOCKET_URL = "http://127.0.0.1:3009/";
+      this.SOCKET_URL = "http://98.130.54.69:3009/";
   }
 
   // ------------------------------------------------
@@ -62,7 +62,7 @@ class SocketService {
       console.warn(`Cannot emit event "${eventName}": Socket not connected.`);
       return;
     }
-    // console.log(`Emitting event "${eventName}"...`);
+    console.log(`Emitting event "${eventName}"...`);
     // console.log(this.socket.emit, "thisss");
 
     this.socket.emit(eventName, data, (response) => {
@@ -85,7 +85,7 @@ class SocketService {
       );
       return;
     }
-    // console.log(`Listening for event "${eventName}"`);
+    console.log(`Listening for event "${eventName}...."`);
     this.socket.on(eventName, callback);
   }
 
@@ -170,16 +170,6 @@ class SocketService {
 
   onPlayerPulledBack(callback) {
     this.on("playerPulledBack", (data) => {
-      callback(data);
-    });
-  }
-
-  emitGetPlayerPurchasedCount() {
-    this.emit("getPlayerPurchasedCount");
-  }
-
-  onGetPlayerPurchasedCount(callback) {
-    this.on("PlayerPurchasedCount", (data) => {
       callback(data);
     });
   }
