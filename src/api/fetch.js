@@ -444,7 +444,7 @@ export const Admin_Login = async (data) => {
   }
 };
 
-export const banUnbanUsers = async (userId, type) => {
+export const banUnbanUsers = async (userId) => {
   try {
     const response = await axiosInstanceAdmin.post(`/admin/users/ban-unban`, {
       userId,

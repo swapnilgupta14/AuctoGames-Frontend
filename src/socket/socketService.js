@@ -5,13 +5,12 @@ class SocketService {
     this.socket = null;
     this.SOCKET_URL =
       // "https://zany-couscous-76pvggx996xfr9gw-3009.app.github.dev/";
-    this.SOCKET_URL = "https://expressbackend-production-b19c.up.railway.app";
-    // this.SOCKET_URL = "http://localhost:3009";
+      // this.SOCKET_URL = "https://expressbackend-production-b19c.up.railway.app";
+      this.SOCKET_URL = "http://127.0.0.1:3009/";
   }
 
   // ------------------------------------------------
   connect(token, auctionId) {
-    console.log(token, auctionId, "params");
     if (this.socket?.connected) {
       console.log("Socket already connected");
       return Promise.resolve(this.socket);
@@ -63,8 +62,7 @@ class SocketService {
       console.warn(`Cannot emit event "${eventName}": Socket not connected.`);
       return;
     }
-    console.log(`Emitting event "${eventName}"...`);
-
+    // console.log(`Emitting event "${eventName}"...`);
     // console.log(this.socket.emit, "thisss");
 
     this.socket.emit(eventName, data, (response) => {
@@ -87,7 +85,7 @@ class SocketService {
       );
       return;
     }
-    console.log(`Listening for event "${eventName}"`);
+    // console.log(`Listening for event "${eventName}"`);
     this.socket.on(eventName, callback);
   }
 
@@ -136,6 +134,7 @@ class SocketService {
 
   onUserDisconnected() {
     this.on("userDisconnected", () => {
+      console.log("userDisconnected....socketService");
       this.emitGetRoomSize();
     });
   }
@@ -149,7 +148,6 @@ class SocketService {
 
   onNewBid(callback) {
     this.on("newBid", (data) => {
-      console.log("Received new bid:", data);
       callback(data);
     });
   }
@@ -230,8 +228,14 @@ class SocketService {
 
   onRoomSize(callback) {
     this.on("auctionRoomSize", (data) => {
+      if (data.roomSize >= 2) {
+        this.emitGetActivePlayer();
+        callback(data);
+      } else {
+        callback(data);
+      }
+
       console.log("Received room size:", data);
-      callback(data);
     });
   }
 
@@ -247,15 +251,16 @@ class SocketService {
     });
   }
 
-
   // ----------------------------
 
   emitGetBudget() {
-    this.socket.emit("getBudget");
+    this.emit("getBudget");
   }
 
   onBudgetUpdate(callback) {
-    this.socket.on("budgetUpdate", callback);
+    this.on("budgetUpdate", (data) => {
+      callback(data);
+    });
   }
 
   // --------------------------------

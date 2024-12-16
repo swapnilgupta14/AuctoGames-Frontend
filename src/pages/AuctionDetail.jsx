@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
   ArrowUpLeftFromCircleIcon,
   ArrowUpRightFromCircleIcon,
-  ListEndIcon,
   RefreshCw,
   WatchIcon,
   X,
@@ -15,7 +14,6 @@ import { validateAuctionRegistration, getWalletBalance } from "../api/fetch";
 
 const AuctionDetail = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
   const [isValidating, setIsValidating] = useState(true);
   const [validationResult, setValidationResult] = useState(null);
   const [showPopup, setShowPopup] = useState(true);
@@ -64,7 +62,7 @@ const AuctionDetail = () => {
 
       setValidationResult({
         status: status,
-        team: res?.teams[0] || null,
+        team: res?.teams && res?.teams.length > 0 ? res?.teams[0] : null,
         balance: userBalance,
       });
     } catch (error) {
