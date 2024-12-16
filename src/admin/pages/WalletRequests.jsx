@@ -1,59 +1,84 @@
 import React, { useEffect, useState } from "react";
-import {
-  CheckCircleIcon,
-  ClockIcon,
-  ArrowDownIcon,
-  ArrowUpIcon,
-  RefreshCw,
-} from "lucide-react";
+import { ClockIcon, ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import {
   getAllPendingWithdrawlRequests,
   approveWithdrawlRequest,
   getAllPendingRechargeRequests,
 } from "../../api/fetch";
 
+const Loader = () => (
+  <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-10">
+    <div className="animate-spin">
+      <svg
+        className="w-10 h-10 text-blue-500"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+        ></path>
+      </svg>
+    </div>
+  </div>
+);
+
 const WalletRequests = () => {
   const [withdrawlRequests, setWithdrawlRequests] = useState([]);
   const [rechargeRequests, setRechargeRequests] = useState([]);
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isApproving, setIsApproving] = useState(false);
 
   const fetchWithrawlRequests = async () => {
-    setIsLoading(true);
-    const res = await getAllPendingWithdrawlRequests();
-    if (res?.status === 200) {
-      setIsLoading(false);
-      setWithdrawlRequests(res?.data?.walletRequests);
-    } else {
+    try {
+      const res = await getAllPendingWithdrawlRequests();
+      if (res?.status === 200) {
+        setWithdrawlRequests(res?.data?.walletRequests);
+      } else {
+        setError("Error fetching the Withdrawal requests");
+      }
+    } catch (err) {
       setError("Error fetching the Withdrawal requests");
+    } finally {
       setIsLoading(false);
     }
   };
 
   const fetchRechargeRequests = async () => {
-    setIsLoading(true);
-    const res = await getAllPendingRechargeRequests();
-    if (res?.status === 200) {
-      setIsLoading(false);
-      setRechargeRequests(res?.data?.walletRequests);
-    } else {
+    try {
+      const res = await getAllPendingRechargeRequests();
+      if (res?.status === 200) {
+        setRechargeRequests(res?.data?.walletRequests);
+      } else {
+        setError("Error fetching the Recharge requests");
+      }
+    } catch (err) {
       setError("Error fetching the Recharge requests");
+    } finally {
       setIsLoading(false);
     }
   };
 
   const approverequest = async (transactionId) => {
     setIsApproving(true);
-    const request = await approveWithdrawlRequest(transactionId);
-    if (request?.status === 200) {
-      setIsApproving(false);
-      await fetchRechargeRequests();
-      await fetchWithrawlRequests();
-    } else {
-      setIsApproving(false);
+    try {
+      const request = await approveWithdrawlRequest(transactionId);
+      if (request?.status === 200) {
+        await fetchRechargeRequests();
+        await fetchWithrawlRequests();
+      } else {
+        setError("Sorry! Request cannot be approved");
+      }
+    } catch (err) {
       setError("Sorry! Request cannot be approved");
+    } finally {
+      setIsApproving(false);
     }
   };
 
@@ -67,7 +92,8 @@ const WalletRequests = () => {
   };
 
   const RequestCard = ({ requests, title, type, onApprove }) => (
-    <div className="bg-white border rounded-lg shadow-md flex flex-col h-full">
+    <div className="border rounded-lg shadow-md flex flex-col relative">
+      {isLoading && <Loader />}
       <div className="px-4 py-3 border-b flex justify-between items-center bg-gray-50">
         <h2 className="text-lg tracking-tight text-gray-900 font-semibold flex items-center">
           {type === "Withdrawal" ? (
@@ -82,41 +108,32 @@ const WalletRequests = () => {
         </h2>
       </div>
 
-      {isLoading && (
-        <div className="flex flex-col gap-3 justify-center items-center h-full">
-          <RefreshCw className="animate-spin text-gray-500" size={36} />
-          <p>Loading...</p>
-        </div>
-      )}
       {requests.length === 0 ? (
         <div className="flex-grow flex items-center justify-center text-gray-500 py-4">
           No {type.toLowerCase()} requests
         </div>
       ) : (
-        <div className="min-h-[calc(100vh-100px)] overflow-y-auto flex-grow">
-          <ul className="divide-y">
-            {requests.map((request) => (
-              <li
-                key={request.id}
-                className="p-4 hover:bg-gray-200 transition-colors"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1 min-w-0 ml-3">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <ClockIcon className="w-4 h-4 text-yellow-500" />
-                      <span className="text-sm text-gray-900 font-medium truncate">
+        <div className="h-full">
+          <div className=" overflow-y-auto">
+            <ul className="divide-y">
+              {requests.map((request) => (
+                <li
+                  key={request.id}
+                  className="p-4 hover:bg-gray-200 transition-colors"
+                >
+                  <div className="flex flex-row justify-between items-center gap-4">
+                    <div className="flex-1 text-sm">
+                      <span className="font-medium text-gray-800">
                         {request.wallet.user.username}
                       </span>
-                    </div>
-                    <div className="space-y-1 text-sm text-gray-600">
                       <p>
-                        Amount:
+                        Amount:{" "}
                         <span
-                          className={`ml-1 ${
+                          className={`font-medium ${
                             type === "Withdrawal"
                               ? "text-red-800"
                               : "text-green-700"
-                          } font-medium`}
+                          }`}
                         >
                           ₹
                           {type === "Withdrawal"
@@ -124,44 +141,38 @@ const WalletRequests = () => {
                             : request.amount}
                         </span>
                       </p>
-                      <p>Wallet Balance: ₹{request.wallet.balance}</p>
                       <p className="text-xs text-gray-500">
                         {formatDate(request.createdAt)}
                       </p>
                     </div>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => onApprove(request.id)}
+                        disabled={isApproving}
+                        className="px-3 py-1 bg-green-500 text-white rounded-md text-xs hover:bg-green-600 disabled:opacity-50"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        disabled={isApproving}
+                        className="px-3 py-1 bg-red-500 text-white rounded-md text-xs hover:bg-red-600 disabled:opacity-50"
+                      >
+                        Decline
+                      </button>
+                    </div>
                   </div>
-
-                  <div className="flex flex-col items-center justify-center gap-2 mr-3">
-                    <button
-                      onClick={() => onApprove(request.id)}
-                      disabled={isApproving}
-                      className="w-full px-3 py-1.5 bg-green-50 border border-green-500 text-green-600 
-                    rounded-md text-xs hover:bg-green-100 
-                    disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      disabled={isApproving}
-                      className="w-full px-3 py-1.5 bg-red-50 border border-red-400 text-red-600 
-                    rounded-md text-xs hover:bg-red-100 
-                    disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Decline
-                    </button>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       )}
     </div>
   );
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-grow container mx-auto px-4 py-6">
+    <div className="h-screen flex flex-col">
+      <div className="flex-grow container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 h-full">
           <RequestCard
             requests={rechargeRequests}
