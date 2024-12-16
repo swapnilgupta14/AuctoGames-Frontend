@@ -423,7 +423,7 @@ const AuctionRoom = () => {
       } else if (data?.status === "UNSOLD") {
         toast.error(`${data?.auctionPlayerId} is unsold!`);
       }
-      // fetchAllPlayerInAuction(auctionId);
+      SocketService.emitGetActivePlayer();
       SocketService.emitGetPlayerCount();
     });
 

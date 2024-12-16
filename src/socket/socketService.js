@@ -221,7 +221,6 @@ class SocketService {
 
   onAskNewPlayer(callback) {
     this.on("askNewPlayer", (data) => {
-      this.emitGetActivePlayer();
       callback(data);
     });
   }
