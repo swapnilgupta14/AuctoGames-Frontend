@@ -8,6 +8,7 @@ import chevronRight from "../assets/chevron-circle-right-Regular.svg";
 import calender from "../assets/Calendar.svg";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
+import { Calendar } from "lucide-react";
 
 const carouselStyles = {
   container:
@@ -34,12 +35,12 @@ const Home = () => {
   const [auctions, setAuctions] = useState([]);
   const [liveAuctions, setLiveAuctions] = useState([]);
   const [scheduledAuctions, setScheduledAuctions] = useState([]);
-  const [filteredScheduledAuctions, setFilteredScheduledAuctions] = useState(
-    []
-  );
+  const [completedAuctions, setCompletedAuctions] = useState([]);
+  const [filteredAuctions, setFilteredAuctions] = useState([]);
   const [currentLiveSlide, setCurrentLiveSlide] = useState(0);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedAuctionType, setSelectedAuctionType] = useState("SCHEDULED");
 
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
@@ -58,15 +59,31 @@ const Home = () => {
         const data = await response.json();
         setAuctions(data.auctions);
 
-        setLiveAuctions(
-          data.auctions.filter((auction) => auction.status === "LIVE")
+        // Enhanced filtering logic
+        const allLiveAuctions = data.auctions.filter(
+          (auction) =>
+            auction.status === "LIVE" || auction.currStatusofAuction === "LIVE"
         );
-        setScheduledAuctions(
-          data.auctions.filter((auction) => auction.status === "SCHEDULED")
+        setLiveAuctions(allLiveAuctions);
+
+        const allScheduledAuctions = data.auctions.filter(
+          (auction) =>
+            (auction.status === "SCHEDULED" ||
+              auction.currStatusofAuction === "SCHEDULED") &&
+            auction.currStatusofAuction !== "LIVE" &&
+            auction.currStatusofAuction !== "COMPLETED"
         );
-        setFilteredScheduledAuctions(
-          data.auctions.filter((auction) => auction.status === "SCHEDULED")
+        setScheduledAuctions(allScheduledAuctions);
+
+        const allCompletedAuctions = data.auctions.filter(
+          (auction) =>
+            auction.status === "COMPLETED" ||
+            auction.currStatusofAuction === "COMPLETED"
         );
+        setCompletedAuctions(allCompletedAuctions);
+
+        // Default to scheduled auctions
+        setFilteredAuctions(allScheduledAuctions);
       } catch (error) {
         console.error("Error fetching auctions:", error);
         alert("Failed to load auctions. Please try again later.");
@@ -124,9 +141,10 @@ const Home = () => {
   }, [liveAuctions.length]);
 
   const prevSlide = useCallback(() => {
-    setCurrentLiveSlide((prev) => (prev - 1 + liveAuctions.length) % liveAuctions.length);
+    setCurrentLiveSlide(
+      (prev) => (prev - 1 + liveAuctions.length) % liveAuctions.length
+    );
   }, [liveAuctions.length]);
-
 
   const calculateDefaultDateRange = () => {
     const today = new Date();
@@ -146,22 +164,33 @@ const Home = () => {
 
   useEffect(() => {
     const { startDate, endDate } = dateRange[0];
+    let filtered;
+
     if (!startDate || !endDate) {
-      setFilteredScheduledAuctions(scheduledAuctions);
+      filtered =
+        selectedAuctionType === "SCHEDULED"
+          ? scheduledAuctions
+          : completedAuctions;
     } else {
-      const filtered = scheduledAuctions.filter((auction) => {
+      filtered = (
+        selectedAuctionType === "SCHEDULED"
+          ? scheduledAuctions
+          : completedAuctions
+      ).filter((auction) => {
         const auctionDate = new Date(auction.startTime);
         return auctionDate >= startDate && auctionDate <= endDate;
       });
-      setFilteredScheduledAuctions(filtered);
     }
-  }, [dateRange, scheduledAuctions]);
+    setFilteredAuctions(filtered);
+  }, [dateRange, scheduledAuctions, completedAuctions, selectedAuctionType]);
 
+  // Existing utility methods...
   const truncateText = (text = "", maxLength = 20) => {
     if (!text || typeof text !== "string") return "";
-    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+    return text.length > maxLength
+      ? `${text.substring(0, maxLength)}...`
+      : text;
   };
-  
 
   const formatDateRange = (startDate, endDate) => {
     const formatOptions = {
@@ -275,25 +304,52 @@ const Home = () => {
       )}
 
       <div className="my-4 px-4">
-        <div className="flex justify-between items-start">
-          <div className="flex flex-col gap-1 mb-4">
-            <h2 className="text-xl font-semibold text-gray-700">
-              Upcoming Auctions
-            </h2>
-            <div className="text-sm text-gray-600 text-start">
-              ({formatDateRange(dateRange[0].startDate, dateRange[0].endDate)})
+        <div className="flex justify-between items-start ">
+          <div className="flex flex-col ">
+            <div className="flex items-start gap-3">
+              <div className="relative">
+                <select
+                  className="appearance-none w-full bg-gray-100 border-none rounded-lg px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer mr-2"
+                  value={selectedAuctionType}
+                  onChange={(e) => setSelectedAuctionType(e.target.value)}
+                >
+                  <option value="SCHEDULED" className="bg-white">
+                    Scheduled Auctions
+                  </option>
+                  <option value="COMPLETED" className="bg-white">
+                    Completed Auctions
+                  </option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg
+                    className="fill-current h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div className="text-sm text-gray-600 px-1 flex items-center gap-2 py-3">
+              <span>
+                Date Range - {formatDateRange(dateRange[0].startDate, dateRange[0].endDate)}
+              </span>
             </div>
           </div>
 
           <button
-            className="px-4 py-2 rounded-lg mb-3"
+            className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200"
             onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
+            aria-label={
+              isDatePickerOpen ? "Close date filter" : "Open date filter"
+            }
           >
-            {isDatePickerOpen ? (
-              <img src={calender} alt="close filter" />
-            ) : (
-              <img src={calender} alt="open filter" />
-            )}
+            <img
+              src={calender}
+              alt={isDatePickerOpen ? "close filter" : "open filter"}
+              className="w-6 h-6"
+            />
           </button>
         </div>
 
@@ -309,42 +365,42 @@ const Home = () => {
           </div>
         )}
 
-        {filteredScheduledAuctions.length > 0 ? (
-          <>
-            <ul className="space-y-4">
-              {filteredScheduledAuctions.map((auction) => (
-                <li
-                  key={auction.id}
-                  className="border-gray-500 rounded-lg p-4 bg-[#3868D4] text-white flex justify-between items-center"
-                  onClick={() =>
-                    navigate(`/auction/${auction.id}`, { state: { auction } })
-                  }
-                >
-                  <div className="flex gap-3 justify-center items-center">
-                    <img src={aucLogo} alt="" />
-                    <div className="flex flex-col gap-2">
-                      <div className="text-lg font-semibold">
-                        {truncateText(auction.title)}
-                      </div>
-                      <div className="text-sm">
-                        {new Date(auction.startTime).toLocaleString()}
-                      </div>
+        {filteredAuctions.length > 0 ? (
+          <ul className="space-y-4">
+            {filteredAuctions.map((auction) => (
+              <li
+                key={auction.id}
+                className="border-gray-500 rounded-lg p-4 bg-[#3868D4] text-white flex justify-between items-center"
+                onClick={() =>
+                  navigate(`/auction/${auction.id}`, { state: { auction } })
+                }
+              >
+                <div className="flex gap-3 justify-center items-center">
+                  <img src={aucLogo} alt="" />
+                  <div className="flex flex-col gap-2">
+                    <div className="text-lg font-semibold">
+                      {truncateText(auction.title)}
+                    </div>
+                    <div className="text-sm">
+                      {new Date(auction.startTime).toLocaleString()}
                     </div>
                   </div>
-                  <div>
-                    <img
-                      src={chevronRight}
-                      alt=""
-                      className="w-[25px] h-[25px]"
-                    />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </>
+                </div>
+                <div>
+                  <img
+                    src={chevronRight}
+                    alt=""
+                    className="w-[25px] h-[25px]"
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
         ) : (
-          <div className="text-gray-400 text-center bg-gray-100 rounded-xl py-4">
-            No scheduled auctions available within the selected date range.
+          <div className="text-gray-400 text-center bg-gray-100 rounded-xl py-4 my-4">
+            {selectedAuctionType === "SCHEDULED"
+              ? "No scheduled auctions available within the selected date range."
+              : "No completed auctions available within the selected date range."}
           </div>
         )}
       </div>
