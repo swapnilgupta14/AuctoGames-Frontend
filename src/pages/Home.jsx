@@ -62,7 +62,10 @@ const Home = () => {
         // Enhanced filtering logic
         const allLiveAuctions = data.auctions.filter(
           (auction) =>
-            auction.status === "LIVE" || auction.currStatusofAuction === "LIVE"
+            (auction.status === "LIVE" &&
+              auction.currStatusofAuction !== "SCHEDULED" &&
+              auction.currStatusofAuction !== "COMPLETED") ||
+            auction.currStatusofAuction === "LIVE"
         );
         setLiveAuctions(allLiveAuctions);
 
@@ -333,7 +336,8 @@ const Home = () => {
             </div>
             <div className="text-sm text-gray-600 px-1 flex items-center gap-2 py-3">
               <span>
-                Date Range - {formatDateRange(dateRange[0].startDate, dateRange[0].endDate)}
+                Date Range -{" "}
+                {formatDateRange(dateRange[0].startDate, dateRange[0].endDate)}
               </span>
             </div>
           </div>
