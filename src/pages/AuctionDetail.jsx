@@ -148,6 +148,18 @@ const AuctionDetail = () => {
                   No Team Found{" "}
                 </div>
               )}
+
+              {auction?.status === "LIVE" ? (
+                <p className="text-red-600 font-sm py-2 font-medium text-center">
+                  Auction is Live Now!
+                </p>
+              ) : (
+                auction?.status === "SCHEDULED" && (
+                  <p className="text-red-600 font-sm py-2 font-medium text-center">
+                    Auction is Scheduled! Join the Auction at the start Time.
+                  </p>
+                )
+              )}
             </div>
           ) : validationResult?.status === "insufficient_balance" ? (
             <div className="flex flex-col items-center">
@@ -261,20 +273,27 @@ const AuctionDetail = () => {
           className="w-full h-64 object-cover rounded-lg"
         />
 
-        {auction?.ytLink && <a
-          href={auction?.ytLink || "#"}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-red-500 rounded-full p-2 text-white absolute top-[70%] right-2"
-        >
-          <Youtube className="w-6 h-6" />
-        </a>}
+        {auction?.ytLink && (
+          <a
+            href={auction?.ytLink || "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-red-500 rounded-full p-2 text-white absolute top-[70%] right-2"
+          >
+            <Youtube className="w-6 h-6" />
+          </a>
+        )}
 
-        <h1 className="text-[20px] font-bold mt-4 px-3">{auction.title}</h1>
+        <h1 className="text-[20px] font-bold mt-4 px-3 flex justify-between">
+          {auction.title}{" "}
+          <span className="bg-gray-600 text-xs text-white py-2 px-2 rounded-xl">
+            {auction?.status}
+          </span>
+        </h1>
 
         <p className="text-lg mt-2 text-gray-700 px-3">
           <span className="font-bold text-[14px]">Date-Time :</span>{" "}
-          {new Date(auction.startTime).toLocaleString()}
+          {auction.startTime}
         </p>
 
         <p className="text-lg mt-2 text-gray-700 px-3">
@@ -305,16 +324,20 @@ const AuctionDetail = () => {
           validationResult?.team !== null ? (
             <button
               className="px-4 py-3 bg-[#1F41BB] text-white rounded-lg w-full font-medium text-[16px]"
-              onClick={() =>
-                navigate("/successregister", {
-                  state: {
-                    auction,
-                    registrationData,
-                  },
-                })
-              }
+              onClick={() => {
+                auction?.startTime === "LIVE"
+                  ? navigate("/successregister", {
+                      state: {
+                        auction,
+                        registrationData,
+                      },
+                    })
+                  : navigate("/home");
+              }}
             >
-              Enter Auction
+              {auction?.status === "LIVE"
+                ? "Enter Auction"
+                : "Join when Auction is Live! Go Home"}
             </button>
           ) : (
             <button

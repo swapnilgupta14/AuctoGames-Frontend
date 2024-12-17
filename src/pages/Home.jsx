@@ -58,34 +58,25 @@ const Home = () => {
         if (!response.ok) throw new Error("Failed to fetch auction data");
         const data = await response.json();
         setAuctions(data.auctions);
-
-        // Enhanced filtering logic
+        // console.log("111 All", data.auctions);
         const allLiveAuctions = data.auctions.filter(
-          (auction) =>
-            (auction.status === "LIVE" &&
-              auction.currStatusofAuction !== "SCHEDULED" &&
-              auction.currStatusofAuction !== "COMPLETED") ||
-            auction.currStatusofAuction === "LIVE"
+          (auction) => auction.status === "LIVE"
         );
         setLiveAuctions(allLiveAuctions);
+        // console.log(" 1111 live", allLiveAuctions);
 
         const allScheduledAuctions = data.auctions.filter(
-          (auction) =>
-            (auction.status === "SCHEDULED" ||
-              auction.currStatusofAuction === "SCHEDULED") &&
-            auction.currStatusofAuction !== "LIVE" &&
-            auction.currStatusofAuction !== "COMPLETED"
+          (auction) => auction?.status === "SCHEDULED"
         );
         setScheduledAuctions(allScheduledAuctions);
+        // console.log("111 sch", allScheduledAuctions);
 
         const allCompletedAuctions = data.auctions.filter(
-          (auction) =>
-            auction.status === "COMPLETED" ||
-            auction.currStatusofAuction === "COMPLETED"
+          (auction) => auction.status === "COMPLETED"
         );
         setCompletedAuctions(allCompletedAuctions);
+        // console.log("1111 completed", allCompletedAuctions);
 
-        // Default to scheduled auctions
         setFilteredAuctions(allScheduledAuctions);
       } catch (error) {
         console.error("Error fetching auctions:", error);
@@ -168,7 +159,14 @@ const Home = () => {
   useEffect(() => {
     const { startDate, endDate } = dateRange[0];
     let filtered;
-
+  
+    const parseDate = (dateString) => {
+      const [datePart, timePart] = dateString.split(", ");
+      const [day, month, year] = datePart.split("/").map(Number);
+      const [hours, minutes, seconds] = timePart.split(":").map(Number);
+      return new Date(year, month - 1, day, hours, minutes, seconds);
+    };
+  
     if (!startDate || !endDate) {
       filtered =
         selectedAuctionType === "SCHEDULED"
@@ -180,14 +178,21 @@ const Home = () => {
           ? scheduledAuctions
           : completedAuctions
       ).filter((auction) => {
-        const auctionDate = new Date(auction.startTime);
-        return auctionDate >= startDate && auctionDate <= endDate;
+        const auctionStartDate = parseDate(auction.startTime);
+        const auctionEndDate = parseDate(auction.endTime);
+  
+        return (
+          auctionStartDate >= new Date(startDate) &&
+          auctionEndDate <= new Date(endDate)
+        );
       });
+      console.log(filtered, scheduledAuctions);
     }
+  
     setFilteredAuctions(filtered);
   }, [dateRange, scheduledAuctions, completedAuctions, selectedAuctionType]);
+  
 
-  // Existing utility methods...
   const truncateText = (text = "", maxLength = 20) => {
     if (!text || typeof text !== "string") return "";
     return text.length > maxLength
@@ -256,16 +261,16 @@ const Home = () => {
 
                 <div
                   className={`text-xs absolute top-4 right-4 ${
-                    auction?.currStatusofAuction === "COMPLETED"
+                    auction?.status === "COMPLETED"
                       ? "bg-blue-600"
                       : "bg-red-500"
                   } px-3 py-1 rounded-3xl font-light flex justify-center items-center gap-2`}
                 >
                   <div className="font-medium py-0">
                     {auction?.currStatusofAuction === "LIVE" ||
-                    auction?.currStatusofAuction === "COMPLETED"
-                      ? auction?.currStatusofAuction
-                      : auction?.status === "LIVE" && auction?.status}
+                    auction?.status === "LIVE"
+                      ? "LIVE"
+                      : auction?.status}
                   </div>
                   <div className="w-[5px] h-[5px] bg-white rounded-full "></div>
                 </div>
@@ -386,7 +391,7 @@ const Home = () => {
                       {truncateText(auction.title)}
                     </div>
                     <div className="text-sm">
-                      {new Date(auction.startTime).toLocaleString()}
+                      {auction.startTime}
                     </div>
                   </div>
                 </div>

@@ -30,6 +30,7 @@ const AuctionRegistration = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState("");
   const [modalMessage, setModalMessage] = useState("");
+  const [registrationData, setRegistrationData] = useState(null);
 
   const validateForm = () => {
     let isValid = true;
@@ -75,16 +76,25 @@ const AuctionRegistration = () => {
     setErrors(newErrors);
   };
 
-  const openModal = (type, message) => {
+  const [auctionStatus, setAuctionStatus] = useState(null);
+  const openModal = (type, message, status) => {
     setModalType(type);
+    setAuctionStatus(status);
     setModalMessage(message);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    if (modalType === "success") {
+    if (modalType === "success" && auctionStatus === "SCHEDULED") {
       navigate(-2);
+    } else if (modalType === "success" && auctionStatus === "LIVE") {
+      navigate("/successregister", {
+        state: {
+          auction,
+          registrationData,
+        },
+      });
     }
   };
 
@@ -106,16 +116,19 @@ const AuctionRegistration = () => {
 
       const result = await submitRegistrationRequest(formData, imagePreview);
       if (result) {
+        setRegistrationData(result);
         openModal(
           "success",
-          "The team registration request has been successfully submitted."
+          "The team is Sucessfully Registered",
+          result?.auctionStatus
         );
+        // console.log(result, "od the registartion");
       } else {
-        openModal("error", result?.message || "Failed to register");
+        openModal("error", result?.message || "Failed to register", "ERROR");
       }
     } catch (error) {
       console.error("Error during registration:", error);
-      openModal("error", "An error occurred. Please try again.");
+      openModal("error", "An error occurred. Please try again.", "ERROR");
     } finally {
       setIsSubmitting(false);
     }
@@ -248,7 +261,7 @@ const AuctionRegistration = () => {
                 disabled={isSubmitting}
                 className="bg-blue-600 text-white px-6 py-3 rounded-xl font-medium text-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Processing..." : "Submit Request"}
+                {isSubmitting ? "Processing..." : "Register Team"}
               </button>
             </div>
           </div>
@@ -281,8 +294,20 @@ const AuctionRegistration = () => {
                     </svg>
                   </div>
                   <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                    Success! Request Submitted
+                    Team Registartion Successful!
                   </h2>
+                  {auctionStatus === "LIVE" ? (
+                    <p className="text-red-600 font-sm py-2 font-medium">
+                      Auction is Live Now!
+                    </p>
+                  ) : (
+                    auctionStatus === "SCHEDULED" && (
+                      <p className="text-red-600 font-sm py-2 font-medium">
+                        Auction is Scheduled! Join the Auction at the start
+                        Time.
+                      </p>
+                    )
+                  )}
                 </>
               ) : (
                 <>
@@ -315,7 +340,7 @@ const AuctionRegistration = () => {
                 }`}
               >
                 {modalType === "success"
-                  ? "Wait for Approval! Go Back"
+                  ? (auctionStatus === "LIVE" ? "Enter Auction" : "Join this Auction at Start Time, Go Home")
                   : "Try Again"}
               </button>
             </div>

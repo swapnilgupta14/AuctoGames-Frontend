@@ -8,7 +8,7 @@ export const EditAuctionModal = ({ auction, onClose, handleUpdateAuction }) => {
     startTime: auction.startTime.split(",")[1].trim(),
     registrationFee: auction.registrationFee,
     budgetLimit: auction.budgetLimit,
-    status: auction?.status || "SCHEDULED",
+    // status: auction?.status || "SCHEDULED",
     image: auction?.imageUrl,
   });
 
@@ -58,7 +58,7 @@ export const EditAuctionModal = ({ auction, onClose, handleUpdateAuction }) => {
             />
           </div>
 
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700">
               Status
             </label>
@@ -73,7 +73,7 @@ export const EditAuctionModal = ({ auction, onClose, handleUpdateAuction }) => {
               <option value="SCHEDULED">SCHEDULED</option>
               <option value="COMPLETED">COMPLETED</option>
             </select>
-          </div>
+          </div> */}
           
           <div>
             <label className="block text-sm font-medium text-gray-700">

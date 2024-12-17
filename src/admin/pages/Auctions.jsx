@@ -184,7 +184,7 @@ const Auctions = () => {
         registrationFee: updatedAuctionData.registrationFee,
         budgetLimit: updatedAuctionData.budgetLimit,
         auctionId: editingAuction.id,
-        status: updatedAuctionData?.status,
+        // status: updatedAuctionData?.status,
         image: updateAuctionDetails?.imageUrl || editingAuction?.imageUrl,
       };
 
