@@ -333,9 +333,11 @@ export const priorityUpdate = async (teamId, auctionId, arr) => {
 
 export const RegisterPlayerToIndividualAuction = async (data) => {
   try {
-    const response = await axiosInstance.post(`/players/register-to-auctions-2`, {
-      playerData: data?.playerData,
-      auctionIds: data?.auctionIds,
+    const player = data?.player;
+    const auctionId = data?.auctionId
+    const response = await axiosInstance.post(`/players/register-to-auction-3`, {
+      player,
+      auctionId,
     });
     if (response?.status === 200) {
       console.log(response?.data);
@@ -559,6 +561,30 @@ export const createNewAuction = async ({ formData, imagePreview }) => {
     return response?.data;
   } catch (error) {
     console.error("Error creating auction", error);
+    throw error;
+  }
+};
+
+
+export const uploadProfilePhoto = async (userId, imagePreview) => {
+  try {
+    if (!userId || !imagePreview) {
+      throw new Error("User ID and image preview are required");
+    }
+    const imageBlob = await (await fetch(imagePreview)).blob();
+    const formData = new FormData();
+    formData.append("userId", userId);
+    formData.append("file", imageBlob, `profile-image-${userId}.jpg`);
+    const imageRes = await axiosInstance.post("upload/userImage", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    console.log("Image upload successful", imageRes.data);
+    return imageRes.data; 
+  } catch (error) {
+    console.error("Error uploading profile photo:", error.message);
     throw error;
   }
 };

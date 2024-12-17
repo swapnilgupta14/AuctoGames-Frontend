@@ -60,7 +60,7 @@ const PlayersPopup = ({ isOpen, onClose, auctionId }) => {
 
   const registerPlayers = async () => {
     setIsRegisterLoading(true);
-    
+
     if (!auctionId) {
       toast.error("Auction ID is required");
       setIsRegisterLoading(false);
@@ -73,29 +73,30 @@ const PlayersPopup = ({ isOpen, onClose, auctionId }) => {
       return;
     }
 
-    // Correctly transform the array
-    const arrFile = jsonOutput;
-    const auctionIdArr = [auctionId];
-
-    const payload = {
-      playerData: arrFile,
-      auctionIds: auctionIdArr,
-    };
-
     try {
-      const res = await RegisterPlayerToIndividualAuction(payload);
-      
-      if (res) {
-        toast.success("Players registered successfully");
-        setFile(null);
-        setJsonOutput(null);
-        setError(null);
-        onClose();
-      } else {
-        toast.error("Error registering players");
+      for (const player of jsonOutput) {
+        const payload = {
+          player: player,
+          auctionId: auctionId,
+        };
+
+        try {
+          const res = await RegisterPlayerToIndividualAuction(payload);
+        } catch (error) {
+          toast.error(
+            `An error occurred while registering player ${player.Players}`
+          );
+          console.error(`Error registering player ${player.Players}:`, error);
+        }
       }
+
+      toast.success("All players processed");
+      setFile(null);
+      setJsonOutput(null);
+      setError(null);
+      onClose();
     } catch (error) {
-      toast.error("An error occurred while registering players");
+      toast.error("An error occurred during player registration");
       console.error("Registration error:", error);
     } finally {
       setIsRegisterLoading(false);

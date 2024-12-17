@@ -35,16 +35,13 @@ const AdminLogin = () => {
       });
 
       if (response.data?.status === 201) {
-        // Store authentication details
         localStorage.setItem("adminToken", response.data.token);
         localStorage.setItem("adminAuth", "true");
 
-        // Set session timeout
         const sessionExpiryTime =
           Date.now() + (response.data?.session_timeout || 30) * 60 * 1000;
         localStorage.setItem("AdminSessionTimeout", sessionExpiryTime.toString());
 
-        // Navigate to auctions page
         navigate("/admin/auctions");
       } else {
         setError(response.data.message || "Invalid Credentials");

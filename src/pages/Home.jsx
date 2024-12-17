@@ -54,26 +54,26 @@ const Home = () => {
         const response = await fetch(
           "https://server.rishabh17704.workers.dev/api/auctions/getallstatus"
         );
+        if (!response.ok) throw new Error("Failed to fetch auction data");
         const data = await response.json();
         setAuctions(data.auctions);
 
-        const live = data.auctions.filter(
-          (auction) => auction.status === "LIVE"
+        setLiveAuctions(
+          data.auctions.filter((auction) => auction.status === "LIVE")
         );
-        setLiveAuctions(live);
-
-        const scheduled = data.auctions.filter(
-          (auction) => auction.status === "SCHEDULED"
+        setScheduledAuctions(
+          data.auctions.filter((auction) => auction.status === "SCHEDULED")
         );
-        setScheduledAuctions(scheduled);
-        setFilteredScheduledAuctions(scheduled);
+        setFilteredScheduledAuctions(
+          data.auctions.filter((auction) => auction.status === "SCHEDULED")
+        );
       } catch (error) {
         console.error("Error fetching auctions:", error);
+        alert("Failed to load auctions. Please try again later.");
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchAuctions();
   }, []);
 
@@ -110,28 +110,23 @@ const Home = () => {
   };
 
   const handleTouchEnd = () => {
-    if (touchStart - touchEnd > 75) {
-      setCurrentLiveSlide(currentLiveSlide)
+    const swipeDistance = touchStart - touchEnd;
+    if (swipeDistance > 75) {
       nextSlide();
-    }
-
-    if (touchStart - touchEnd < -75) {
-      setCurrentLiveSlide(currentLiveSlide)
+    } else if (swipeDistance < -75) {
       prevSlide();
     }
-
     startAutoSlide();
   };
 
-  const nextSlide = () => {
+  const nextSlide = useCallback(() => {
     setCurrentLiveSlide((prev) => (prev + 1) % liveAuctions.length);
-  };
+  }, [liveAuctions.length]);
 
-  const prevSlide = () => {
-    setCurrentLiveSlide(
-      (prev) => (prev - 1 + liveAuctions.length) % liveAuctions.length
-    );
-  };
+  const prevSlide = useCallback(() => {
+    setCurrentLiveSlide((prev) => (prev - 1 + liveAuctions.length) % liveAuctions.length);
+  }, [liveAuctions.length]);
+
 
   const calculateDefaultDateRange = () => {
     const today = new Date();
@@ -162,10 +157,11 @@ const Home = () => {
     }
   }, [dateRange, scheduledAuctions]);
 
-  const truncateText = (text, maxLength = 20) => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + "...";
+  const truncateText = (text = "", maxLength = 20) => {
+    if (!text || typeof text !== "string") return "";
+    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
   };
+  
 
   const formatDateRange = (startDate, endDate) => {
     const formatOptions = {
@@ -180,7 +176,11 @@ const Home = () => {
 
   return (
     <div className="w-[100%] ">
-      <Header heading={`Welcome, ${username.split(" ")[0]}`}></Header>
+      <Header
+        heading={`Welcome, ${username.split(" ")[0]}`}
+        backAllowed={false}
+        homeAllowed={false}
+      ></Header>
 
       {isLoading ? (
         <div className={carouselStyles.container}>
@@ -221,9 +221,15 @@ const Home = () => {
                 <div className="w-[98%] truncate absolute bottom-1 left-1 bg-white shadow-xl text-gray-500 font-medium px-4 flex justify-center pb-7 pt-3 rounded-xl items-center">
                   <div>{auction.title}</div>
                 </div>
-                
-                <div className={`text-xs absolute top-4 right-4 ${auction?.currStatusofAuction === "COMPLETED" ? "bg-blue-600" : "bg-red-500"} px-3 py-1 rounded-3xl font-light flex justify-center items-center gap-2`}>
-                  <div className="font-medium py-1">
+
+                <div
+                  className={`text-xs absolute top-4 right-4 ${
+                    auction?.currStatusofAuction === "COMPLETED"
+                      ? "bg-blue-600"
+                      : "bg-red-500"
+                  } px-3 py-1 rounded-3xl font-light flex justify-center items-center gap-2`}
+                >
+                  <div className="font-medium py-0">
                     {auction?.currStatusofAuction === "LIVE" ||
                     auction?.currStatusofAuction === "COMPLETED"
                       ? auction?.currStatusofAuction

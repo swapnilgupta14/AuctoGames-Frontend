@@ -57,7 +57,6 @@ const Login = () => {
         localStorage.setItem("userId", finalRes.user.id);
         localStorage.setItem("email", finalRes.user.email);
 
-        // Calculate and store session expiry time
         const sessionExpiryTime =
           Date.now() + finalRes?.session_timeout * 60 * 1000;
         localStorage.setItem("SessionExpiryTime", sessionExpiryTime.toString());
