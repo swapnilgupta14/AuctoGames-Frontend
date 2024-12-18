@@ -286,7 +286,7 @@ const AuctionDetail = () => {
 
         <h1 className="text-[20px] font-bold mt-4 px-3 flex justify-between">
           {auction.title}{" "}
-          <span className="bg-gray-600 text-xs text-white py-2 px-2 rounded-xl">
+          <span className="bg-gray-600 text-xs text-white py-2 px-2 rounded-xl h-fit w-fit">
             {auction?.status}
           </span>
         </h1>
