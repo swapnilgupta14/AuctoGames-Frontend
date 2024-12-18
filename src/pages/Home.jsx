@@ -8,7 +8,7 @@ import chevronRight from "../assets/chevron-circle-right-Regular.svg";
 import calender from "../assets/Calendar.svg";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import { Calendar } from "lucide-react";
+import { Calendar, HouseIcon } from "lucide-react";
 
 const carouselStyles = {
   container:
@@ -159,14 +159,14 @@ const Home = () => {
   useEffect(() => {
     const { startDate, endDate } = dateRange[0];
     let filtered;
-  
+
     const parseDate = (dateString) => {
       const [datePart, timePart] = dateString.split(", ");
       const [day, month, year] = datePart.split("/").map(Number);
       const [hours, minutes, seconds] = timePart.split(":").map(Number);
       return new Date(year, month - 1, day, hours, minutes, seconds);
     };
-  
+
     if (!startDate || !endDate) {
       filtered =
         selectedAuctionType === "SCHEDULED"
@@ -180,7 +180,7 @@ const Home = () => {
       ).filter((auction) => {
         const auctionStartDate = parseDate(auction.startTime);
         const auctionEndDate = parseDate(auction.endTime);
-  
+
         return (
           auctionStartDate >= new Date(startDate) &&
           auctionEndDate <= new Date(endDate)
@@ -188,10 +188,9 @@ const Home = () => {
       });
       console.log(filtered, scheduledAuctions);
     }
-  
+
     setFilteredAuctions(filtered);
   }, [dateRange, scheduledAuctions, completedAuctions, selectedAuctionType]);
-  
 
   const truncateText = (text = "", maxLength = 20) => {
     if (!text || typeof text !== "string") return "";
@@ -214,7 +213,14 @@ const Home = () => {
   return (
     <div className="w-[100%] ">
       <Header
-        heading={`Welcome, ${username.split(" ")[0]}`}
+        heading={
+          <p className="flex gap-2 items-center justify-start -ml-4">
+            <span>
+              <HouseIcon />
+            </span>
+            Welcome, {username?.split(" ")[0]}
+          </p>
+        }
         backAllowed={false}
         homeAllowed={false}
       ></Header>
@@ -390,9 +396,7 @@ const Home = () => {
                     <div className="text-lg font-semibold">
                       {truncateText(auction.title)}
                     </div>
-                    <div className="text-sm">
-                      {auction.startTime}
-                    </div>
+                    <div className="text-sm">{auction.startTime}</div>
                   </div>
                 </div>
                 <div>
