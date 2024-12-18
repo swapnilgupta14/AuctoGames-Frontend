@@ -409,12 +409,12 @@ const YourTeamPlayers = () => {
       >
         <div>
           {auctionDetails.isAuctionEnded ? (
-            <div className="text-red-500">
+            <div className="text-red-500 ">
               Auction has ended. You cannot change priority now.
             </div>
           ) : remainingTime ? (
             <div className="py-2">
-              You can change & set positions!
+              {isAuthorizedUser && <span className="text-sm">You can change positions of players in your team!</span>}
               <div className="text-gray-600">
                 Auction will end in <span className="font-medium text-red-500"> {remainingTime.days}d {remainingTime.hours}h{" "}
                 {remainingTime.minutes}m {remainingTime.seconds}s </span>
