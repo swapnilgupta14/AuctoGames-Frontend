@@ -111,7 +111,7 @@ const YourTeamPlayers = () => {
       const res = await getTeamResultOfAction(auctionId, userId);
 
       if (res && res.teams && res.teams.length > 0) {
-        console.log(res);
+        // console.log(res);
         const team = res.teams[0];
         setTeamId(team.id);
         setAuction(team?.auction);
@@ -120,7 +120,7 @@ const YourTeamPlayers = () => {
           (a, b) => (a?.order || 0) - (b?.order || 0)
         );
 
-        console.log(players, "players");
+        // console.log(players, "players");
         setTeamData(players);
         setPlayerIds(players.map((player) => player.id));
         setTeamName(team?.name);
@@ -194,9 +194,9 @@ const YourTeamPlayers = () => {
     [isValid]
   );
 
-  useEffect(() => {
-    console.log(playerIds);
-  }, [playerIds]);
+  // useEffect(() => {
+  //   console.log(playerIds);
+  // }, [playerIds]);
 
   const handleTouchMove = useCallback(
     (e) => {
