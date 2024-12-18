@@ -86,16 +86,6 @@ const AuctionRegistration = () => {
 
   const closeModal = () => {
     setIsModalOpen(false);
-    if (modalType === "success" && auctionStatus === "SCHEDULED") {
-      navigate(-2);
-    } else if (modalType === "success" && auctionStatus === "LIVE") {
-      navigate("/successregister", {
-        state: {
-          auction,
-          registrationData,
-        },
-      });
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -332,7 +322,23 @@ const AuctionRegistration = () => {
               )}
               <p className="text-gray-600 mb-6">{modalMessage}</p>
               <button
-                onClick={closeModal}
+                onClick={() => {
+                  closeModal();
+                  if (
+                    modalType === "success" &&
+                    auctionStatus === "SCHEDULED"
+                  ) {
+                    navigate(-2);
+                  }
+                  if (modalType === "success" && auctionStatus === "LIVE") {
+                    navigate("/successregister", {
+                      state: {
+                        auction,
+                        registrationData,
+                      },
+                    });
+                  }
+                }}
                 className={`w-full py-3 rounded-xl font-medium transition-colors ${
                   modalType === "success"
                     ? "bg-blue-600 text-white text-sm hover:bg-blue-700"
@@ -340,7 +346,9 @@ const AuctionRegistration = () => {
                 }`}
               >
                 {modalType === "success"
-                  ? (auctionStatus === "LIVE" ? "Enter Auction" : "Join this Auction at Start Time, Go Home")
+                  ? auctionStatus === "LIVE"
+                    ? "Enter Auction"
+                    : "Join this Auction at Start Time, Go Home"
                   : "Try Again"}
               </button>
             </div>

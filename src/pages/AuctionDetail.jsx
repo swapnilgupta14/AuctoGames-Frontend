@@ -325,7 +325,7 @@ const AuctionDetail = () => {
             <button
               className="px-4 py-3 bg-[#1F41BB] text-white rounded-lg w-full font-medium text-[16px]"
               onClick={() => {
-                auction?.startTime === "LIVE"
+                auction?.status === "LIVE"
                   ? navigate("/successregister", {
                       state: {
                         auction,
