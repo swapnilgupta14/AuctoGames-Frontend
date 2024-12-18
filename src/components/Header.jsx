@@ -83,9 +83,9 @@ const Header = ({ heading, backAllowed = true, homeAllowed = true }) => {
               <Download size={22} className="text-white" />
             </div>
           )}
-          <div>
+          {/* <div>
             <img src={bellIcon} alt="Notifications" />
-          </div>
+          </div> */}
 
           <div
             className="border border-white w-[30px] h-[30px] rounded-full flex justify-center items-center text-white font-medium text-[16px] cursor-pointer"
