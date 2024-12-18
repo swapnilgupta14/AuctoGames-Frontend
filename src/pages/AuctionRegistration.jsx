@@ -284,7 +284,7 @@ const AuctionRegistration = () => {
                     </svg>
                   </div>
                   <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                    Team Registartion Successful!
+                    Team Registration Successful!
                   </h2>
                   {auctionStatus === "LIVE" ? (
                     <p className="text-red-600 font-sm py-2 font-medium">
@@ -348,7 +348,7 @@ const AuctionRegistration = () => {
                 {modalType === "success"
                   ? auctionStatus === "LIVE"
                     ? "Enter Auction"
-                    : "Join this Auction at Start Time, Go Home"
+                    : "Go Home"
                   : "Try Again"}
               </button>
             </div>
