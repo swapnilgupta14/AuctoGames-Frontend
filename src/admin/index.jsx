@@ -127,7 +127,6 @@ const useSessionTimeout = () => {
       const adminToken = localStorage.getItem("adminToken");
       const currentTime = Date.now();
 
-      // If no token or session timeout, redirect to login
       if (!adminToken || !storedSessionExpiryTime) {
         if (location.pathname !== "/admin/login") {
           handleLogout();

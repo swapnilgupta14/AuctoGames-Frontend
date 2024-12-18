@@ -137,9 +137,10 @@ function App() {
       }
 
       const bypassRoutes = ["/login", "/signup", "/fpp", "/resetpass", "/"];
-
       const isBypassRoute = bypassRoutes.some((route) =>
-        location.pathname.startsWith(route)
+        route === "/"
+          ? location.pathname === "/"
+          : location.pathname.startsWith(route)
       );
 
       if (isBypassRoute) {
