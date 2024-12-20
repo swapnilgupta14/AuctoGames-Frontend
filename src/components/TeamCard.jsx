@@ -3,7 +3,7 @@ import { Users, Medal, Wallet, Star } from "lucide-react";
 
 const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
   const navigate = useNavigate();
-  
+
   // Function to get ordinal suffix for rank
   const getRankSuffix = (rank) => {
     if (rank === 1) return "st";
@@ -28,6 +28,13 @@ const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
   //   return "text-gray-400";
   // };
 
+  const truncateText = (text = "", maxLength = 24) => {
+    if (!text || typeof text !== "string") return "";
+    return text.length > maxLength
+      ? `${text.substring(0, maxLength)}...`
+      : text;
+  };
+
   return (
     <div className="w-full bg-white shadow-xl rounded-xl p-5 border border-gray-300 space-y-4">
       <div className="flex justify-between items-start">
@@ -43,8 +50,8 @@ const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
             />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-800 truncate pr-2 leading-tight">
-              {item.name}
+            <h2 className="text-lg font-bold text-gray-800 truncate leading-tight">
+              {truncateText(item.name)}
             </h2>
             {item?.owner?.id == userId ? (
               <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full font-medium">

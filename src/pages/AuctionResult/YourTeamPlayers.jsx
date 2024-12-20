@@ -327,7 +327,7 @@ const YourTeamPlayers = () => {
 
     const interval = setInterval(updateCountdown, 1000);
 
-    updateCountdown(); // Run immediately to avoid delay
+    updateCountdown();
 
     return () => clearInterval(interval);
   }, [auction?.endTime]);
@@ -397,32 +397,43 @@ const YourTeamPlayers = () => {
     );
   }
 
+  const truncateText = (text = "", maxLength = 20) => {
+    if (!text || typeof text !== "string") return "";
+    return text.length > maxLength
+      ? `${text.substring(0, maxLength)}...`
+      : text;
+  };
   const auctionDetails = handleAuctionTime(auction?.endTime);
 
   return (
     <div className="flex flex-col h-dvh lg:h-screen relative">
-      <Header heading={`My Team in Auction ${auctionId}`} />
+      <Header heading={`${truncateText(teamName)}`} />
 
       <div
         ref={listContainerRef}
-        className="flex-1 flex flex-col px-4 overflow-y-scroll pb-16"
+        className="flex-1 flex flex-col px-4 overflow-y-scroll pb-16 py-3"
       >
         <div>
-          {auctionDetails.isAuctionEnded ? (
-            <div className="text-red-500 ">
-              Auction has ended. You cannot change priority now.
-            </div>
-          ) : remainingTime ? (
+          {remainingTime ? (
             <div className="py-2">
-              {isAuthorizedUser && <span className="text-sm">You can change positions of players in your team!</span>}
+              {isAuthorizedUser && (
+                <span className="text-sm">
+                  You can change positions of players in your team!
+                </span>
+              )}
               <div className="text-gray-600">
-                Auction will end in <span className="font-medium text-red-500"> {remainingTime.days}d {remainingTime.hours}h{" "}
-                {remainingTime.minutes}m {remainingTime.seconds}s </span>
+                Auction will end in{" "}
+                <span className="font-medium text-red-500">
+                  {" "}
+                  {remainingTime.days}d {remainingTime.hours}h{" "}
+                  {remainingTime.minutes}m {remainingTime.seconds}s{" "}
+                </span>
               </div>
             </div>
           ) : (
             <div className="text-red-500">
-              Auction has ended. You cannot change priority now.
+              Auction ended at {auction?.endTime}.{" "}
+              {isAuthorizedUser && <span>You cannot change priority now.</span>}
             </div>
           )}
         </div>

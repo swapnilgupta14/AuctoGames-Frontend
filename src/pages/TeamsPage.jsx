@@ -21,7 +21,6 @@ const TeamsPage = () => {
         if (res) {
           setIsLoading(false);
           setTotalPlayerCount(res?.totalPlayerCount);
-          // Sort teams by total points (including bonus) in descending order
           const sortedTeams = [...(res.teams || [])].sort((a, b) => {
             const pointsA = (a?.totalPoints + (a?.totalBonus || 0)) || 0;
             const pointsB = (b?.totalPoints + (b?.totalBonus || 0)) || 0;
