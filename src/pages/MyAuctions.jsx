@@ -19,7 +19,7 @@ const AuctionCard = ({ auction }) => {
   return (
     <div className="bg-white shadow-xl rounded-xl p-5 border border-gray-300 space-y-4">
       <div className="flex justify-between items-start">
-        <h2 className="text-lg font-bold text-gray-800 truncate pr-2 leading-tight">
+        <h2 className="text-lg font-semibold text-gray-800 truncate pr-2 leading-tight">
           {truncateText(auction.title)}
         </h2>
       </div>

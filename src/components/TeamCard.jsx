@@ -50,7 +50,7 @@ const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
             />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-800 truncate leading-tight">
+            <h2 className="text-lg font-semibold text-gray-800 truncate leading-tight">
               {truncateText(item.name)}
             </h2>
             {item?.owner?.id == userId ? (
