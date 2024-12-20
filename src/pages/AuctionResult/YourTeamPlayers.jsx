@@ -111,7 +111,6 @@ const YourTeamPlayers = () => {
       const res = await getTeamResultOfAction(auctionId, userId);
 
       if (res && res.teams && res.teams.length > 0) {
-        // console.log(res);
         const team = res.teams[0];
         setTeamId(team.id);
         setAuction(team?.auction);
@@ -120,7 +119,6 @@ const YourTeamPlayers = () => {
           (a, b) => (a?.order || 0) - (b?.order || 0)
         );
 
-        // console.log(players, "players");
         setTeamData(players);
         setPlayerIds(players.map((player) => player.id));
         setTeamName(team?.name);
@@ -136,13 +134,19 @@ const YourTeamPlayers = () => {
     }
   };
 
+  const [teamComposition, setTeamComposition] = useState(null);
   const validateTeamComposition = async (teamId) => {
     try {
       const res = await checkTeamComposition(teamId);
-      setIsValid(!!res);
+      // if (res?.status === "INVALID_COMPOSITION") {
+      //   setIsValid(false);
+      //   return;
+      // }
+      setTeamComposition(res?.playerTypeCount);
+      setIsValid(true);
     } catch (error) {
       console.error("Validation error:", error);
-      setIsValid(true);
+      setIsValid(false);
     }
   };
 
@@ -296,7 +300,7 @@ const YourTeamPlayers = () => {
   }, [dragState]);
 
   const handleLeave = () => {
-    navigate("/home");
+    navigate(-1);
   };
 
   const [remainingTime, setRemainingTime] = useState(null);
@@ -311,7 +315,7 @@ const YourTeamPlayers = () => {
       const timeDiff = endTime - currentTime;
 
       if (timeDiff <= 0) {
-        setRemainingTime(null); // Auction has ended
+        setRemainingTime(null);
         clearInterval(interval);
       } else {
         setRemainingTime({
@@ -432,8 +436,8 @@ const YourTeamPlayers = () => {
             </div>
           ) : (
             <div className="text-red-500">
-              Auction ended at {auction?.endTime}.{" "}
-              {isAuthorizedUser && <span>You cannot change priority now.</span>}
+              Auction ended at {auction?.endTime}.{" "} <br/>
+              {isAuthorizedUser && <span className="text-black font-medium">You cannot change priority of your now.</span>}
             </div>
           )}
         </div>
@@ -461,10 +465,20 @@ const YourTeamPlayers = () => {
         )}
       </div>
 
-      {!isValid && (
+      {!isValid && isAuthorizedUser && auction?.isAuctionEnded && (
         <div className="bg-red-200 text-red-800 p-4 rounded-lg absolute bottom-0 left-0 right-0 m-4 z-10 flex items-center justify-between">
           <p className="font-semibold">
             Your team composition is not valid. Your auction has failed.
+            <br />
+            <span className="py-1 text-end text-gray-600 ">
+              {teamComposition != null
+                ? `B${teamComposition?.Batsman ?? 0} | WK${
+                    teamComposition["Wicket Keeper"] ?? 0
+                  } | AR${teamComposition["All Rounder"] ?? 0} | B${
+                    teamComposition?.Bowler
+                  }`
+                : `B0 | WK0 | AR0 | B0`}
+            </span>
           </p>
           <button
             onClick={handleLeave}
