@@ -48,7 +48,7 @@ const TeamsPage = () => {
 
   return (
     <div className="h-dvh flex flex-col w-full">
-      <Header heading={`Teams in Auction ${auctionId}`} />
+      <Header heading={`All Teams in Auction Id-${auctionId}`} />
 
       {isError ? (
         <div className="flex flex-col gap-3 justify-center items-center h-full">

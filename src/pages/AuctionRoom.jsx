@@ -218,7 +218,7 @@ const AuctionRoom = () => {
   }, [auctionId, userId]);
 
   const [referenceTime, setReferenceTime] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(30);
+  const [timeLeft, setTimeLeft] = useState(35);
   const [isCountingDown, setIsCountingDown] = useState(true);
   const intervalRef = useRef(null);
   const endTime = useRef(null);
@@ -232,10 +232,10 @@ const AuctionRoom = () => {
         setTimeLeft(remainingTime);
       } else if (isCountingDown) {
         setIsCountingDown(false);
-        endTime.current = currentTime + 30000;
+        endTime.current = currentTime + 35000;
       } else {
         const elapsedTime = Math.abs(remainingTime);
-        setTimeLeft(elapsedTime > 30 ? 0 : elapsedTime);
+        setTimeLeft(elapsedTime > 35 ? 0 : elapsedTime);
       }
     }, 1000);
   };
@@ -243,7 +243,7 @@ const AuctionRoom = () => {
   useEffect(() => {
     if (referenceTime) {
       const refTime = new Date(referenceTime).getTime();
-      endTime.current = refTime + 30000;
+      endTime.current = refTime + 35000;
 
       startTimer();
 
@@ -253,8 +253,8 @@ const AuctionRoom = () => {
 
   const prevPlayerId = useRef(null);
   const fetchPlayerById = async (dataToGet) => {
-    console.log("start 11111111111111111");
-    console.log(dataToGet.playerId, "yhbbhjhbbjkjuk", prevPlayerId.current);
+    // console.log("start 11111111111111111");
+    // console.log(dataToGet.playerId, "yhbbhjhbbjkjuk", prevPlayerId.current);
     try {
       if (
         dataToGet.roomSize < 2 &&
@@ -279,7 +279,7 @@ const AuctionRoom = () => {
           const ownTeamId =
             localStorage.getItem(`ownTeamId-${idSaved}-${auctionId}`) || "";
           const composition = await getComposition(Number(ownTeamId));
-          console.log("11111111111111111 Composition", composition, ownTeamId);
+          // console.log("11111111111111111 Composition", composition, ownTeamId);
           setTeamComposition(composition);
         } catch (error) {
           console.error("Error fetching team composition", error);
@@ -299,8 +299,8 @@ const AuctionRoom = () => {
       ]);
 
       if (playerDetails) {
-        console.log(playerDetails, "playerDetails 11111111111111111");
-        console.log(dataToGet, "dataToget 1111111111111111111111");
+        // console.log(playerDetails, "playerDetails 11111111111111111");
+        // console.log(dataToGet, "dataToget 1111111111111111111111");
 
         const newActivePlayer = {
           ...playerDetails?.player,
@@ -308,8 +308,9 @@ const AuctionRoom = () => {
           imageUrl: playerDetails?.imageUrl,
         };
 
-        console.log("1111111111111111 neActivePlaye", newActivePlayer);
+        // console.log("1111111111111111 neActivePlaye", newActivePlayer);
         setActivePlayer(newActivePlayer);
+        // console.log(newActivePlayer?.time)
         setReferenceTime(newActivePlayer?.time);
         // console.log(newActivePlayer?.time);
 
@@ -509,10 +510,11 @@ const AuctionRoom = () => {
     });
 
     SocketService.onNewBid((data) => {
-      console.log("data", data);
+      // console.log("data", data);
       if (bidPromiseRef.current) {
         if (data && data.amount) {
           bidPromiseRef.current.resolve(data);
+          setReferenceTime(data?.timestamp);
         } else {
           bidPromiseRef.current.reject(new Error("Invalid bid response"));
         }
