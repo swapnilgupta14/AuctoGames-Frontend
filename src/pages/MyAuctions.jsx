@@ -123,11 +123,11 @@ const MyAuctions = () => {
   const tabs = ["LIVE", "COMPLETED", "SCHEDULED"];
 
   return (
-    <div className="h-dvh w-full overflow-hidden bg-gray-100">
+    <div className="h-dvh w-full flex flex-col bg-gray-100">
       <Header heading={"My Auctions"} />
 
-      <div className="container mx-auto  py-6 flex flex-col justify-start">
-        <div className="flex space-x-6 mb-6 px-4 border-b border-gray-200 h-fit">
+      <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex space-x-6 mb-6 px-4 pt-4 border-b border-gray-200">
           {tabs.map((tab) => (
             <button
               key={tab}
@@ -143,30 +143,34 @@ const MyAuctions = () => {
           ))}
         </div>
 
-        {isError ? (
-          <div className="flex flex-col gap-3 justify-center items-center h-full">
-            <p className="text-red-600 font-medium">Some Error Occurred!</p>
-          </div>
-        ) : (
-          <div className="flex-1 px-4">
-            {isLoading ? (
-              <div className="flex flex-col gap-3 justify-center items-center h-full">
-                <RefreshCw className="animate-spin text-gray-500" size={36} />
-                <p>Loading...</p>
-              </div>
-            ) : filteredAuctions.length > 0 ? (
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filteredAuctions.map((auction) => (
-                  <AuctionCard key={auction.id} auction={auction} />
-                ))}
-              </div>
-            ) : (
-              <div className="h-full text-center font-medium flex items-center justify-center text-gray-600">
-                No {activeTab.toLowerCase()} auctions found
-              </div>
-            )}
-          </div>
-        )}
+        <div className="flex-1 overflow-hidden">
+          {isError ? (
+            <div className="flex flex-col gap-3 justify-center items-center h-full">
+              <p className="text-red-600 font-medium">Some Error Occurred!</p>
+            </div>
+          ) : (
+            <div className="h-full">
+              {isLoading ? (
+                <div className="flex flex-col gap-3 justify-center items-center h-full">
+                  <RefreshCw className="animate-spin text-gray-500" size={36} />
+                  <p>Loading...</p>
+                </div>
+              ) : filteredAuctions.length > 0 ? (
+                <div className="h-full overflow-y-auto px-4">
+                  <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-6">
+                    {filteredAuctions.map((auction) => (
+                      <AuctionCard key={auction.id} auction={auction} />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="h-full text-center font-medium flex items-center justify-center text-gray-600">
+                  No {activeTab.toLowerCase()} auctions found
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
