@@ -1,7 +1,6 @@
 import TeamCard from "../components/TeamCard";
 import Header from "../components/Header";
-import { useEffect } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getTeamResultOfAction, getAllTeamsInAuction } from "../api/fetch";
 import { RefreshCw } from "lucide-react";
@@ -22,7 +21,13 @@ const TeamsPage = () => {
         if (res) {
           setIsLoading(false);
           setTotalPlayerCount(res?.totalPlayerCount);
-          setData(res.teams || []);
+          // Sort teams by total points (including bonus) in descending order
+          const sortedTeams = [...(res.teams || [])].sort((a, b) => {
+            const pointsA = (a?.totalPoints + (a?.totalBonus || 0)) || 0;
+            const pointsB = (b?.totalPoints + (b?.totalBonus || 0)) || 0;
+            return pointsB - pointsA;
+          });
+          setData(sortedTeams);
         }
       } catch (error) {
         console.log("dkeknden", error);
@@ -42,7 +47,6 @@ const TeamsPage = () => {
     );
   }
 
-
   return (
     <div className="h-dvh flex flex-col w-full">
       <Header heading={`Teams in Auction ${auctionId}`} />
@@ -59,14 +63,15 @@ const TeamsPage = () => {
       ) : (
         <div className="flex-1 w-full pt-4">
           <div className="flex flex-col gap-5 w-full justify-center items-center px-3">
-            {data?.map((item) => (
+            {data?.map((item, index) => (
               <TeamCard
                 key={item?.id}
                 item={item}
                 auctionId={auctionId}
                 userId={userId}
-                totalPlayerCount = {totalPlayerCount}
-              ></TeamCard>
+                totalPlayerCount={totalPlayerCount}
+                rank={index + 1}
+              />
             ))}
           </div>
         </div>

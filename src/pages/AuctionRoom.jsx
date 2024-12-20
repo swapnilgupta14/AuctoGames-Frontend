@@ -481,7 +481,6 @@ const AuctionRoom = () => {
       toast.success(`${data?.playerDetails?.name} is sold to ${data?.userId}`);
       updateAuctionEndTime(auctionId);
       SocketService.emitGetPlayerCount();
-
     });
 
     SocketService.onGetChatHistory((data) => {
@@ -510,6 +509,7 @@ const AuctionRoom = () => {
     });
 
     SocketService.onNewBid((data) => {
+      console.log("data", data);
       if (bidPromiseRef.current) {
         if (data && data.amount) {
           bidPromiseRef.current.resolve(data);
@@ -548,7 +548,7 @@ const AuctionRoom = () => {
     return () => {
       SocketService.removeAllListeners();
     };
-  }
+  };
 
   const setupSocketConnection = async (token, auctionId) => {
     console.log("Auction", token, auctionId);

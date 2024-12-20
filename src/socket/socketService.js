@@ -6,8 +6,8 @@ class SocketService {
     this.SOCKET_URL =
       // "https://zany-couscous-76pvggx996xfr9gw-3009.app.github.dev/";
       // this.SOCKET_URL = "https://expressbackend-production-b19c.up.railway.app";
-      // this.SOCKET_URL = "http://98.130.54.69:3009/";
-      this.SOCKET_URL = "https://cricket.skmishra.me/";
+      this.SOCKET_URL = "http://18.60.60.10";
+      // this.SOCKET_URL = "https://cricket.skmishra.me/";
 
   }
 
