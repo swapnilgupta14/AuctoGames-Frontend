@@ -517,6 +517,7 @@ const AuctionRoom = () => {
         }
         bidPromiseRef.current = null;
       } else {
+        setReferenceTime(data?.timestamp );
         toast.success(`${data.amount} Bid is placed`);
       }
 
