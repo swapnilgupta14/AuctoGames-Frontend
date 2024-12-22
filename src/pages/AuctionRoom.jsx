@@ -106,16 +106,16 @@ const AuctionRoom = () => {
     setShowPopup(false);
   };
 
-  const updateAuctionEndTime = async (auctionId) => {
-    try {
-      const response = await updateEndTime(auctionId);
-      if (response) {
-        console.log("EndTime Updated", response);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  // const updateAuctionEndTime = async (auctionId) => {
+  //   try {
+  //     const response = await updateEndTime(auctionId);
+  //     if (response) {
+  //       console.log("EndTime Updated", response);
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -413,12 +413,22 @@ const AuctionRoom = () => {
   };
 
   const [isPulling, setIsPulling] = useState(new Map());
+  const pullBackTimeouts = new Map();
 
   const handlePullBackPlayer = (auctionId, item) => {
-    console.log(auctionId, item);
     setIsPulling((prev) => new Map(prev).set(item, true));
-
     SocketService.emitPullBackPlayer(auctionId, item);
+    const timeoutId = setTimeout(() => {
+      console.error(`Timeout: Pull back failed for player ${item}`);
+      setIsPulling((prev) => {
+        const newMap = new Map(prev);
+        newMap.set(item, false);
+        return newMap;
+      });
+      pullBackTimeouts.delete(item);
+    }, 15000);
+
+    pullBackTimeouts.set(item, timeoutId);
   };
   // ----------------------------------------------------------
 
@@ -474,7 +484,13 @@ const AuctionRoom = () => {
     SocketService.onPlayerPulledBack((data) => {
       toast.success("Player Pulled Back Successfully!");
       console.log("Pulled back", data);
+
       const p_id = data?.auctionPlayerId;
+
+      if (pullBackTimeouts.has(p_id)) {
+        clearTimeout(pullBackTimeouts.get(p_id));
+        pullBackTimeouts.delete(p_id);
+      }
       setIsPulling((prev) => {
         const newMap = new Map(prev);
         newMap.set(p_id, false);
