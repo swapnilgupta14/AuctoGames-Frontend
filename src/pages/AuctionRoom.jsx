@@ -218,7 +218,7 @@ const AuctionRoom = () => {
   }, [auctionId, userId]);
 
   const [referenceTime, setReferenceTime] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(35);
+  const [timeLeft, setTimeLeft] = useState(30);
   const [isCountingDown, setIsCountingDown] = useState(true);
   const intervalRef = useRef(null);
   const endTime = useRef(null);
@@ -232,10 +232,10 @@ const AuctionRoom = () => {
         setTimeLeft(remainingTime);
       } else if (isCountingDown) {
         setIsCountingDown(false);
-        endTime.current = currentTime + 35000;
+        endTime.current = currentTime + 30000;
       } else {
         const elapsedTime = Math.abs(remainingTime);
-        setTimeLeft(elapsedTime > 35 ? 0 : elapsedTime);
+        setTimeLeft(elapsedTime > 30 ? 0 : elapsedTime);
       }
     }, 1000);
   };
@@ -243,7 +243,7 @@ const AuctionRoom = () => {
   useEffect(() => {
     if (referenceTime) {
       const refTime = new Date(referenceTime).getTime();
-      endTime.current = refTime + 35000;
+      endTime.current = refTime + 30000;
 
       startTimer();
 
@@ -308,12 +308,7 @@ const AuctionRoom = () => {
           imageUrl: playerDetails?.imageUrl,
         };
 
-        // console.log("1111111111111111 neActivePlaye", newActivePlayer);
         setActivePlayer(newActivePlayer);
-        // console.log(newActivePlayer?.time)
-        setReferenceTime(newActivePlayer?.time);
-        // console.log(newActivePlayer?.time);
-
         setActivePlayerId(playerDetails?.id);
         setCurrentBid(playerDetails.currentBid ?? 0);
 
@@ -424,11 +419,12 @@ const AuctionRoom = () => {
     });
 
     SocketService.onActivePlayer((data) => {
+      setReferenceTime(data?.time);
       fetchPlayerById(data);
     });
 
     SocketService.onAskNewPlayer((data) => {
-      console.log(data);
+      console.log("onAskNewPlayer timeee", data);
       if (data?.status === "SOLD") {
         toast.success(
           `${data?.auctionPlayerId} is Sold Successfully to ${data?.userId}`
@@ -478,11 +474,11 @@ const AuctionRoom = () => {
       prevPlayerId.current = null;
     });
 
-    SocketService.playerSold((data) => {
-      toast.success(`${data?.playerDetails?.name} is sold to ${data?.userId}`);
-      updateAuctionEndTime(auctionId);
-      SocketService.emitGetPlayerCount();
-    });
+    // SocketService.playerSold((data) => {
+    //   toast.success(`${data?.playerDetails?.name} is sold to ${data?.userId}`);
+    //   updateAuctionEndTime(auctionId);
+    //   SocketService.emitGetPlayerCount();
+    // });
 
     SocketService.onGetChatHistory((data) => {
       const user_id = localStorage.getItem("userId");
@@ -514,7 +510,8 @@ const AuctionRoom = () => {
       if (bidPromiseRef.current) {
         if (data && data.amount) {
           bidPromiseRef.current.resolve(data);
-          setReferenceTime(data?.timestamp);
+          setReferenceTime(data?.timestamp );
+          console.log("Bid Placed timeee", data);
         } else {
           bidPromiseRef.current.reject(new Error("Invalid bid response"));
         }
