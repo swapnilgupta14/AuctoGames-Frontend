@@ -251,6 +251,8 @@ const AuctionRoom = () => {
     }
   }, [referenceTime]);
 
+  const [isfetchingPlayer, setIsfetchingPlayer] = useState(false);
+
   const prevPlayerId = useRef(null);
   const fetchPlayerById = async (dataToGet) => {
     // console.log("start 11111111111111111");
@@ -272,6 +274,7 @@ const AuctionRoom = () => {
 
       setCurrentBid(0);
       setCurrentBids([]);
+      setIsfetchingPlayer(true);
 
       const fetchTeamComposition = async () => {
         try {
@@ -299,8 +302,7 @@ const AuctionRoom = () => {
       ]);
 
       if (playerDetails) {
-        // console.log(playerDetails, "playerDetails 11111111111111111");
-        // console.log(dataToGet, "dataToget 1111111111111111111111");
+        setIsfetchingPlayer(false);
 
         const newActivePlayer = {
           ...playerDetails?.player,
@@ -315,8 +317,9 @@ const AuctionRoom = () => {
         prevPlayerId.current = dataToGet.playerId;
       }
     } catch (error) {
+      setIsfetchingPlayer(false);
       console.error("Error fetching player details:", error);
-      toast.error("Failed to fetch player details");
+      toast.error("Some Erorr Occured! Please refresh.");
     }
   };
 
@@ -361,17 +364,27 @@ const AuctionRoom = () => {
 
   // ---------------------------------------------------------
 
-  const fetchAllPlayerInAuction = useCallback(async () => {
-    if (remainingPlayers < 1) return;
-    try {
-      const res = await getAllPLayersInAuction(auctionId);
-      if (res?.players) {
-        setAuctionPlayers(res?.players);
+  const fetchAllPlayerInAuction = useCallback(
+    async (p_id = undefined) => {
+      if (remainingPlayers < 1) return;
+      try {
+        const res = await getAllPLayersInAuction(auctionId);
+        if (res?.players) {
+          setAuctionPlayers(res?.players);
+          if (p_id) {
+            setIsPulling((prev) => {
+              const newMap = new Map(prev);
+              newMap.set(p_id, false);
+              return newMap;
+            });
+          }
+        }
+      } catch (error) {
+        console.log("error", error);
       }
-    } catch (error) {
-      console.log("error", error);
-    }
-  }, [auctionId, remainingPlayers]);
+    },
+    [auctionId, remainingPlayers]
+  );
 
   useEffect(() => {
     fetchAllPlayerInAuction();
@@ -491,11 +504,8 @@ const AuctionRoom = () => {
         clearTimeout(pullBackTimeouts.get(p_id));
         pullBackTimeouts.delete(p_id);
       }
-      setIsPulling((prev) => {
-        const newMap = new Map(prev);
-        newMap.set(p_id, false);
-        return newMap;
-      });
+
+      fetchAllPlayerInAuction(p_id);
 
       SocketService.emitGetRoomSize();
       SocketService.emitGetActivePlayer();
