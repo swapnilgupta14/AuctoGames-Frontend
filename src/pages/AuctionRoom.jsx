@@ -411,6 +411,15 @@ const AuctionRoom = () => {
         toast.error("Your purse is less than bid amount!");
     }
   };
+
+  const [isPulling, setIsPulling] = useState(new Map());
+
+  const handlePullBackPlayer = (auctionId, item) => {
+    console.log(auctionId, item);
+    setIsPulling((prev) => new Map(prev).set(item, true));
+
+    SocketService.emitPullBackPlayer(auctionId, item);
+  };
   // ----------------------------------------------------------
 
   const setupSocketListeners = () => {
@@ -464,6 +473,14 @@ const AuctionRoom = () => {
 
     SocketService.onPlayerPulledBack((data) => {
       toast.success("Player Pulled Back Successfully!");
+      console.log("Pulled back", data);
+      const p_id = data?.auctionPlayerId;
+      setIsPulling((prev) => {
+        const newMap = new Map(prev);
+        newMap.set(p_id, false);
+        return newMap;
+      });
+
       SocketService.emitGetRoomSize();
       SocketService.emitGetActivePlayer();
       SocketService.emitGetPlayerCount();
@@ -1006,6 +1023,8 @@ const AuctionRoom = () => {
                             pullCount={pullCount}
                             setPullCount={setPullCount}
                             teamMap={teamMap}
+                            handlePullBackPlayer={handlePullBackPlayer}
+                            pulling={isPulling}
                           />
                         </div>
                       ));
@@ -1042,6 +1061,8 @@ const AuctionRoom = () => {
                               pullCount={pullCount}
                               setPullCount={setPullCount}
                               teamMap={teamMap}
+                              handlePullBackPlayer={handlePullBackPlayer}
+                              pulling={isPulling}
                             />
                           </div>
                         );
@@ -1095,6 +1116,8 @@ const AuctionRoom = () => {
                           pullCount={pullCount}
                           setPullCount={setPullCount}
                           teamMap={teamMap}
+                          handlePullBackPlayer={handlePullBackPlayer}
+                          pulling={isPulling}
                         />
                       </div>
                     );
@@ -1133,9 +1156,6 @@ const AuctionRoom = () => {
                     ))}
                   </div>
                   <div className="flex items-center gap-2 p-4 shadow-lg h-fit">
-                    <button>
-                      <Smile className="w-6 h-6 text-gray-600" />
-                    </button>
                     <input
                       type="text"
                       className="flex-grow px-4 py-2 border border-zinc-500 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-700"
@@ -1144,9 +1164,7 @@ const AuctionRoom = () => {
                       onChange={(e) => setMessage(e.target.value)}
                       onKeyPress={handleKeyPress}
                     />
-                    <button>
-                      <Mic className="w-6 h-6 text-gray-600" />
-                    </button>
+
                     <button onClick={sendMessage}>
                       <Send className="w-6 h-6 text-blue-700" />
                     </button>
@@ -1193,16 +1211,16 @@ const AuctionRoom = () => {
             <button className="text-xs w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
               {timeLeft < 10 ? `00:0${timeLeft}` : `00:${timeLeft}`}
             </button>
-            <button
+            {/* <button
               className="w-10 h-10 bg-yellow-100 text-yellow-400 rounded-full flex items-center justify-center hover:bg-yellow-200 border-yellow-400 border text-xs"
               onClick={() => {
                 SocketService.emitMarkPlayerUnsold(activePlayer?.id, auctionId);
               }}
             >
               New
-            </button>
+            </button> */}
             <button
-              className="w-10 h-10 relative bg-green-100 text-green-400 rounded-full flex items-center justify-center hover:bg-green-200 border-green-400 border text-xs"
+              className="w-10 h-10 relative bg-green-100 text-green-600 rounded-full flex items-center justify-center hover:bg-green-200 border-green-600 border text-xs"
               onClick={() => {
                 setExpandChat(!expandChat);
                 setIsExpanded(false);

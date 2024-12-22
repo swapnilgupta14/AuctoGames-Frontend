@@ -1,8 +1,4 @@
-import React, { useEffect, useState } from "react";
-import SocketService from "../socket/socketService";
 import { useLocation } from "react-router-dom";
-import toast from "react-hot-toast";
-import { useSelector } from "react-redux";
 
 const PlayerCard = ({
   tabType,
@@ -14,6 +10,8 @@ const PlayerCard = ({
   pullCount,
   setPullCount,
   teamMap,
+  handlePullBackPlayer,
+  pulling,
 }) => {
   const location = useLocation();
   const auctionId = location?.state?.auction?.id;
@@ -83,51 +81,17 @@ const PlayerCard = ({
         </div>
       )}
 
-      {/* {item?.points !== null ||
-        (item?.points !== undefined && (
-          <div>
-            <p className="text-sm font-semibold text-gray-600">Points</p>
-            <p className="font-semibold">{item?.points || "N/A"}</p>
-          </div>
-        ))} */}
-
       {tabType === "pullback" &&
         item.status === "unsold" &&
         item.highestBidderId === null && (
-          // (true && (
           <div>
             <button
-              className="bg-blue-700 py-1 px-3 rounded-2xl text-white flex items-center justify-center w-full"
+              className={` py-1 px-3 rounded-2xl text-white flex items-center justify-center w-full ${pulling.get(item?.auctionPlayerId) ? "bg-gray-600" : "bg-blue-700"}`}
               onClick={() => {
-                const getPullCount = localStorage.getItem("pullCounts");
-                const data = JSON.parse(getPullCount);
-
-                if (data && data[item?.auctionPlayerId].remaining < 1) {
-                  toast.error("Player can be pulled back only once!");
-                  return;
-                }
-
-                SocketService.emitPullBackPlayer(
-                  auctionId,
-                  item?.auctionPlayerId
-                );
-
-                if (data) {
-                  const auctionPlayerId = item?.auctionPlayerId;
-                  if (data[auctionPlayerId]) {
-                    if (data[auctionPlayerId].remaining > 0) {
-                      data[auctionPlayerId].remaining -= 1;
-                      localStorage.setItem("pullCounts", JSON.stringify(data));
-                    }
-                  } else {
-                    console.log(
-                      `auctionPlayerId ${auctionPlayerId} not found.`
-                    );
-                  }
-                }
+                handlePullBackPlayer(auctionId, item?.auctionPlayerId);
               }}
             >
-              PULL
+              {pulling.get(item?.auctionPlayerId) ? "WAIT.." : "PULL"}
             </button>
           </div>
         )}

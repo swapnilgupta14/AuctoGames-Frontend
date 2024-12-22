@@ -8,7 +8,6 @@ class SocketService {
       // this.SOCKET_URL = "https://expressbackend-production-b19c.up.railway.app";
       // this.SOCKET_URL = "http://18.60.60.10";
       this.SOCKET_URL = "https://cricket.skmishra.me/";
-
   }
 
   // ------------------------------------------------
@@ -163,6 +162,7 @@ class SocketService {
   }
 
   emitPullBackPlayer(auctionID, auctionPlayerId) {
+    console.log("Hiiii", auctionID, auctionPlayerId);
     if (auctionID && auctionPlayerId) {
       this.emit("pullBackPlayer", { auctionID, auctionPlayerId });
     } else {
