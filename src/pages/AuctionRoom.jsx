@@ -510,14 +510,14 @@ const AuctionRoom = () => {
       if (bidPromiseRef.current) {
         if (data && data.amount) {
           bidPromiseRef.current.resolve(data);
-          setReferenceTime(data?.timestamp );
+          setReferenceTime(data?.timestamp);
           console.log("Bid Placed timeee", data);
         } else {
           bidPromiseRef.current.reject(new Error("Invalid bid response"));
         }
         bidPromiseRef.current = null;
       } else {
-        setReferenceTime(data?.timestamp );
+        setReferenceTime(data?.timestamp);
         toast.success(`${data.amount} Bid is placed`);
       }
 
@@ -711,7 +711,7 @@ const AuctionRoom = () => {
                   : `B0 | WK0 | AR0 | B0`}
               </p>
               <p className="border-2 border-t-zinc-200 py-1 px-2 text-end">
-                Type: {activePlayer?.stats?.type || "N/A"}
+                {activePlayer?.stats?.type || "N/A"}
               </p>
 
               <p className="border-2 border-b-zinc-200 py-1 px-2 text-end">
