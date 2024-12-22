@@ -369,13 +369,22 @@ const Home = () => {
         </div>
 
         {isDatePickerOpen && (
-          <div className="mb-4 flex justify-center">
-            <div className="w-[90%] max-w-md bg-white rounded-lg shadow-md overflow-y-auto">
+          <div className="flex justify-center relative">
+            <div className="w-[100%] bg-white rounded-lg shadow-md overflow-y-auto absolute top-0 flex items-center justify-center">
               <DateRangePicker
                 ranges={dateRange}
                 onChange={(ranges) => setDateRange([ranges.selection])}
                 moveRangeOnFirstSelection={false}
+                staticRanges={[]}
+                inputRanges={[]}
               />
+              <style>
+                {`
+          .rdrDefinedRangesWrapper {
+            display: none;
+          }
+        `}
+              </style>
             </div>
           </div>
         )}
