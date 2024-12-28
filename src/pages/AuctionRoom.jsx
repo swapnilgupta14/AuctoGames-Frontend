@@ -9,8 +9,6 @@ import {
   ArrowUpCircle,
   ChevronUp,
   X,
-  Smile,
-  Mic,
   Send,
   CheckCircle,
   AlertCircle,
@@ -25,9 +23,7 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import {
   getAuctionPlayersByID,
   getAllPLayersInAuction,
-  clearBids,
   getAllTeamsInAuction,
-  updateEndTime,
   checkTeamComposition,
 } from "../api/fetch";
 
@@ -68,7 +64,6 @@ const AuctionRoom = () => {
 
   const [showPopup, setShowPopup] = useState(false);
   const [teamMap, setTeamMap] = useState(undefined);
-  const ownTeamId = null;
 
   const [currentBids, setCurrentBids] = useState([]);
   const [value, setValue] = useState(2);
@@ -134,15 +129,14 @@ const AuctionRoom = () => {
   }, [auctionData]);
 
   const [budget, setBudget] = useState(() => {
-    const savedBudgets = JSON.parse(localStorage.getItem("budgets")) || {};
-    const idSaved = localStorage.getItem("userId");
-    const compositeKey = `${idSaved}-${auctionId}`;
-    return (
-      savedBudgets[compositeKey] || {
-        remaining: auctionData?.budgetLimit || 100,
-        total: auctionData?.budgetLimit || 100,
-      }
-    );
+    // const savedBudgets = JSON.parse(localStorage.getItem("budgets")) || {};
+    // const idSaved = localStorage.getItem("userId");
+    // const compositeKey = `${idSaved}-${auctionId}`;
+    // return (
+    return {
+      remaining: auctionData?.budgetLimit,
+      total: auctionData?.budgetLimit,
+    };
   });
 
   useEffect(() => {
@@ -371,6 +365,22 @@ const AuctionRoom = () => {
         const res = await getAllPLayersInAuction(auctionId);
         if (res?.players) {
           setAuctionPlayers(res?.players);
+
+          const purseLeft = res?.players.reduce((acc, player) => {
+            if (
+              player?.highestBidderId !== null &&
+              player?.highestBidderId === userId
+            ) {
+              return acc + player.currentBid;
+            }
+            return acc;
+          }, 0);
+
+          setBudget((prev) => ({
+            ...prev,
+            remaining: budget.total - purseLeft,
+          }));
+
           if (p_id) {
             setIsPulling((prev) => {
               const newMap = new Map(prev);
