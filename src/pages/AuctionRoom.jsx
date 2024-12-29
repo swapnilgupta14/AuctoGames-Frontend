@@ -182,11 +182,19 @@ const AuctionRoom = () => {
 
   // --------------------------------------------
 
+  const [arePlayerRegistered, setArePlayerRegistered] = useState(null);
+
   useEffect(() => {
     const fetchTeams = async (auctionId) => {
       if (!auctionId || !userId) return;
       const res = await getAllTeamsInAuction(auctionId);
       if (res) {
+        console.log("ciuttttt", res?.totalPlayerCount);
+        if (res?.totalPlayerCount && res?.totalPlayerCount === 0) {
+          setArePlayerRegistered(0);
+          return;
+        }
+        setArePlayerRegistered(res?.totalPlayerCount);
         const mapOwnerToTeams = (data) => {
           return data.reduce((acc, item) => {
             const ownerId = item.owner.id;
@@ -1276,7 +1284,7 @@ const AuctionRoom = () => {
         <div className="flex-1 flex items-center justify-center bg-gray-100">
           <div className="p-6 text-center max-w-sm">
             <div className="flex justify-center items-center mb-4">
-              <ArrowUpCircle className="h-10 w-10 text-blue-500" />
+              <ArrowUpCircle className={`h-10 w-10 ${arePlayerRegistered === 0 ? "text-red-500" : "text-blue-500"}`} />
             </div>
             <h1 className="text-xl font-semibold text-gray-800">Room Status</h1>
             {isConnected ? (
@@ -1285,9 +1293,15 @@ const AuctionRoom = () => {
               remainingPlayers === undefined ? (
                 <p className="text-gray-600 mt-2 font-medium my-4">
                   <span className="block font-bold text-3xl">
-                    Auction is Ended
+                    {arePlayerRegistered === 0
+                      ? "No Player Found"
+                      : "Auction is Ended"}
                   </span>
-                  <span className="block">No remaining players to be sold</span>
+                  <span className="block">
+                    {arePlayerRegistered === 0
+                      ? "No player found in this auction!"
+                      : "All players have been sold"}
+                  </span>
                 </p>
               ) : (
                 <p className="text-gray-600 mt-2 font-medium my-4">
@@ -1307,14 +1321,20 @@ const AuctionRoom = () => {
               </p>
             ) : (
               <p className="text-gray-600 mt-2 font-medium my-4">
-                <span className="block font-bold text-3xl">
-                  Auction is Ended
-                </span>
-                <span className="block">No remaining players to be sold</span>
+               <span className="block font-bold text-3xl">
+                    {arePlayerRegistered === 0
+                      ? "No Player Found"
+                      : "Auction is Ended"}
+                  </span>
+                  <span className="block">
+                    {arePlayerRegistered === 0
+                      ? "No player found in this auction!"
+                      : "All players have been sold"}
+                  </span>
               </p>
             )}
 
-            {remainingPlayers < 1 && isConnected ? (
+            {arePlayerRegistered !== 0 && remainingPlayers < 1 && isConnected ? (
               <div className="flex gap-2">
                 <button
                   className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-900 focus:ring-2 focus:ring-blue-300 focus:outline-none flex items-center justify-center gap-2"
