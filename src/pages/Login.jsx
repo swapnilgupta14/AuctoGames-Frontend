@@ -133,7 +133,7 @@ const Login = () => {
         </div>
       </div>
 
-      <div className="flex flex-col items-center px-5 -mt-20 relative z-10">
+      <div className="flex flex-col items-center px-5 -mt-28 relative z-10">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 space-y-6">
           <div className="space-y-4">
             <input
