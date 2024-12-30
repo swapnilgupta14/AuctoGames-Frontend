@@ -88,7 +88,7 @@ const Login = () => {
   const validateForm = () => {
     let formErrors = {};
     if (!email) {
-      formErrors.email = "Username or Email is required";
+      formErrors.email = "Email is required";
     }
     if (!password) {
       formErrors.password = "Password is required";
@@ -246,7 +246,7 @@ const Login = () => {
         </div>
       </div>
 
-      <img src={dsgnElem} alt="Design Element" className="w-full mt-8" />
+      {/* <img src={dsgnElem} alt="Design Element" className="w-full mt-8" /> */}
     </div>
   );
 };

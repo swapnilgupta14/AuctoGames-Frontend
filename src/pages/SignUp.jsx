@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import toast from 'react-hot-toast';
 import view from "../assets/show.png";
 import hide from "../assets/hide.png";
+import { ArrowLeft } from "lucide-react";
 
 const SignUp = () => {
     const [username, setUsername] = useState('');
@@ -87,110 +88,162 @@ const SignUp = () => {
     };
 
     return (
-        <div className='h-[100vh] border-green-500'>
-            {/* header */}
-            <div className="w-full border-blue-500 h-[50px] flex items-center px-2 gap-2">
-                <div>
-                    <img src={rightArr} alt="" className="w-[20px] h-[25px]" onClick={() => navigate(-1)} />
+        <div className="min-h-screen bg-gradient-to-b from-white to-blue-50">
+            {/* Header - Updated to match Login style */}
+            <div className="w-full h-16 flex items-center px-4 shadow-sm bg-white">
+                <div
+                    className="cursor-pointer p-2 hover:bg-gray-100 rounded-full transition-all"
+                    onClick={() => navigate(-1)}
+                >
+                    <ArrowLeft size={22} color="#1F41BB" />
                 </div>
-                <div className="text-center font-bold text-[18px] w-[97%] text-[#1F41BB]">
-                    Sign Up
-                </div>
-            </div>
-
-            {/* hero image */}
-            <div className="relative w-full h-fit">
-                <img src={heroImg} alt="" className="w-full lg:h-[400px] object-fill" />
-                <div className="absolute top-10 left-10 text-white font-semibold text-[20px] w-[80%] text-center">
-                    Welcome aboard, Hop into the world of IPL Auctions.
+                <div className="text-start flex-1 font-bold text-xl text-[#1F41BB]">
+                    Create Account
                 </div>
             </div>
 
-            {/* form */}
-            <div className="flex flex-col justify-center items-center mx-auto w-[90%] -mt-5 gap-5">
-                <div className="flex flex-col gap-5 w-[95%]">
-                    <input
-                        type="text"
-                        placeholder="Username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        className="border border-black rounded-lg h-[45px] bg-white px-3 z-10"
-                    />
-                    <input
-                        type="email"
-                        placeholder="Email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="border border-black rounded-lg h-[45px] bg-white px-3"
-                    />
-                    <div className="relative">
-                        <input
-                            type={showPassword ? "text" : "password"}
-                            placeholder="Password"
-                            value={password}
-                            minLength={6}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="border border-black rounded-lg h-[45px] bg-white px-3 w-full"
-                        />
-                        <img
-                            src={showPassword ? hide : view}
-                            alt="toggle visibility"
-                            className="absolute right-3 top-[12px] w-6 h-6 cursor-pointer"
-                            onClick={() => setShowPassword(!showPassword)}
-                        />
-                    </div>
-                    <div className="relative">
-                        <input
-                            type={showConfirmPassword ? "text" : "password"}
-                            placeholder="Confirm Password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            className="border border-black rounded-lg h-[45px] bg-white px-3 w-full"
-                        />
-                        <img
-                            src={showConfirmPassword ? hide : view}
-                            alt="toggle visibility"
-                            className="absolute right-3 top-[12px] w-6 h-6 cursor-pointer"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        />
+            {/* Hero Section - Updated to match Login style */}
+            <div className="relative w-full h-[30vh] overflow-hidden">
+                <img
+                    src={heroImg}
+                    alt="Hero"
+                    className="w-full h-full object-cover brightness-[0.85]"
+                />
+                <div className="absolute inset-0 flex top-10 left-0 justify-center">
+                    <div className="text-white font-semibold text-xl md:text-3xl text-center px-14 drop-shadow-lg">
+                        Welcome aboard, Hop into the world of IPL Auctions.
                     </div>
                 </div>
+            </div>
 
-                {errorMessage && (
-                    <div className="text-red-500 font-semibold text-[14px] mb-2">
-                        {errorMessage}
+            {/* Form Section - Updated to match Login style */}
+            <div className="flex flex-col items-center px-5 -mt-20 relative z-10">
+                <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 space-y-6">
+                    <div className="space-y-4">
+                        <input
+                            type="text"
+                            placeholder="Username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
+                        />
+
+                        <input
+                            type="email"
+                            placeholder="Email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
+                        />
+
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Password"
+                                value={password}
+                                minLength={6}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
+                            />
+                            <button
+                                onClick={() => setShowPassword(!showPassword)}
+                                className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-2 hover:bg-gray-100 rounded-full transition-all ${
+                                    showPassword ? "bg-gray-100" : ""
+                                }`}
+                            >
+                                <img
+                                    src={showPassword ? hide : view}
+                                    alt={showPassword ? "Hide password" : "Show password"}
+                                    className="w-5 h-5"
+                                />
+                            </button>
+                        </div>
+
+                        <div className="relative">
+                            <input
+                                type={showConfirmPassword ? "text" : "password"}
+                                placeholder="Confirm Password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
+                            />
+                            <button
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-2 hover:bg-gray-100 rounded-full transition-all ${
+                                    showConfirmPassword ? "bg-gray-100" : ""
+                                }`}
+                            >
+                                <img
+                                    src={showConfirmPassword ? hide : view}
+                                    alt={showConfirmPassword ? "Hide password" : "Show password"}
+                                    className="w-5 h-5"
+                                />
+                            </button>
+                        </div>
+
+                        {errorMessage && (
+                            <div className="text-red-500 text-sm pl-1">
+                                {errorMessage}
+                            </div>
+                        )}
                     </div>
-                )}
-                {
-                    loading ? <button
-                        className="w-[95%] bg-[#1F41BB] text-white py-3 rounded-lg font-semibold text-[18px] opacity-50"
+
+                    <button
+                        onClick={handleSignUp}
+                        disabled={loading}
+                        className="w-full bg-blue-700 text-white py-3 rounded-xl font-semibold text-md hover:bg-[#1F41BB]/90 transition-all transform active:scale-[0.98] disabled:opacity-50"
                     >
-                        Sign Up
-                    </button> :
+                        {loading ? (
+                            <span className="flex items-center justify-center gap-2">
+                                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                                    <circle
+                                        className="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                        fill="none"
+                                    />
+                                    <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    />
+                                </svg>
+                                Creating account...
+                            </span>
+                        ) : (
+                            "Sign Up"
+                        )}
+                    </button>
+
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-200"></div>
+                        </div>
+                        <div className="relative flex justify-center">
+                            <span className="px-4 bg-white text-sm text-gray-500">
+                                or continue with
+                            </span>
+                        </div>
+                    </div>
+
+                    <button className="w-full border border-gray-400 rounded-xl py-3 flex items-center justify-center gap-2 hover:bg-gray-50 transition-all">
+                        <img src={googleImage} alt="Google" className="w-5 h-5" />
+                        <span className="text-gray-600 font-medium">Google</span>
+                    </button>
+
+                    <p className="text-center text-gray-600">
+                        Already have an account?{" "}
                         <button
-                            onClick={handleSignUp}
-                            className="w-[95%] bg-[#1F41BB] text-white py-3 rounded-lg font-semibold text-[18px]"
+                            className="text-[#1F41BB] font-semibold hover:underline"
+                            onClick={() => navigate("/login")}
                         >
-                            Sign Up
+                            Sign In
                         </button>
-                }
-
-                <span className="mr-2 font-semibold text-[14px] flex gap-2">
-                    <span>Already Signed Up ? </span>
-                    <span className="text-[#1F41BB]" onClick={() => navigate("/login")}>Log In</span>
-                </span>
-
-                <span className="mr-2 text-[#1F41BB] font-semibold text-[14px] flex gap-2">
-                    <span>or continue with</span>
-                </span>
-
-                <div className="border p-2 rounded-md">
-                    <img src={googleImage} alt="" className="w-[25px] h-[25px]" />
+                    </p>
                 </div>
-            </div>
-
-            <div>
-                <img src={dsgnElem} alt="" />
             </div>
         </div>
     );
