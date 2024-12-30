@@ -2,7 +2,7 @@ import TeamCard from "../components/TeamCard";
 import Header from "../components/Header";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getTeamResultOfAction, getAllTeamsInAuction } from "../api/fetch";
+import { getAllTeamsInAuction } from "../api/fetch";
 import { RefreshCw } from "lucide-react";
 
 const TeamsPage = () => {
@@ -19,11 +19,12 @@ const TeamsPage = () => {
         if (!userId || !auctionId) return;
         const res = await getAllTeamsInAuction(auctionId);
         if (res) {
+          console.log(res);
           setIsLoading(false);
           setTotalPlayerCount(res?.totalPlayerCount);
           const sortedTeams = [...(res.teams || [])].sort((a, b) => {
-            const pointsA = (a?.totalPoints + (a?.totalBonus || 0)) || 0;
-            const pointsB = (b?.totalPoints + (b?.totalBonus || 0)) || 0;
+            const pointsA = a?.totalPoints + (a?.totalBonus || 0) || 0;
+            const pointsB = b?.totalPoints + (b?.totalBonus || 0) || 0;
             return pointsB - pointsA;
           });
           setData(sortedTeams);
@@ -48,7 +49,7 @@ const TeamsPage = () => {
 
   return (
     <div className="h-dvh flex flex-col w-full">
-      <Header heading={`All Teams in Auction Id-${auctionId}`} />
+      <Header heading={`Auction Id-${auctionId}`} />
 
       {isError ? (
         <div className="flex flex-col gap-3 justify-center items-center h-full">

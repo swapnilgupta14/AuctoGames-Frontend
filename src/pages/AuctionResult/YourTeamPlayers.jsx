@@ -1,7 +1,14 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Header from "../../components/Header";
-import { RefreshCw } from "lucide-react";
+import {
+  RefreshCw,
+  X,
+  AlertCircle,
+  Maximize2,
+  AlertTriangle,
+  InfoIcon,
+} from "lucide-react";
 import {
   getTeamResultOfAction,
   checkTeamComposition,
@@ -20,6 +27,7 @@ const PlayerCard = ({
   draggedIndex,
   isAuthorizedUser,
 }) => {
+  // console.log(isAuthorizedUser, "hiii")
   return (
     <div
       data-player-index={index}
@@ -29,7 +37,7 @@ const PlayerCard = ({
       className={`
         w-full shadow-2xl bg-white select-none px-4 py-2 my-2 rounded-xl flex items-center gap-4 justify-between 
         transition-all duration-200 ease-in-out
-        ${!isValid ? "cursor-not-allowed opacity-70" : ""}
+        ${!isValid ? "cursor-not-allowed" : ""}
         ${
           isDragging && draggedIndex === index
             ? "transform scale-105 opacity-70 shadow-xl z-50 relative"
@@ -84,6 +92,7 @@ const YourTeamPlayers = () => {
   const [isValid, setIsValid] = useState(false);
   const [playerIds, setPlayerIds] = useState([]);
   const [isOrderChanged, setIsOrderChanged] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
 
   const myId = useSelector((state) => state.user).userId;
   const isAuthorizedUser = myId == userId;
@@ -119,6 +128,7 @@ const YourTeamPlayers = () => {
           (a, b) => (a?.order || 0) - (b?.order || 0)
         );
 
+        console.log(players);
         setTeamData(players);
         setPlayerIds(players.map((player) => player.id));
         setTeamName(team?.name);
@@ -138,10 +148,12 @@ const YourTeamPlayers = () => {
   const validateTeamComposition = async (teamId) => {
     try {
       const res = await checkTeamComposition(teamId);
-      // if (res?.status === "INVALID_COMPOSITION") {
-      //   setIsValid(false);
-      //   return;
-      // }
+      console.log(res?.playerTypeCount);
+      if (res?.status === "INVALID_COMPOSITION") {
+        setIsValid(false);
+        setTeamComposition(res?.playerTypeCount);
+        return;
+      }
       setTeamComposition(res?.playerTypeCount);
       setIsValid(true);
     } catch (error) {
@@ -419,10 +431,12 @@ const YourTeamPlayers = () => {
       >
         <div>
           {remainingTime ? (
-            <div className="py-2">
+            <div className="py-2 test-sm">
               {isAuthorizedUser && (
                 <span className="text-sm">
-                  You can change positions of players in your team!
+                  {isValid
+                    ? "You can change positions of players in your team!"
+                    : "You cannot change positions of players in your team!"}
                 </span>
               )}
               <div className="text-gray-600">
@@ -435,9 +449,13 @@ const YourTeamPlayers = () => {
               </div>
             </div>
           ) : (
-            <div className="text-red-500">
-              Auction ended at {auction?.endTime}.{" "} <br/>
-              {isAuthorizedUser && <span className="text-black font-medium">You cannot change priority of your now.</span>}
+            <div className="text-red-500 text-sm">
+              Auction ended at {auction?.endTime}. <br />
+              {isAuthorizedUser && (
+                <span className="text-black font-medium">
+                  You cannot change positions of your players now.
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -465,28 +483,108 @@ const YourTeamPlayers = () => {
         )}
       </div>
 
-      {!isValid && isAuthorizedUser && auction?.isAuctionEnded && (
-        <div className="bg-red-200 text-red-800 p-4 rounded-lg absolute bottom-0 left-0 right-0 m-4 z-10 flex items-center justify-between">
-          <p className="font-semibold">
-            Your team composition is not valid. Your auction has failed.
-            <br />
-            <span className="py-1 text-end text-gray-600 ">
-              {teamComposition != null
-                ? `B${teamComposition?.Batsman ?? 0} | WK${
-                    teamComposition["Wicket Keeper"] ?? 0
-                  } | AR${teamComposition["All Rounder"] ?? 0} | B${
-                    teamComposition?.Bowler
-                  }`
-                : `B0 | WK0 | AR0 | B0`}
-            </span>
-          </p>
-          <button
-            onClick={handleLeave}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
-          >
-            Leave
-          </button>
-        </div>
+      {isValid === false && isAuthorizedUser && (
+        <>
+          {showBanner ? (
+            <div
+              className={`
+              fixed bottom-0 left-0 right-0 m-4 z-10
+              ${
+                auctionDetails.isAuctionEnded === true ||
+                auction?.status === "COMPLETED"
+                  ? "bg-red-50 border border-red-200"
+                  : "bg-blue-50 border border-blue-200"
+              } 
+              p-4 rounded-xl shadow-lg
+              transition-all duration-300 ease-in-out
+            `}
+            >
+              <div className="flex gap-3">
+                {/* {auctionDetails.isAuctionEnded === true ||
+                auction?.status === "COMPLETED" ? (
+                  <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                )} */}
+                <div className="flex-1">
+                  <div className="flex justify-between items-start mb-2">
+                    <p className="font-semibold text-gray-900">
+                      {auctionDetails.isAuctionEnded === true ||
+                      auction?.status === "COMPLETED"
+                        ? "Auction is Ended!"
+                        : "Auction is still live!"}
+                    </p>
+                    <button
+                      onClick={() => setShowBanner(false)}
+                      className="p-1.5 hover:bg-gray-200 rounded-full transition-colors bg-white"
+                    >
+                      <X className="h-4 w-4 text-gray-700" />
+                    </button>
+                  </div>
+
+                  <p
+                    className={`text-sm mt-1 ${
+                      auctionDetails.isAuctionEnded === true ||
+                      auction?.status === "COMPLETED"
+                        ? "text-red-600"
+                        : "text-blue-600"
+                    }`}
+                  >
+                    {auctionDetails.isAuctionEnded === true ||
+                    auction?.status === "COMPLETED"
+                      ? "Your team composition is not valid. Your auction has failed."
+                      : "Your team composition is currently not valid. Go to Auction and buy players to make it valid."}
+                  </p>
+
+                  <div className="mt-3 flex items-center gap-2 flex-wrap">
+                    <div className="text-sm font-medium text-gray-700">
+                      Team Composition:
+                    </div>
+                    {teamComposition && (
+                      <div className="flex gap-2">
+                        <span className="px-2 py-1 rounded-md bg-white text-xs font-medium text-gray-600">
+                          B: {teamComposition?.Batsman ?? 0}
+                        </span>
+                        <span className="px-2 py-1 rounded-md bg-white text-xs font-medium text-gray-600">
+                          WK: {teamComposition?.["Wicket Keeper"] ?? 0}
+                        </span>
+                        <span className="px-2 py-1 rounded-md bg-white text-xs font-medium text-gray-600">
+                          AR: {teamComposition?.["All Rounder"] ?? 0}
+                        </span>
+                        <span className="px-2 py-1 rounded-md bg-white text-xs font-medium text-gray-600">
+                          B: {teamComposition?.Bowler ?? 0}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowBanner(true)}
+              className={`
+                fixed bottom-4 right-4 z-10
+                w-12 h-12 rounded-full shadow-lg
+                ${
+                  auctionDetails.isAuctionEnded === true ||
+                  auction?.status === "COMPLETED"
+                    ? "bg-red-500 hover:bg-red-600"
+                    : "bg-blue-500 hover:bg-blue-600"
+                }
+                flex items-center justify-center
+                transition-all duration-300 ease-in-out
+                hover:scale-105
+              `}
+            >
+              <AlertTriangle className="h-5 w-5 text-white" />
+            </button>
+          )}
+        </>
+      )}
+
+      {!isValid && showBanner && isAuthorizedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[5] transition-opacity duration-300"></div>
       )}
 
       {isOrderChanged && (
