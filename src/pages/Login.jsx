@@ -9,6 +9,7 @@ import view from "../assets/show.png";
 import hide from "../assets/hide.png";
 import { setUser } from "../slices/userSlice";
 import { useDispatch } from "react-redux";
+import { ArrowLeft } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -106,109 +107,146 @@ const Login = () => {
   };
 
   return (
-    <div>
-      {/* Header */}
-      <div className="w-full h-[50px] flex items-center px-2 gap-2">
-        <div className="cursor-pointer" onClick={() => navigate(-1)}>
-          <img src={rightArr} alt="Back" className="w-[20px] h-[25px]" />
+    <div className="min-h-screen bg-gradient-to-b from-white to-blue-50">
+      <div className="w-full h-16 flex items-center px-4 shadow-sm bg-white">
+        <div
+          className="cursor-pointer p-2 hover:bg-gray-100 rounded-full transition-all"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft size={22} color="#1F41BB" />
         </div>
-        <div className="text-center flex justify-center items-center font-bold text-[18px] w-[97%] text-[#1F41BB]">
-          LogIn
+        <div className="text-start flex-1 font-bold text-xl text-[#1F41BB]">
+          Welcome Back
         </div>
       </div>
 
-      {/* Hero Image */}
-      <div className="relative w-full h-fit">
+      <div className="relative w-full h-[30vh] overflow-hidden">
         <img
           src={heroImg}
           alt="Hero"
-          className="w-full lg:h-[400px] object-fill"
+          className="w-full h-full object-cover brightness-[0.85]"
         />
-        <div className="absolute top-10 left-10 text-white font-semibold text-[20px] w-[80%] text-center">
-          Welcome chief you’ve been missed!
+        <div className="absolute inset-0 flex top-10 left-0 justify-center">
+          <div className="text-white font-semibold text-xl md:text-3xl text-center px-14 drop-shadow-lg">
+            Welcome chief, you've been missed!
+          </div>
         </div>
       </div>
 
-      {/* Form */}
-      <div className="flex flex-col justify-center items-center mx-auto w-[90%] -mt-5 gap-5">
-        <div className="flex flex-col gap-5 w-[95%]">
-          <input
-            type="text"
-            placeholder="Username or Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={`border rounded-lg h-[45px] bg-white px-3 z-10 ${
-              errors.email ? "border-red-500" : "border-black"
-            }`}
-          />
-          {errors.email && (
-            <span className="text-red-500 text-sm">{errors.email}</span>
-          )}
-
-          <div className="relative">
+      <div className="flex flex-col items-center px-5 -mt-20 relative z-10">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 space-y-6">
+          <div className="space-y-4">
             <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={`border rounded-lg h-[45px] bg-white px-3 w-full ${
-                errors.password ? "border-red-500" : "border-black"
+              type="text"
+              placeholder="Enter Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all ${
+                errors.email ? "border-red-500" : "border-gray-400"
               }`}
             />
-            <span
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer"
-            >
-              <img
-                src={showPassword ? hide : view}
-                alt={showPassword ? "Hide password" : "Show password"}
-                className="w-5 h-5"
-              />
-            </span>
-          </div>
-          {errors.password && (
-            <span className="text-red-500 text-sm">{errors.password}</span>
-          )}
-        </div>
+            {errors.email && (
+              <span className="text-red-500 text-sm pl-1">{errors.email}</span>
+            )}
 
-        <span
-          className="self-end mr-2 text-[#1F41BB] font-semibold text-[14px] cursor-pointer"
-          onClick={() => navigate("/fpp")}
-        >
-          Forgot your password?
-        </span>
-        {loading ? (
-          <button className="w-[95%] bg-[#1F41BB] text-white py-3 rounded-lg font-semibold text-[18px] opacity-50">
-            Signing...
-          </button>
-        ) : (
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all ${
+                  errors.password ? "border-red-500" : "border-gray-400"
+                }`}
+              />
+              <button
+                onClick={() => setShowPassword(!showPassword)}
+                className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-2 hover:bg-gray-100 rounded-full transition-all ${
+                  showPassword ? "bg-gray-400" : ""
+                }`}
+              >
+                <img
+                  src={showPassword ? hide : view}
+                  alt={showPassword ? "Hide password" : "Show password"}
+                  className={`w-5 h-5 `}
+                />
+              </button>
+            </div>
+            {errors.password && (
+              <span className="text-red-500 text-sm pl-1">
+                {errors.password}
+              </span>
+            )}
+          </div>
+
+          <div className="text-right">
+            <button
+              className="text-[#1F41BB] font-medium text-sm hover:underline"
+              onClick={() => navigate("/fpp")}
+            >
+              Forgot your password?
+            </button>
+          </div>
+
           <button
             onClick={handleLogin}
-            className="w-[95%] bg-[#1F41BB] text-white py-3 rounded-lg font-semibold text-[18px]"
+            disabled={loading}
+            className="w-full bg-blue-700 text-white py-3 rounded-xl font-semibold text-md hover:bg-[#1F41BB]/90 transition-all transform active:scale-[0.98] disabled:opacity-50"
           >
-            Sign in
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                Signing in...
+              </span>
+            ) : (
+              "Sign in"
+            )}
           </button>
-        )}
 
-        <span className="mr-2 font-semibold text-[14px] flex gap-2">
-          <span>New to the game? </span>
-          <span
-            className="text-[#1F41BB] cursor-pointer"
-            onClick={() => navigate("/signup")}
-          >
-            Sign Up
-          </span>
-        </span>
-        <span className="mr-2 text-[#1F41BB] font-semibold text-[14px] flex gap-2">
-          <span>or continue with</span>
-        </span>
-        <div className="border p-2 rounded-md cursor-pointer">
-          <img src={googleImage} alt="Google" className="w-[25px] h-[25px]" />
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center">
+              <span className="px-4 bg-white text-sm text-gray-500">
+                or continue with
+              </span>
+            </div>
+          </div>
+
+          <button className="w-full border border-gray-400 rounded-xl py-3 flex items-center justify-center gap-2 hover:bg-gray-50 transition-all">
+            <img src={googleImage} alt="Google" className="w-5 h-5" />
+            <span className="text-gray-600 font-medium">Google</span>
+          </button>
+
+          <p className="text-center text-gray-600">
+            New to the game?{" "}
+            <button
+              className="text-[#1F41BB] font-semibold hover:underline"
+              onClick={() => navigate("/signup")}
+            >
+              Sign Up
+            </button>
+          </p>
         </div>
       </div>
-      <div>
-        <img src={dsgnElem} alt="Design Element" />
-      </div>
+
+      <img src={dsgnElem} alt="Design Element" className="w-full mt-8" />
     </div>
   );
 };

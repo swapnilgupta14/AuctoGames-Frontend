@@ -1321,6 +1321,7 @@ const AuctionRoom = () => {
               </p>
             ) : (
               <p className="text-gray-600 mt-2 font-medium my-4">
+                
                <span className="block font-bold text-3xl">
                     {arePlayerRegistered === 0
                       ? "No Player Found"
