@@ -88,7 +88,7 @@ const SignUp = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-white to-blue-50">
+        <div className="min-h-dvh bg-gradient-to-b from-white to-blue-50">
             {/* Header - Updated to match Login style */}
             <div className="w-full h-16 flex items-center px-4 shadow-sm bg-white">
                 <div
