@@ -180,15 +180,17 @@ const Auctions = () => {
         title: updatedAuctionData.title,
         description: updatedAuctionData.description,
         scheduledDate: convertDateFormat(updatedAuctionData.scheduledDate),
-        startTime: updatedAuctionData.status === "SCHEDULED" ? updatedAuctionData.status : undefined,
+        startTime:
+          updatedAuctionData.status === "SCHEDULED"
+            ? updatedAuctionData.status
+            : undefined,
         registrationFee: updatedAuctionData.registrationFee,
         budgetLimit: updatedAuctionData.budgetLimit,
         auctionId: editingAuction.id,
         // status: updatedAuctionData?.status,
         image: updateAuctionDetails?.imageUrl || editingAuction?.imageUrl,
-        endTime: editingAuction?.endTime
+        endTime: editingAuction?.endTime,
       };
-
 
       console.log(payload);
       await updateAuctionDetails(payload);
@@ -330,13 +332,13 @@ const Auctions = () => {
           >
             <div className="flex justify-between items-center">
               <span className="block sm:inline">{error}</span>
-              <button 
+              <button
                 onClick={() => setError("")}
                 className="ml-4 text-red-700 hover:text-red-800 transition-colors"
               >
-                <svg 
-                  className="h-4 w-4" 
-                  fill="currentColor" 
+                <svg
+                  className="h-4 w-4"
+                  fill="currentColor"
                   viewBox="0 0 20 20"
                 >
                   <path

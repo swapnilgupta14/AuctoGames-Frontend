@@ -406,7 +406,7 @@ const AuctionRoom = () => {
       //   };
       // }
     }
-    // return { valid: true, message: "Player selection is valid." };
+    return { valid: true, message: "Player selection is valid." };
   }
 
   // ---------------------------------------------------------
@@ -467,15 +467,15 @@ const AuctionRoom = () => {
     }
   };
 
-  const handleSetClick = () => {
-    if (value < 2 || value > 100) {
-      toast.error("Please enter a value between 2 and 100.");
-      return;
-    }
-    // setEditJump(false);
-    setJump(value);
-    toast.success(`Jump amount updated to ${value}Cr!`);
-  };
+  // const handleSetClick = () => {
+  //   if (value < 2 || value > 100) {
+  //     toast.error("Please enter a value between 2 and 100.");
+  //     return;
+  //   }
+  //   // setEditJump(false);
+  //   setJump(value);
+  //   toast.success(`Jump amount updated to ${value}Cr!`);
+  // };
 
   const handleJumpCount = () => {
     if (jump > currentBid && jump < budget.remaining) {
