@@ -1048,7 +1048,7 @@ const AuctionRoom = () => {
 
                 {showPopup && (
                   <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-                    <div className="bg-white rounded-xl shadow-2xl w-96 p-6 border border-gray-200 relative">
+                    <div className="bg-white rounded-xl shadow-2xl w-[88%] p-4 border border-gray-200 relative">
                       <button
                         onClick={closePopup}
                         className="absolute top-3 right-3 p-1 hover:bg-gray-100 rounded-full"
