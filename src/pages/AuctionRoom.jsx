@@ -620,7 +620,7 @@ const AuctionRoom = () => {
           bidPromiseRef.current.resolve(data);
         
           delayRef.current.time = data?.timestamp;
-          delayRef.current.delay = data.delay + 1000;
+          delayRef.current.delay = data.delay;
         } else {
           bidPromiseRef.current.reject(new Error("Invalid bid response"));
         }
@@ -629,7 +629,7 @@ const AuctionRoom = () => {
         
         if (data.timestamp && data.delay) {
           delayRef.current.time = data?.timestamp;
-          delayRef.current.delay = data.delay + 1000;
+          delayRef.current.delay = data.delay;
         }
         toast.success(`${data.amount}Cr Bid is placed`);
       }
