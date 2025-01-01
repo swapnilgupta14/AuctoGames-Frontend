@@ -1079,7 +1079,7 @@ const AuctionRoom = () => {
                           ) : (
                             value < budget.remaining && (
                               <p className="text-red-500 text-center">
-                                You do not have sufficient amount in purse
+                                Invalid Jump Amount
                               </p>
                             )
                           )}
