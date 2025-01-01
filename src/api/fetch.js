@@ -484,6 +484,7 @@ export const updateAuctionDetails = async (formData) => {
       budgetLimit,
       auctionId,
       status,
+      endTime,
     } = formData;
 
     if (!auctionId) {
@@ -502,6 +503,7 @@ export const updateAuctionDetails = async (formData) => {
       auctionId,
       budgetLimit: Number(budgetLimit),
       token: localStorage.getItem("adminToken") || "",
+      endTime,
     });
 
     if (response) {

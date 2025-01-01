@@ -3,13 +3,9 @@ import { useLocation } from "react-router-dom";
 const PlayerCard = ({
   tabType,
   item,
-  index,
   ongoingPlayerID,
   currentUserID,
   idToUsernameMap,
-  pullCount,
-  setPullCount,
-  teamMap,
   handlePullBackPlayer,
   pulling,
 }) => {
@@ -88,7 +84,7 @@ const PlayerCard = ({
             <button
               className={` py-1 px-3 rounded-2xl text-white flex items-center justify-center w-full ${pulling.get(item?.auctionPlayerId) ? "bg-gray-600" : "bg-blue-700"}`}
               onClick={() => {
-                handlePullBackPlayer(auctionId, item?.auctionPlayerId);
+                handlePullBackPlayer(auctionId, item?.auctionPlayerId, item?.playerName);
               }}
             >
               {pulling.get(item?.auctionPlayerId) ? "WAIT.." : "PULL"}

@@ -1,13 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Header from "../../components/Header";
 import {
   RefreshCw,
   X,
-  AlertCircle,
-  Maximize2,
   AlertTriangle,
-  InfoIcon,
 } from "lucide-react";
 import {
   getTeamResultOfAction,
@@ -82,7 +79,6 @@ const PlayerCard = ({
 
 const YourTeamPlayers = () => {
   const { auctionId, userId } = useParams();
-  const navigate = useNavigate();
   const [error, setError] = useState("");
   const [teamData, setTeamData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -311,9 +307,9 @@ const YourTeamPlayers = () => {
     };
   }, [dragState]);
 
-  const handleLeave = () => {
-    navigate(-1);
-  };
+  // const handleLeave = () => {
+  //   navigate(-1);
+  // };
 
   const [remainingTime, setRemainingTime] = useState(null);
 
@@ -388,11 +384,18 @@ const YourTeamPlayers = () => {
         : null,
     };
   };
-
+  
+  const truncateText = (text = "", maxLength = 20) => {
+    if (!text || typeof text !== "string") return "";
+    return text.length > maxLength
+      ? `${text.substring(0, maxLength)}...`
+      : text;
+  };
+  
   if (isLoading) {
     return (
       <div className="flex flex-col h-dvh lg:h-screen">
-        <Header heading={`My Team in Auction ${auctionId}`} />
+        <Header heading={`${truncateText(teamName)}`} />
         <div className="flex-1 flex flex-col items-center justify-center">
           <RefreshCw className="animate-spin text-gray-500" size={36} />
           <p className="mt-2">Loading...</p>
@@ -404,7 +407,7 @@ const YourTeamPlayers = () => {
   if (error) {
     return (
       <div className="flex flex-col h-dvh lg:h-screen">
-        <Header heading={`My Team in Auction ${auctionId}`} />
+        <Header heading={`${truncateText(teamName)}`} />
 
         <div className="flex-1 flex items-center justify-center text-red-600 font-semibold">
           {error}
@@ -413,12 +416,6 @@ const YourTeamPlayers = () => {
     );
   }
 
-  const truncateText = (text = "", maxLength = 20) => {
-    if (!text || typeof text !== "string") return "";
-    return text.length > maxLength
-      ? `${text.substring(0, maxLength)}...`
-      : text;
-  };
   const auctionDetails = handleAuctionTime(auction?.endTime);
 
   return (
@@ -538,7 +535,7 @@ const YourTeamPlayers = () => {
 
                   <div className="mt-3 flex items-center gap-2 flex-wrap">
                     <div className="text-sm font-medium text-gray-700">
-                      Team Composition:
+                      Total Player in Team: {teamData.length}
                     </div>
                     {teamComposition && (
                       <div className="flex gap-2">

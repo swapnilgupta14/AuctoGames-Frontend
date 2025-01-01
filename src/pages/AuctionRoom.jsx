@@ -31,6 +31,7 @@ const AuctionRoom = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const bidPromiseRef = useRef(null);
+  const latestHighestBidderRef = useRef(null);
 
   const auctionId = location?.state?.auction?.id;
 
@@ -139,13 +140,13 @@ const AuctionRoom = () => {
     };
   });
 
-  useEffect(() => {
-    const savedBudgets = JSON.parse(localStorage.getItem("budgets")) || {};
-    const idSaved = localStorage.getItem("userId");
-    const compositeKey = `${idSaved}-${auctionId}`;
-    savedBudgets[compositeKey] = budget;
-    localStorage.setItem("budgets", JSON.stringify(savedBudgets));
-  }, [budget, auctionId]);
+  // useEffect(() => {
+  //   const savedBudgets = JSON.parse(localStorage.getItem("budgets")) || {};
+  //   const idSaved = localStorage.getItem("userId");
+  //   const compositeKey = `${idSaved}-${auctionId}`;
+  //   savedBudgets[compositeKey] = budget;
+  //   localStorage.setItem("budgets", JSON.stringify(savedBudgets));
+  // }, [budget, auctionId]);
 
   const [pullCount, setPullCount] = useState(null);
 
@@ -183,21 +184,23 @@ const AuctionRoom = () => {
   // --------------------------------------------
 
   const [arePlayerRegistered, setArePlayerRegistered] = useState(null);
+  const [teamImageMap, setTeamImageMap] = useState(null);
 
   useEffect(() => {
     const fetchTeams = async (auctionId) => {
       if (!auctionId || !userId) return;
       const res = await getAllTeamsInAuction(auctionId);
       if (res) {
-        console.log("ciuttttt", res?.totalPlayerCount);
         if (res?.totalPlayerCount && res?.totalPlayerCount === 0) {
           setArePlayerRegistered(0);
           return;
         }
+        console.log("res of teams....", res);
         setArePlayerRegistered(res?.totalPlayerCount);
         const mapOwnerToTeams = (data) => {
           return data.reduce((acc, item) => {
             const ownerId = item.owner.id;
+
             if (!acc[ownerId]) {
               acc[ownerId] = [];
             }
@@ -211,7 +214,24 @@ const AuctionRoom = () => {
             return acc;
           }, {});
         };
+
+        const mapOwnerToTeamsImage = (data) => {
+          return data.reduce((acc, item) => {
+            const ownerId = item.owner.id;
+            if (!acc[ownerId]) {
+              acc[ownerId] = [];
+            }
+            acc[ownerId].push(item.imageUrl === null ? "#" : item?.imageUrl);
+            return acc;
+          }, {});
+        };
+
+        const teamImageMap = mapOwnerToTeamsImage(res.teams);
         const map = mapOwnerToTeams(res.teams);
+
+        console.log("map...", map);
+        console.log("image map....", teamImageMap);
+        setTeamImageMap(teamImageMap);
         setTeamMap(map);
       }
     };
@@ -220,36 +240,54 @@ const AuctionRoom = () => {
   }, [auctionId, userId]);
 
   const [referenceTime, setReferenceTime] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [isCountingDown, setIsCountingDown] = useState(true);
+  const [timeLeft, setTimeLeft] = useState(20);
   const intervalRef = useRef(null);
   const endTime = useRef(null);
 
   const startTimer = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
     intervalRef.current = setInterval(() => {
       const currentTime = new Date().getTime();
+      if (!endTime.current) {
+        clearInterval(intervalRef.current);
+        return;
+      }
       const remainingTime = Math.round((endTime.current - currentTime) / 1000);
 
       if (remainingTime >= 0) {
         setTimeLeft(remainingTime);
-      } else if (isCountingDown) {
-        setIsCountingDown(false);
-        endTime.current = currentTime + 30000;
       } else {
-        const elapsedTime = Math.abs(remainingTime);
-        setTimeLeft(elapsedTime > 30 ? 0 : elapsedTime);
+        clearInterval(intervalRef.current);
+        setTimeLeft(0);
       }
     }, 1000);
   };
 
   useEffect(() => {
     if (referenceTime) {
-      const refTime = new Date(referenceTime).getTime();
-      endTime.current = refTime + 30000;
+      try {
+        const refTime = new Date(referenceTime).getTime();
+        if (isNaN(refTime)) {
+          console.error("Invalid reference time");
+          return;
+        }
+        const delay = 20000;
+        endTime.current = refTime + delay;
+        startTimer();
+      } catch (error) {
+        console.error("Error starting timer:", error);
+      }
 
-      startTimer();
-
-      return () => clearInterval(intervalRef.current);
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+        endTime.current = null;
+      };
     }
   }, [referenceTime]);
 
@@ -257,8 +295,6 @@ const AuctionRoom = () => {
 
   const prevPlayerId = useRef(null);
   const fetchPlayerById = async (dataToGet) => {
-    // console.log("start 11111111111111111");
-    // console.log(dataToGet.playerId, "yhbbhjhbbjkjuk", prevPlayerId.current);
     try {
       if (
         dataToGet.roomSize < 2 &&
@@ -283,8 +319,8 @@ const AuctionRoom = () => {
           const idSaved = localStorage.getItem("userId");
           const ownTeamId =
             localStorage.getItem(`ownTeamId-${idSaved}-${auctionId}`) || "";
+
           const composition = await getComposition(Number(ownTeamId));
-          // console.log("11111111111111111 Composition", composition, ownTeamId);
           setTeamComposition(composition);
         } catch (error) {
           console.error("Error fetching team composition", error);
@@ -307,10 +343,19 @@ const AuctionRoom = () => {
         setIsfetchingPlayer(false);
 
         const newActivePlayer = {
+          highestBidderId: playerDetails?.highestBidderId,
           ...playerDetails?.player,
           ...dataToGet,
           imageUrl: playerDetails?.imageUrl,
         };
+
+        if (playerDetails?.highestBidderId === null) {
+          latestHighestBidderRef.current = null;
+        } else if (playerDetails?.highestBidderId === userId) {
+          latestHighestBidderRef.current = userId;
+        }
+
+        console.log("newActivePlayer............", newActivePlayer);
 
         setActivePlayer(newActivePlayer);
         setActivePlayerId(playerDetails?.id);
@@ -348,7 +393,7 @@ const AuctionRoom = () => {
     }
     for (const [type, count] of Object.entries(playerTypeCount)) {
       const { min, max } = rules[type];
-      if (count > max) {
+      if (count >= max) {
         return {
           valid: false,
           message: `You cannot have more than ${max} ${type}(s).`,
@@ -361,7 +406,7 @@ const AuctionRoom = () => {
       //   };
       // }
     }
-    return { valid: true, message: "Player selection is valid." };
+    // return { valid: true, message: "Player selection is valid." };
   }
 
   // ---------------------------------------------------------
@@ -427,7 +472,7 @@ const AuctionRoom = () => {
       toast.error("Please enter a value between 2 and 100.");
       return;
     }
-    setEditJump(false);
+    // setEditJump(false);
     setJump(value);
     toast.success(`Jump amount updated to ${value}Cr!`);
   };
@@ -446,19 +491,18 @@ const AuctionRoom = () => {
   const [isPulling, setIsPulling] = useState(new Map());
   const pullBackTimeouts = new Map();
 
-  const handlePullBackPlayer = (auctionId, item) => {
+  const handlePullBackPlayer = (auctionId, item, playerName) => {
     setIsPulling((prev) => new Map(prev).set(item, true));
     SocketService.emitPullBackPlayer(auctionId, item);
     const timeoutId = setTimeout(() => {
-      console.error(`Timeout: Pull back failed for player ${item}`);
+      toast.error(`Pull back failed for ${playerName}`);
       setIsPulling((prev) => {
         const newMap = new Map(prev);
         newMap.set(item, false);
         return newMap;
       });
       pullBackTimeouts.delete(item);
-    }, 15000);
-
+    }, 5000);
     pullBackTimeouts.set(item, timeoutId);
   };
   // ----------------------------------------------------------
@@ -471,6 +515,7 @@ const AuctionRoom = () => {
     SocketService.onActivePlayer((data) => {
       setReferenceTime(data?.time);
       fetchPlayerById(data);
+      console.log("active player.......", data);
     });
 
     SocketService.onAskNewPlayer((data) => {
@@ -489,7 +534,6 @@ const AuctionRoom = () => {
     SocketService.onPlayerCount((data) => setRemainingPlayers(data?.count));
 
     SocketService.onNewUserConnected("new user connected");
-    SocketService.onBudgetUpdate((data) => console.log("Budget Update", data));
 
     SocketService.onPlayerReAdded((data) => {
       toast.error(`${data?.message}`);
@@ -514,8 +558,6 @@ const AuctionRoom = () => {
 
     SocketService.onPlayerPulledBack((data) => {
       toast.success("Player Pulled Back Successfully!");
-      console.log("Pulled back", data);
-
       const p_id = data?.auctionPlayerId;
 
       if (pullBackTimeouts.has(p_id)) {
@@ -567,20 +609,28 @@ const AuctionRoom = () => {
     });
 
     SocketService.onNewBid((data) => {
-      // console.log("data", data);
+      if (!data) return;
+
+      console.log("onNewBid delay", data?.delay);
       if (bidPromiseRef.current) {
-        if (data && data.amount) {
+        if (data.amount && data.timestamp && data.delay) {
           bidPromiseRef.current.resolve(data);
-          setReferenceTime(data?.timestamp);
-          console.log("Bid Placed timeee", data);
+          const refTime = new Date(data.timestamp).getTime();
+          endTime.current = refTime + Math.max(0, data.delay - 3000);
         } else {
           bidPromiseRef.current.reject(new Error("Invalid bid response"));
         }
         bidPromiseRef.current = null;
       } else {
-        setReferenceTime(data?.timestamp);
-        toast.success(`${data.amount} Bid is placed`);
+        if (data.timestamp && data.delay) {
+          setReferenceTime(data.timestamp);
+          const refTime = new Date(data.timestamp).getTime();
+          endTime.current = refTime + Math.max(0, data.delay - 3000);
+        }
+        toast.success(`${data.amount}Cr Bid is placed`);
       }
+
+      latestHighestBidderRef.current = data?.highestBidderId;
 
       const remaining = data?.remainingPlayerCount;
       setRemainingPlayers(remaining);
@@ -656,18 +706,54 @@ const AuctionRoom = () => {
 
   // ---------------------------------------------------------------------
 
-  const handlePlaceBid = (amount, type) => {
-    console.log("teamComposition");
-    const isCompositionValid = validatePlayerTypeCount(teamComposition);
-    console.log("teamComposition", isCompositionValid);
+  const isUserHighestBidder = () => {
+    // console.log(activePlayer);
+    // // console.log("activePlayer?.highestBidderId", activePlayer?.highestBidderId);
+    // console.log(
+    //   "latestHighestBidderRef.current",
+    //   latestHighestBidderRef.current
+    // );
+    // console.log("userId", userId);
+    if (latestHighestBidderRef.current === userId) {
+      return true;
+    }
 
+    if (activePlayer?.highestBidderId === userId) {
+      return true;
+    }
+
+    return false;
+  };
+
+  const handlePlaceBid = (amount, type) => {
+    if (isUserHighestBidder()) {
+      toast.error("You are already the highest bidder!");
+      return;
+    }
+    const isCompositionValid = validatePlayerTypeCount(teamComposition);
     if (!isCompositionValid?.valid) {
       toast.error(`${isCompositionValid?.message}`);
       return;
     }
 
     const promise = new Promise((resolve, reject) => {
-      bidPromiseRef.current = { resolve, reject };
+      const timeoutId = setTimeout(() => {
+        if (bidPromiseRef.current) {
+          bidPromiseRef.current = null;
+          reject(new Error("Bid request timed out. Please try again."));
+        }
+      }, 10000);
+
+      bidPromiseRef.current = {
+        resolve: (data) => {
+          clearTimeout(timeoutId);
+          resolve(data);
+        },
+        reject: (error) => {
+          clearTimeout(timeoutId);
+          reject(error);
+        },
+      };
 
       if (type == "increment") {
         placeBid(amount, "increment");
@@ -701,7 +787,12 @@ const AuctionRoom = () => {
       return;
     }
 
-    console.log("placing bid....", amount, type);
+    if (activePlayer?.highestBidderId === userId) {
+      toast.error("You are already the highest bidder!");
+      return;
+    }
+
+    console.log("placing bid....", amount, type, currentBid);
 
     if (type === "increment") {
       if (amount > budget.remaining) {
@@ -709,7 +800,6 @@ const AuctionRoom = () => {
           `Cannot place bid! not enough money in purse - ${amount} and ${currentBid}`
         );
       }
-      console.log(currentBid, amount, "placing bid..............");
       if (activePlayerId) {
         SocketService.emitBid(activePlayerId, amount + currentBid);
       }
@@ -728,114 +818,117 @@ const AuctionRoom = () => {
     }
   };
 
-  // const ConnectionStatus = () => (
-  //   <div
-  //     className={`px-4 py-2 rounded-full text-sm ${
-  //       isConnected ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-  //     }`}
-  //   >
-  //     {isConnected ? "Connected" : "Disconnected"}
-  //   </div>
-  // );
-
   return (
     <div className="flex flex-col h-dvh lg:h-screen">
       <Header heading={`Auction Room #${auctionId}`}>
         {/* <ConnectionStatus /> */}
       </Header>
 
-      {/* {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative m-4">
-          {error}
-        </div>
-      )} */}
-
       {remainingPlayers > 0 && roomSize >= 2 ? (
         <div className="flex-1 w-full font-sans flex flex-col items-center justify-between relative">
-          <div className="rounded-lg p-4 mt-4 w-full flex justify-center relative">
-            <div className="absolute top-0 left-10">
-              <img
-                src={activePlayer?.imageUrl}
-                alt="Player Image"
-                className="w-36 h-36 rounded-full border-4 border-gray-200 bg-zinc-300"
-              />
+          <div className="flex flex-col justify-end items-center w-full">
+            <div className="rounded-lg p-4 mt-4 w-full flex justify-center relative">
+              <div className="absolute top-0 left-10">
+                <img
+                  src={activePlayer?.imageUrl}
+                  alt="Player Image"
+                  className="w-36 h-36 rounded-full border-4 border-gray-200 bg-zinc-300"
+                />
+              </div>
+
+              <div className="text-xs text-gray-600 w-[70%] font-medium">
+                <p className="border-2 border-b-zinc-200 py-1 px-2 text-end text-red-600 ">
+                  {teamComposition != null
+                    ? `B${teamComposition?.Batsman ?? 0} | WK${
+                        teamComposition["Wicket Keeper"] ?? 0
+                      } | AR${teamComposition["All Rounder"] ?? 0} | B${
+                        teamComposition?.Bowler
+                      }`
+                    : `B0 | WK0 | AR0 | B0`}
+                </p>
+                <p className="border-2 border-t-zinc-200 py-1 px-2 text-end">
+                  {activePlayer?.stats?.type || "N/A"}
+                </p>
+
+                <p className="border-2 border-b-zinc-200 py-1 px-2 text-end">
+                  Points: {800}
+                </p>
+                <p className="border-2 border-b-zinc-200 py-1 px-2 text-end">
+                  Base Price: {currentBid || "N/A"}
+                </p>
+              </div>
             </div>
 
-            <div className="text-xs text-gray-600 w-[70%] font-medium">
-              <p className="border-2 border-b-zinc-200 py-1 px-2 text-end text-red-600 ">
-                {teamComposition != null
-                  ? `B${teamComposition?.Batsman ?? 0} | WK${
-                      teamComposition["Wicket Keeper"] ?? 0
-                    } | AR${teamComposition["All Rounder"] ?? 0} | B${
-                      teamComposition?.Bowler
-                    }`
-                  : `B0 | WK0 | AR0 | B0`}
-              </p>
-              <p className="border-2 border-t-zinc-200 py-1 px-2 text-end">
-                {activePlayer?.stats?.type || "N/A"}
-              </p>
+            <div className="flex flex-col items-center justify-center gap-5">
+              <h2 className="text-2xl font-semibold mt-5 text-center">
+                {activePlayer?.name || "Fetching player..."}
+              </h2>
 
-              <p className="border-2 border-b-zinc-200 py-1 px-2 text-end">
-                Points: {800}
-              </p>
-              <p className="border-2 border-b-zinc-200 py-1 px-2 text-end">
-                Base Price: {currentBid || "N/A"}
-              </p>
+              <div className="bg-white border border-gray-300 shadow-xl mt-0 m-3 py-4 px-12 rounded-2xl text-center w-fit">
+                <h3 className="text-blue-700 text-xl font-semibold">
+                  Current Bid
+                </h3>
+                <p className="text-blue-600 text-3xl font-bold mb-2">
+                  {currentBid}
+
+                  <span className="text-xl"> Cr</span>
+                </p>
+                <p className="text-sm font-semibold">
+                  {latestHighestBidderRef.current !== null
+                    ? "Highest Bidder: " +
+                      " " +
+                      (latestHighestBidderRef.current === userId
+                        ? "You"
+                        : participantMap[latestHighestBidderRef.current])
+                    : "Base Price"}
+                </p>
+              </div>
             </div>
           </div>
 
-          <h2 className="text-3xl font-semibold mt-10 text-center">
-            {activePlayer?.name || "Fetching player..."}
-          </h2>
-
-          <div className="bg-white shadow-2xl mt-0 m-3 py-4 px-12 rounded-3xl text-center w-fit">
-            <p className="text-blue-600 text-5xl font-bold mb-2">
-              {currentBid}
-              <span className="text-2xl"> Cr</span>
-            </p>
-            <h3 className="text-black text-xl font-semibold">Current Bid</h3>
-          </div>
-
-          <div className="bg-white shadow mt-6 rounded-lg w-[95%] overflow-hidden">
+          <div className="bg-white shadow mt-4 rounded-lg w-[95%] overflow-hidden">
             <h3 className="text-black font-bold bg-zinc-300 py-2 px-4 text-start text-sm">
-              PREVIOUS BIDS
+              LAST TWO BIDS
             </h3>
 
             {currentBids.length > 0 ? (
               <table className="w-full text-center py-4 px-4">
                 <thead>
                   <tr className="font-bold text-sm">
-                    <th className="py-2 px-2"></th>
-                    <th className="py-2 px-2">Bid</th>
-                    <th className="py-2 px-2">Player ID</th>
-                    <th className="py-2 px-2">User ID</th>
+                    <th className="py-1 px-2"></th>
+                    <th className="py-1 px-2">Bid</th>
+                    {/* <th className="py-2 px-2">Players</th> */}
+                    <th className="py-1 px-2">User</th>
                   </tr>
                 </thead>
 
                 <tbody className="font-bold">
                   {currentBids.map((bid, index) => (
                     <tr key={index} className="border-b">
-                      <td className="py-2 px-4 flex items-center justify-start space-x-3">
+                      <td className="py-1 px-4 flex items-center justify-start space-x-3">
                         <img
-                          src={bid?.logo || "https://via.placeholder.com/50"}
+                          src={
+                            teamImageMap[bid?.userId.toString()][0] !== "#"
+                              ? teamImageMap[bid?.userId.toString()][0]
+                              : "https://via.placeholder.com/50"
+                          }
                           // alt={`${bid?.team} logo`}
                           className="w-8 h-8 rounded-full"
                         />
                         <div className="flex flex-col items-start">
                           <span className="font-bold text-sm">
-                            {bid?.team || "Team - N/A"}
-                          </span>
-                          <span className="text-black text-sm font-bold">
-                            {bid?.user?.username}
+                            {teamMap[bid?.userId.toString()][0]}
                           </span>
                         </div>
                       </td>
 
                       <td className="py-1 px-2 text-sm">{bid?.amount}Cr</td>
+                      {/* <td className="py-1 px-2 text-sm">
+                        {bid?.User?.username}
+                      </td> */}
                       <td className="py-1 px-2 text-sm">
-                        {bid?.auctionPlayerId}
+                        {bid?.User?.username}
                       </td>
-                      <td className="py-1 px-2 text-sm">{bid?.userId}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -847,7 +940,7 @@ const AuctionRoom = () => {
             )}
           </div>
 
-          <div className="bg-white mt-4 p-4 rounded-lg w-full">
+          <div className="bg-white mt-2 p-4 rounded-lg w-full">
             <div className="flex justify-between items-center mb-2">
               <span className="text-red-500 font-bold text-xl">
                 {budget.remaining}Cr Left
@@ -875,9 +968,7 @@ const AuctionRoom = () => {
           <div
             className={`${isExpanded && "h-[71%] fixed bottom-0 "} ${
               expandPullBack && "h-[71%] fixed bottom-0"
-            } ${expandChat && ` h-[42%]  fixed bottom-0`} ${
-              editJump && ` h-[20%]  fixed bottom-0`
-            } w-full bg-white z-40`}
+            } ${expandChat && ` h-[42%]  fixed bottom-0`} w-full bg-white z-40`}
           >
             <div className="w-full p-2 py-3 border-t-[3px] border-black rounded-3xl relative">
               <div className="absolute -top-9 left-[50vw] -translate-x-1/2">
@@ -894,11 +985,11 @@ const AuctionRoom = () => {
                       return;
                     }
 
-                    if (editJump) {
-                      setEditJump(false);
-                      setIsExpanded(false);
-                      return;
-                    }
+                    // if (editJump) {
+                    //   setEditJump(false);
+                    //   setIsExpanded(false);
+                    //   return;
+                    // }
                     setIsExpanded(!isExpanded);
                   }}
                   className={`
@@ -910,7 +1001,7 @@ const AuctionRoom = () => {
                     ease-in-out 
                     transform 
                     ${
-                      isExpanded || expandChat || expandPullBack || editJump
+                      isExpanded || expandChat || expandPullBack
                         ? "rotate-180"
                         : "rotate-0"
                     }
@@ -928,7 +1019,7 @@ const AuctionRoom = () => {
                     setIsExpanded(false);
                     setExpandPullBack(!expandPullBack);
                     setExpandChat(false);
-                    setEditJump(false);
+                    // setEditJump(false);
                   }}
                 >
                   {expandPullBack ? "CLOSE MENU" : "PULL BACK"}
@@ -936,21 +1027,14 @@ const AuctionRoom = () => {
 
                 <button
                   onClick={handleJumpClick}
-                  // disabled={budget.remaining < jump}
+                  disabled={budget.remaining < jump || isUserHighestBidder()}
                   className={`flex-1/4 mx-1 ${
-                    budget.remaining < jump ? `bg-blue-400` : `bg-blue-700`
-                  }   text-white py-2 px-3 rounded-3xl flex items-center justify-between gap-1 text-center text-sm sm:text-base font-semibold`}
+                    budget.remaining < jump || isUserHighestBidder()
+                      ? `bg-blue-400 cursor-not-allowed`
+                      : `bg-blue-700`
+                  } text-white py-2 px-3 rounded-3xl flex items-center justify-between gap-1 text-center text-sm sm:text-base font-semibold`}
                 >
-                  <span
-                    className="inline-block text-[0.7rem] w-6 h-6 border-2 border-blue-950 rounded-full bg-white text-blue-700"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditJump(!editJump);
-                      setExpandChat(false);
-                      setIsExpanded(false);
-                      setExpandPullBack(false);
-                    }}
-                  >
+                  <span className="inline-block text-[0.7rem] w-6 h-6 border-2 border-blue-950 rounded-full bg-white text-blue-700">
                     {jump}Cr
                   </span>
                   JUMP
@@ -958,36 +1042,95 @@ const AuctionRoom = () => {
 
                 {showPopup && (
                   <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-                    <div className="bg-white rounded-xl shadow-2xl w-96 p-6 border border-gray-200">
+                    <div className="bg-white rounded-xl shadow-2xl w-96 p-6 border border-gray-200 relative">
+                      <button
+                        onClick={closePopup}
+                        className="absolute top-3 right-3 p-1 hover:bg-gray-100 rounded-full"
+                      >
+                        <X className="w-5 h-5 text-gray-500" />
+                      </button>
+
                       <div className="flex flex-col items-center justify-center mb-4">
                         <AlertCircle className="text-yellow-500 w-12 h-12 mb-3" />
                         <h2 className="text-xl font-semibold text-gray-800">
-                          Confirm Your Bid
+                          Set Jump Amount
                         </h2>
                       </div>
 
-                      <p className="text-center text-gray-600 mb-6">
-                        You are placing a bid of{" "}
-                        <strong className="text-blue-600">{jump}Cr</strong>
-                      </p>
+                      <div className="mb-2">
+                        <div className="min-h-[40px] text-sm">
+                          {value < currentBid && (
+                            <p className="text-red-500 text-center">
+                              Amount cannot be less than current bid (
+                              {currentBid} Cr)
+                            </p>
+                          )}
+                          {value > budget.remaining && (
+                            <p className="text-red-500 text-center">
+                              Amount cannot exceed your remaining purse (
+                              {budget.remaining} Cr)
+                            </p>
+                          )}
+                          {value > currentBid && value <= budget.remaining ? (
+                            <p className="text-gray-500 text-center">
+                              Enter a value between {currentBid} and{" "}
+                              {budget.remaining} Cr
+                            </p>
+                          ) : (
+                            value < budget.remaining && (
+                              <p className="text-red-500 text-center">
+                                You do not have sufficient amount in purse
+                              </p>
+                            )
+                          )}
+                          {value == budget.remaining && (
+                            <p className="text-red-500 text-center">
+                              Jump amount should be greater than current bid
+                            </p>
+                          )}
+                        </div>
+                      </div>
 
-                      <div className="flex justify-center space-x-4">
-                        <button
-                          onClick={closePopup}
-                          className="flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                        >
-                          <XCircle className="mr-2 w-5 h-5 text-gray-500" />
-                          Discard
-                        </button>
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <input
+                            type="number"
+                            value={value}
+                            onChange={(e) => {
+                              handleInputChange(e);
+                              setJump(e.target.value); // Auto-set jump value on input
+                            }}
+                            className={`w-full px-3 py-2 border ${
+                              value < currentBid || value >= budget.remaining
+                                ? "border-red-500 focus:ring-red-500"
+                                : "border-gray-300 focus:ring-blue-700"
+                            } rounded-lg focus:outline-none focus:ring-2 text-black text-base`}
+                            placeholder="Enter amount"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                            Cr
+                          </span>
+                        </div>
 
                         <button
                           onClick={() => {
-                            handleJumpCount();
-                            closePopup();
+                            if (
+                              value >= currentBid &&
+                              value <= budget.remaining
+                            ) {
+                              handleJumpCount();
+                              closePopup();
+                            } else {
+                              toast.error("Invalid jump amount!");
+                            }
                           }}
-                          className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          className={`px-4 py-2 ${
+                            value > currentBid && value <= budget.remaining
+                              ? "bg-blue-600 hover:bg-blue-700"
+                              : "bg-blue-300 cursor-not-allowed"
+                          } text-white rounded-lg transition-colors flex items-center gap-2`}
                         >
-                          <CheckCircle className="mr-2 w-5 h-5" />
+                          <CheckCircle className="w-5 h-5" />
                           Place Bid
                         </button>
                       </div>
@@ -1002,8 +1145,12 @@ const AuctionRoom = () => {
                       "increment"
                     )
                   }
-                  disabled={budget.remaining < 1}
-                  className="flex-1/4 mx-1 bg-blue-700 text-white py-2 px-3 rounded-3xl text-center text-sm sm:text-base flex items-center justify-between gap-1 font-semibold"
+                  disabled={budget.remaining < 1 || isUserHighestBidder()}
+                  className={`flex-1/4 mx-1 ${
+                    budget.remaining < 1 || isUserHighestBidder()
+                      ? `bg-blue-400 cursor-not-allowed`
+                      : `bg-blue-700`
+                  } text-white py-2 px-3 rounded-3xl text-center text-sm sm:text-base flex items-center justify-between gap-1 font-semibold`}
                 >
                   <span className="inline-block text-[0.7rem] w-6 h-6 border-2 border-blue-950 rounded-full bg-white text-blue-700">
                     {currentBid < 5 && currentBid >= 0
@@ -1122,7 +1269,10 @@ const AuctionRoom = () => {
                   <p>
                     Player that can be pulled back (
                     {auctionPlayers.filter(
-                      (it) => it.status === "unsold" && activePlayerId !== it.id
+                      (it) =>
+                        it.status === "unsold" &&
+                        activePlayerId !== it.id &&
+                        !it?.isPullBackOnce
                     ).length || 0}
                     )
                   </p>
@@ -1140,13 +1290,20 @@ const AuctionRoom = () => {
                 <div className="flex-1 flex items-center justify-center text-red-700 font-medium px-6">
                   {" "}
                   {auctionPlayers.filter(
-                    (it) => it.status === "unsold" && activePlayerId !== it.id
+                    (it) =>
+                      it.status === "unsold" &&
+                      activePlayerId !== it.id &&
+                      !it?.isPullBackOnce
                   ).length < 1 && "No players to pull back"}
                 </div>
 
                 <div className="overflow-y-auto h-[82%] rounded-lg">
                   {auctionPlayers.map((item, index) => {
-                    if (item.status !== "unsold" || activePlayerId === item.id)
+                    if (
+                      item.status !== "unsold" ||
+                      activePlayerId === item.id ||
+                      item?.isPullBackOnce === true
+                    )
                       return;
                     return (
                       <div key={item.id} className="px-4">
@@ -1217,7 +1374,7 @@ const AuctionRoom = () => {
               </div>
             )}
 
-            {editJump && (
+            {/* {editJump && (
               <div className="h-full w-full">
                 <div className="flex items-start justify-center gap-4 mt-5 px-6">
                   <div className="flex-1 flex flex-col items-start w-full max-w-md">
@@ -1248,7 +1405,7 @@ const AuctionRoom = () => {
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
           </div>
 
           <div className="fixed right-2 top-[40%] transform -translate-y-1/2 flex flex-col items-center space-y-4">
@@ -1269,7 +1426,7 @@ const AuctionRoom = () => {
                 setExpandChat(!expandChat);
                 setIsExpanded(false);
                 setExpandPullBack(false);
-                setEditJump(false);
+                // setEditJump(false);
                 setNewNotification(false);
               }}
             >
@@ -1284,7 +1441,11 @@ const AuctionRoom = () => {
         <div className="flex-1 flex items-center justify-center bg-gray-100">
           <div className="p-6 text-center max-w-sm">
             <div className="flex justify-center items-center mb-4">
-              <ArrowUpCircle className={`h-10 w-10 ${arePlayerRegistered === 0 ? "text-red-500" : "text-blue-500"}`} />
+              <ArrowUpCircle
+                className={`h-10 w-10 ${
+                  arePlayerRegistered === 0 ? "text-red-500" : "text-blue-500"
+                }`}
+              />
             </div>
             <h1 className="text-xl font-semibold text-gray-800">Room Status</h1>
             {isConnected ? (
@@ -1321,21 +1482,22 @@ const AuctionRoom = () => {
               </p>
             ) : (
               <p className="text-gray-600 mt-2 font-medium my-4">
-                
-               <span className="block font-bold text-3xl">
-                    {arePlayerRegistered === 0
-                      ? "No Player Found"
-                      : "Auction is Ended"}
-                  </span>
-                  <span className="block">
-                    {arePlayerRegistered === 0
-                      ? "No player found in this auction!"
-                      : "All players have been sold"}
-                  </span>
+                <span className="block font-bold text-3xl">
+                  {arePlayerRegistered === 0
+                    ? "No Player Found"
+                    : "Auction is Ended"}
+                </span>
+                <span className="block">
+                  {arePlayerRegistered === 0
+                    ? "No player found in this auction!"
+                    : "All players have been sold"}
+                </span>
               </p>
             )}
 
-            {arePlayerRegistered !== 0 && remainingPlayers < 1 && isConnected ? (
+            {arePlayerRegistered !== 0 &&
+            remainingPlayers < 1 &&
+            isConnected ? (
               <div className="flex gap-2">
                 <button
                   className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-900 focus:ring-2 focus:ring-blue-300 focus:outline-none flex items-center justify-center gap-2"
