@@ -12,7 +12,6 @@ import {
   Send,
   CheckCircle,
   AlertCircle,
-  XCircle,
 } from "lucide-react";
 
 import { useLocation } from "react-router-dom";
@@ -31,6 +30,7 @@ const AuctionRoom = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const bidPromiseRef = useRef(null);
+  const delayRef = useRef({ time: null, delay: null });
   const latestHighestBidderRef = useRef(null);
 
   const auctionId = location?.state?.auction?.id;
@@ -150,25 +150,25 @@ const AuctionRoom = () => {
 
   const [pullCount, setPullCount] = useState(null);
 
-  useEffect(() => {
-    if (activePlayer?.id) {
-      const savedPullCounts =
-        JSON.parse(localStorage.getItem("pullCounts")) || {};
-      setPullCount(
-        savedPullCounts[activePlayer.id] || {
-          total: 1,
-          remaining: 1,
-        }
-      );
-    }
-  }, [activePlayer?.id]);
+  // useEffect(() => {
+  //   if (activePlayer?.id) {
+  //     const savedPullCounts =
+  //       JSON.parse(localStorage.getItem("pullCounts")) || {};
+  //     setPullCount(
+  //       savedPullCounts[activePlayer.id] || {
+  //         total: 1,
+  //         remaining: 1,
+  //       }
+  //     );
+  //   }
+  // }, [activePlayer?.id]);
 
-  useEffect(() => {
-    const savedPullCounts =
-      JSON.parse(localStorage.getItem("pullCounts")) || {};
-    savedPullCounts[activePlayer?.id] = pullCount;
-    localStorage.setItem("pullCounts", JSON.stringify(savedPullCounts));
-  }, [pullCount, activePlayer?.id]);
+  // useEffect(() => {
+  //   const savedPullCounts =
+  //     JSON.parse(localStorage.getItem("pullCounts")) || {};
+  //   savedPullCounts[activePlayer?.id] = pullCount;
+  //   localStorage.setItem("pullCounts", JSON.stringify(savedPullCounts));
+  // }, [pullCount, activePlayer?.id]);
 
   const sendMessage = () => {
     if (message.trim()) {
@@ -267,14 +267,14 @@ const AuctionRoom = () => {
   };
 
   useEffect(() => {
-    if (referenceTime) {
+    if (delayRef.current.time && delayRef.current.delay) {
       try {
-        const refTime = new Date(referenceTime).getTime();
+        const refTime = new Date(delayRef.current.time).getTime();
         if (isNaN(refTime)) {
           console.error("Invalid reference time");
           return;
         }
-        const delay = 20000;
+        const delay = delayRef.current.delay;
         endTime.current = refTime + delay;
         startTimer();
       } catch (error) {
@@ -289,7 +289,7 @@ const AuctionRoom = () => {
         endTime.current = null;
       };
     }
-  }, [referenceTime]);
+  }, [delayRef.current.time]);
 
   const [isfetchingPlayer, setIsfetchingPlayer] = useState(false);
 
@@ -478,7 +478,7 @@ const AuctionRoom = () => {
   // };
 
   const handleJumpCount = () => {
-    if (jump > currentBid && jump < budget.remaining) {
+    if (jump > currentBid && jump <= budget.remaining) {
       handlePlaceBid(jump, "jump");
     } else {
       jump < currentBid &&
@@ -513,7 +513,9 @@ const AuctionRoom = () => {
     });
 
     SocketService.onActivePlayer((data) => {
-      setReferenceTime(data?.time);
+      // setReferenceTime(data?.time);
+      delayRef.current.time = data?.time;
+      delayRef.current.delay = 20000;
       fetchPlayerById(data);
       console.log("active player.......", data);
     });
@@ -611,21 +613,23 @@ const AuctionRoom = () => {
     SocketService.onNewBid((data) => {
       if (!data) return;
 
-      console.log("onNewBid delay", data?.delay);
+      // console.log("onNewBid delay", data?.delay);
       if (bidPromiseRef.current) {
         if (data.amount && data.timestamp && data.delay) {
           bidPromiseRef.current.resolve(data);
-          const refTime = new Date(data.timestamp).getTime();
-          endTime.current = refTime + Math.max(0, data.delay - 3000);
+          // const refTime = new Date(data.timestamp).getTime();
+          // endTime.current = refTime + Math.max(0, data.delay - 3000);
         } else {
           bidPromiseRef.current.reject(new Error("Invalid bid response"));
         }
         bidPromiseRef.current = null;
       } else {
         if (data.timestamp && data.delay) {
-          setReferenceTime(data.timestamp);
-          const refTime = new Date(data.timestamp).getTime();
-          endTime.current = refTime + Math.max(0, data.delay - 3000);
+          // setReferenceTime(data.timestamp);
+          delayRef.current.time = data?.timestamp;
+          delayRef.current.delay = data.delay - 30000;
+          // const refTime = new Date(data.timestamp).getTime();
+          // endTime.current = refTime + Math.max(0, data.delay - 3000);
         }
         toast.success(`${data.amount}Cr Bid is placed`);
       }
@@ -1083,7 +1087,7 @@ const AuctionRoom = () => {
                               </p>
                             )
                           )}
-                          {value == budget.remaining && (
+                          {value == currentBid && (
                             <p className="text-red-500 text-center">
                               Jump amount should be greater than current bid
                             </p>

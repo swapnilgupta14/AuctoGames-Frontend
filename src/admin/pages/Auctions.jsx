@@ -189,7 +189,7 @@ const Auctions = () => {
         auctionId: editingAuction.id,
         // status: updatedAuctionData?.status,
         image: updateAuctionDetails?.imageUrl || editingAuction?.imageUrl,
-        endTime: editingAuction?.endTime,
+        endTime: updatedAuctionData?.endTime || null,
       };
 
       console.log(payload);
