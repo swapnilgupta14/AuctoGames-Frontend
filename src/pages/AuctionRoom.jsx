@@ -619,6 +619,8 @@ const AuctionRoom = () => {
           bidPromiseRef.current.resolve(data);
           // const refTime = new Date(data.timestamp).getTime();
           // endTime.current = refTime + Math.max(0, data.delay - 3000);
+          delayRef.current.time = data?.timestamp;
+          delayRef.current.delay = data.delay - 30000;
         } else {
           bidPromiseRef.current.reject(new Error("Invalid bid response"));
         }
