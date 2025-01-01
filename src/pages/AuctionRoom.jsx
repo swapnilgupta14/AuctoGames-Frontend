@@ -1104,10 +1104,10 @@ const AuctionRoom = () => {
                             value={value}
                             onChange={(e) => {
                               handleInputChange(e);
-                              setJump(e.target.value); // Auto-set jump value on input
+                              setJump(e.target.value); 
                             }}
                             className={`w-full px-3 py-2 border ${
-                              value < currentBid || value >= budget.remaining
+                              value < currentBid || value > budget.remaining
                                 ? "border-red-500 focus:ring-red-500"
                                 : "border-gray-300 focus:ring-blue-700"
                             } rounded-lg focus:outline-none focus:ring-2 text-black text-base`}
