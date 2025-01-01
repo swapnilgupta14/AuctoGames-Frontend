@@ -268,6 +268,7 @@ const AuctionRoom = () => {
 
   useEffect(() => {
     if (delayRef.current.time && delayRef.current.delay) {
+      // console.log("Invoked..", delayRef.current)
       try {
         const refTime = new Date(delayRef.current.time).getTime();
         if (isNaN(refTime)) {
@@ -289,7 +290,7 @@ const AuctionRoom = () => {
         endTime.current = null;
       };
     }
-  }, [delayRef.current.time]);
+  }, [delayRef.current.time, delayRef.current.delay]);
 
   const [isfetchingPlayer, setIsfetchingPlayer] = useState(false);
 
@@ -515,7 +516,7 @@ const AuctionRoom = () => {
     SocketService.onActivePlayer((data) => {
       // setReferenceTime(data?.time);
       delayRef.current.time = data?.time;
-      delayRef.current.delay = 20000;
+      delayRef.current.delay = 22000;
       fetchPlayerById(data);
       console.log("active player.......", data);
     });
@@ -613,25 +614,22 @@ const AuctionRoom = () => {
     SocketService.onNewBid((data) => {
       if (!data) return;
 
-      // console.log("onNewBid delay", data?.delay);
+      // console.log("onNewBid delay", data);
       if (bidPromiseRef.current) {
         if (data.amount && data.timestamp && data.delay) {
           bidPromiseRef.current.resolve(data);
-          // const refTime = new Date(data.timestamp).getTime();
-          // endTime.current = refTime + Math.max(0, data.delay - 3000);
+        
           delayRef.current.time = data?.timestamp;
-          delayRef.current.delay = data.delay - 30000;
+          delayRef.current.delay = data.delay + 1000;
         } else {
           bidPromiseRef.current.reject(new Error("Invalid bid response"));
         }
         bidPromiseRef.current = null;
       } else {
+        
         if (data.timestamp && data.delay) {
-          // setReferenceTime(data.timestamp);
           delayRef.current.time = data?.timestamp;
-          delayRef.current.delay = data.delay - 30000;
-          // const refTime = new Date(data.timestamp).getTime();
-          // endTime.current = refTime + Math.max(0, data.delay - 3000);
+          delayRef.current.delay = data.delay + 1000;
         }
         toast.success(`${data.amount}Cr Bid is placed`);
       }
