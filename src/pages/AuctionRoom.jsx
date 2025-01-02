@@ -56,7 +56,6 @@ const AuctionRoom = () => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const [jump, setJump] = useState(2);
-  const [editJump, setEditJump] = useState(false);
   const [currentBid, setCurrentBid] = useState(0);
 
   const chatContainerRef = useRef(null);
@@ -130,45 +129,13 @@ const AuctionRoom = () => {
   }, [auctionData]);
 
   const [budget, setBudget] = useState(() => {
-    // const savedBudgets = JSON.parse(localStorage.getItem("budgets")) || {};
-    // const idSaved = localStorage.getItem("userId");
-    // const compositeKey = `${idSaved}-${auctionId}`;
-    // return (
     return {
       remaining: auctionData?.budgetLimit,
       total: auctionData?.budgetLimit,
     };
   });
 
-  // useEffect(() => {
-  //   const savedBudgets = JSON.parse(localStorage.getItem("budgets")) || {};
-  //   const idSaved = localStorage.getItem("userId");
-  //   const compositeKey = `${idSaved}-${auctionId}`;
-  //   savedBudgets[compositeKey] = budget;
-  //   localStorage.setItem("budgets", JSON.stringify(savedBudgets));
-  // }, [budget, auctionId]);
-
   const [pullCount, setPullCount] = useState(null);
-
-  // useEffect(() => {
-  //   if (activePlayer?.id) {
-  //     const savedPullCounts =
-  //       JSON.parse(localStorage.getItem("pullCounts")) || {};
-  //     setPullCount(
-  //       savedPullCounts[activePlayer.id] || {
-  //         total: 1,
-  //         remaining: 1,
-  //       }
-  //     );
-  //   }
-  // }, [activePlayer?.id]);
-
-  // useEffect(() => {
-  //   const savedPullCounts =
-  //     JSON.parse(localStorage.getItem("pullCounts")) || {};
-  //   savedPullCounts[activePlayer?.id] = pullCount;
-  //   localStorage.setItem("pullCounts", JSON.stringify(savedPullCounts));
-  // }, [pullCount, activePlayer?.id]);
 
   const sendMessage = () => {
     if (message.trim()) {
@@ -181,7 +148,6 @@ const AuctionRoom = () => {
     if (e.key === "Enter") sendMessage();
   };
 
-  // --------------------------------------------
 
   const [arePlayerRegistered, setArePlayerRegistered] = useState(null);
   const [teamImageMap, setTeamImageMap] = useState(null);
@@ -239,7 +205,6 @@ const AuctionRoom = () => {
     fetchTeams(auctionId);
   }, [auctionId, userId]);
 
-  const [referenceTime, setReferenceTime] = useState(null);
   const [timeLeft, setTimeLeft] = useState(20);
   const intervalRef = useRef(null);
   const endTime = useRef(null);
@@ -620,7 +585,7 @@ const AuctionRoom = () => {
           bidPromiseRef.current.resolve(data);
         
           delayRef.current.time = data?.timestamp;
-          delayRef.current.delay = data.delay;
+          delayRef.current.delay = data.delay - 1000;
         } else {
           bidPromiseRef.current.reject(new Error("Invalid bid response"));
         }
@@ -629,7 +594,7 @@ const AuctionRoom = () => {
         
         if (data.timestamp && data.delay) {
           delayRef.current.time = data?.timestamp;
-          delayRef.current.delay = data.delay;
+          delayRef.current.delay = data.delay - 1000;
         }
         toast.success(`${data.amount}Cr Bid is placed`);
       }
