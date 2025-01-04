@@ -1,9 +1,7 @@
-import React, { useEffect, useState, createContext, useContext } from "react";
+import { useEffect, useState, createContext, useContext } from "react";
 import {
   getAllAuctions,
-  getRegistrationrequest,
   updateAuctionDetails,
-  updateRegistrationRequest,
 } from "../../api/fetch";
 import AuctionDetails from "../components/AuctionDetails";
 import {
@@ -17,7 +15,6 @@ import {
   Edit,
 } from "lucide-react";
 import CreateAuctionModal from "../components/CreateAuctionModal";
-import { convertTo12HourFormat } from "../../utils/TimeConversion";
 import { EditAuctionModal } from "../components/EditAuctionModal";
 
 const AuctionContext = createContext();
@@ -31,10 +28,8 @@ const Auctions = () => {
 
   const [selectedAuction, setSelectedAuction] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetchingReq, setIsFetchingRequest] = useState(false);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("liveAuctions");
-  const [requests, setRequests] = useState([]);
   const [isCreateAuctionModalOpen, setIsCreateAuctionModalOpen] =
     useState(false);
   const [isEditAuctionModalOpen, setIsEditAuctionModalOpen] = useState(false);
@@ -176,13 +171,14 @@ const Auctions = () => {
 
   const handleUpdateAuction = async (updatedAuctionData) => {
     try {
+      console.log(updateAuctionDetails, "update details")
       const payload = {
         title: updatedAuctionData.title,
         description: updatedAuctionData.description,
         scheduledDate: convertDateFormat(updatedAuctionData.scheduledDate),
         startTime:
-          updatedAuctionData.status === "SCHEDULED"
-            ? updatedAuctionData.status
+          editingAuction.status === "SCHEDULED"
+            ? updatedAuctionData.startTime
             : undefined,
         registrationFee: updatedAuctionData.registrationFee,
         budgetLimit: updatedAuctionData.budgetLimit,
