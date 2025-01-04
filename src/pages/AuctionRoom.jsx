@@ -378,6 +378,7 @@ const AuctionRoom = () => {
   // ---------------------------------------------------------
 
   const fetchAllPlayerInAuction = useCallback(
+    
     async (p_id = undefined) => {
       if (remainingPlayers < 1) return;
       try {
@@ -484,6 +485,7 @@ const AuctionRoom = () => {
       delayRef.current.delay = 22000;
       fetchPlayerById(data);
       console.log("active player.......", data);
+      fetchAllPlayerInAuction();
     });
 
     SocketService.onAskNewPlayer((data) => {
@@ -505,7 +507,7 @@ const AuctionRoom = () => {
 
     SocketService.onPlayerReAdded((data) => {
       toast.error(`${data?.message}`);
-      fetchAllPlayerInAuction(auctionId);
+      fetchAllPlayerInAuction();
       SocketService.emitGetActivePlayer();
       SocketService.emitGetPlayerCount();
     });
@@ -604,13 +606,14 @@ const AuctionRoom = () => {
       const remaining = data?.remainingPlayerCount;
       setRemainingPlayers(remaining);
 
-      const Id = localStorage.getItem("userId");
-      if (data?.highestBidderId === Number(Id)) {
-        setBudget((prev) => ({
-          ...prev,
-          remaining: prev.remaining - data.amount,
-        }));
-      }
+      // const Id = localStorage.getItem("userId");
+      // if (data?.highestBidderId === Number(Id)) {
+      //   setBudget((prev) => ({
+      //     ...prev,
+      //     remaining: prev.remaining - data.amount,
+      //   }));
+      // }
+      
       setCurrentBid(data.amount);
     });
 
