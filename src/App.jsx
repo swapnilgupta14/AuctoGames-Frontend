@@ -56,16 +56,25 @@ const PAGE_TITLES = {
   "/resetpass/:email/:token": "Aucto | Reset Password",
 };
 
+const BYPASS_ROUTES = {
+  "/login": true,
+  "/signup": true,
+  "/fpp": true,
+  "/resetpass": true,
+  "/": true,
+};
+
+const SESSION_CHECK_INTERVAL = 30000;
+const USER_ENGAGEMENT_TIMEOUT = 30000;
+
 function App() {
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
     initGA();
-
     const sessionStartTime = new Date().toISOString();
     trackEvent("Session Start", { sessionStartTime });
-
     return () => {
       const sessionEndTime = new Date().toISOString();
       trackEvent("Session End", { sessionEndTime });
@@ -74,19 +83,17 @@ function App() {
 
   useEffect(() => {
     const pathName = location.pathname;
-
     trackPageView(pathName);
 
     const bounceTimer = setTimeout(() => {
       trackEvent("User Engaged", { page: pathName });
-    }, 30000);
+    }, USER_ENGAGEMENT_TIMEOUT);
 
     const matchingRoute = Object.keys(PAGE_TITLES).find((route) => {
       const routeParts = route.split("/");
       const pathParts = pathName.split("/");
 
       if (routeParts.length !== pathParts.length) return false;
-
       return routeParts.every(
         (part, index) => part.startsWith(":") || part === pathParts[index]
       );
@@ -96,101 +103,53 @@ function App() {
       ? `${PAGE_TITLES[matchingRoute]} | Aucto Games`
       : "Aucto Games";
 
-    return () => {
-      clearTimeout(bounceTimer);
-    };
-  }, [location]);
-
-  useEffect(() => {
-    const pathName = location.pathname;
-
-    trackPageView(pathName);
-
-    const bounceTimer = setTimeout(() => {
-      trackEvent("User Engaged", { page: pathName });
-    }, 30000);
-
-    const matchingRoute = Object.keys(PAGE_TITLES).find((route) => {
-      const routeParts = route.split("/");
-      const pathParts = pathName.split("/");
-
-      if (routeParts.length !== pathParts.length) return false;
-
-      return routeParts.every(
-        (part, index) => part.startsWith(":") || part === pathParts[index]
-      );
-    });
-
-    document.title = matchingRoute
-      ? `${PAGE_TITLES[matchingRoute]} | Aucto Games`
-      : "Aucto Games";
-
-    return () => {
-      clearTimeout(bounceTimer);
-    };
+    return () => clearTimeout(bounceTimer);
   }, [location]);
 
   useEffect(() => {
     const checkSessionTimeout = () => {
-      if (location.pathname.startsWith("/admin")) {
-        return;
-      }
+      const pathName = location.pathname;
 
-      const bypassRoutes = ["/login", "/signup", "/fpp", "/resetpass", "/"];
-      const isBypassRoute = bypassRoutes.some((route) =>
-        route === "/"
-          ? location.pathname === "/"
-          : location.pathname.startsWith(route)
-      );
-
-      if (location.pathname === "/login" || location.pathname === "/signup") {
-        const token = localStorage.getItem("shopCoToken");
-        if (token) {
-          navigate("/home");
+      if (pathName.startsWith("/admin")) return;
+      if (BYPASS_ROUTES[pathName]) {
+        if (["/login", "/signup", "/"].includes(pathName)) {
+          const token = localStorage.getItem("shopCoToken");
+          if (token) {
+            navigate("/home");
+            return;
+          }
         }
-      }
-
-      if (isBypassRoute) {
         return;
       }
 
       const sessionExpiryTime = localStorage.getItem("SessionExpiryTime");
       const token = localStorage.getItem("shopCoToken");
 
-      if (!sessionExpiryTime || !token) {
-        localStorage.removeItem("shopCoToken");
-        localStorage.removeItem("userId");
-        localStorage.removeItem("email");
-        localStorage.removeItem("SessionExpiryTime");
-
+      const clearSession = () => {
+        ["shopCoToken", "userId", "email", "SessionExpiryTime"].forEach((key) =>
+          localStorage.removeItem(key)
+        );
         toast.error("Session expired. Please log in again.", {
           duration: 4000,
         });
         navigate("/login");
-        return;
-      }
+      };
 
-      const currentTime = Date.now();
-      const expiryTime = parseInt(sessionExpiryTime, 10);
-
-      if (currentTime > expiryTime) {
-        localStorage.removeItem("shopCoToken");
-        localStorage.removeItem("userId");
-        localStorage.removeItem("email");
-        localStorage.removeItem("SessionExpiryTime");
-
-        toast.error("Session expired. Please log in again.", {
-          duration: 4000,
-        });
-        navigate("/login");
+      if (
+        !sessionExpiryTime ||
+        !token ||
+        Date.now() > parseInt(sessionExpiryTime, 10)
+      ) {
+        clearSession();
       }
     };
 
     checkSessionTimeout();
-    const timeoutInterval = setInterval(checkSessionTimeout, 30000);
-    return () => {
-      clearInterval(timeoutInterval);
-    };
+    const timeoutInterval = setInterval(
+      checkSessionTimeout,
+      SESSION_CHECK_INTERVAL
+    );
+    return () => clearInterval(timeoutInterval);
   }, [location, navigate]);
 
   return (
