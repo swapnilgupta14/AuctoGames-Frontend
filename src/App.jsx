@@ -143,6 +143,13 @@ function App() {
           : location.pathname.startsWith(route)
       );
 
+      if (location.pathname === "/login" || location.pathname === "/signup") {
+        const token = localStorage.getItem("shopCoToken");
+        if (token) {
+          navigate("/home");
+        }
+      }
+
       if (isBypassRoute) {
         return;
       }
