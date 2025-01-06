@@ -4,7 +4,15 @@ import PlayerCard from "../components/PlayerCard";
 import SocketService from "../socket/socketService";
 import TeamsTab from "../components/teamTab";
 
-import { Eye, LogOut, PersonStanding } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  Eye,
+  LogOut,
+  PersonStanding,
+  Radio,
+  Users,
+} from "lucide-react";
 import {
   ArrowUpCircle,
   ChevronUp,
@@ -24,6 +32,7 @@ import {
   getAllPLayersInAuction,
   getAllTeamsInAuction,
   checkTeamComposition,
+  updateEndTime,
 } from "../api/fetch";
 
 const AuctionRoom = () => {
@@ -101,17 +110,6 @@ const AuctionRoom = () => {
     setShowPopup(false);
   };
 
-  // const updateAuctionEndTime = async (auctionId) => {
-  //   try {
-  //     const response = await updateEndTime(auctionId);
-  //     if (response) {
-  //       console.log("EndTime Updated", response);
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =
@@ -119,13 +117,25 @@ const AuctionRoom = () => {
     }
   }, [chats]);
 
-  const [participantMap, setParticipantMap] = useState({});
+  const participantMapRef = useRef({});
+
   useEffect(() => {
-    const map = auctionData?.participants.reduce((acc, participant) => {
-      acc[participant.id] = participant.username;
-      return acc;
-    }, {});
-    setParticipantMap(map);
+    if (auctionData?.participants) {
+      const shouldUpdate = auctionData.participants.some(
+        (participant) =>
+          participantMapRef.current[participant.id] !== participant.username
+      );
+
+      if (shouldUpdate) {
+        participantMapRef.current = auctionData.participants.reduce(
+          (acc, participant) => {
+            acc[participant.id] = participant.username;
+            return acc;
+          },
+          {}
+        );
+      }
+    }
   }, [auctionData]);
 
   const [budget, setBudget] = useState(() => {
@@ -147,7 +157,6 @@ const AuctionRoom = () => {
   const handleKeyPress = (e) => {
     if (e.key === "Enter") sendMessage();
   };
-
 
   const [arePlayerRegistered, setArePlayerRegistered] = useState(null);
   const [teamImageMap, setTeamImageMap] = useState(null);
@@ -194,9 +203,6 @@ const AuctionRoom = () => {
 
         const teamImageMap = mapOwnerToTeamsImage(res.teams);
         const map = mapOwnerToTeams(res.teams);
-
-        console.log("map...", map);
-        console.log("image map....", teamImageMap);
         setTeamImageMap(teamImageMap);
         setTeamMap(map);
       }
@@ -339,6 +345,18 @@ const AuctionRoom = () => {
   // ---------------------------------------------------------------
 
   function validatePlayerTypeCount(playerTypeCount) {
+    console.log(activePlayer, "lo jiii karlo check", playerTypeCount);
+
+    const ActivePlayerType = activePlayer?.stats?.type;
+    let playerType =
+      ActivePlayerType.split(" ")?.[0] ?? activePlayer?.stats?.type;
+
+    if (playerType === "Wicket-Keeper") {
+      playerType = "Wicket Keeper";
+    } else if (playerType === "All-Rounder") {
+      playerType = "All Rounder";
+    }
+
     const MAX_PLAYERS = 11;
     const rules = {
       Batsman: { min: 3, max: 4 },
@@ -357,28 +375,25 @@ const AuctionRoom = () => {
         message: "Total players exceed the maximum allowed limit of 11.",
       };
     }
-    for (const [type, count] of Object.entries(playerTypeCount)) {
-      const { min, max } = rules[type];
-      if (count >= max) {
+
+    if (rules[playerType]) {
+      const { max } = rules[playerType];
+      const currentCount = playerTypeCount[playerType] || 0;
+
+      if (currentCount >= max) {
         return {
           valid: false,
-          message: `You cannot have more than ${max} ${type}(s).`,
+          message: `You cannot have more than ${max} ${playerType}(s).`,
         };
       }
-      // if (count < min && totalPlayers === MAX_PLAYERS) {
-      //   return {
-      //     valid: false,
-      //     message: `You need at least ${min} ${type}(s).`,
-      //   };
-      // }
     }
+
     return { valid: true, message: "Player selection is valid." };
   }
 
   // ---------------------------------------------------------
 
   const fetchAllPlayerInAuction = useCallback(
-    
     async (p_id = undefined) => {
       if (remainingPlayers < 1) return;
       try {
@@ -476,6 +491,9 @@ const AuctionRoom = () => {
 
   const setupSocketListeners = () => {
     SocketService.onRoomSize((data) => {
+      if (data.roomSize >= 2 && auctionStarted && timeUntilStart === null) {
+        SocketService.emitGetActivePlayer();
+      }
       setRoomSize(data.roomSize);
     });
 
@@ -491,17 +509,22 @@ const AuctionRoom = () => {
     SocketService.onAskNewPlayer((data) => {
       console.log("onAskNewPlayer timeee", data);
       if (data?.status === "SOLD") {
+        SocketService.emitGetActivePlayer();
         toast.success(
-          `${data?.auctionPlayerId} is Sold Successfully to ${data?.userId}`
+          `${data?.auctionPlayerId} is Sold Successfully to ${
+            participantMapRef.current[data?.userId] || data?.userId
+          }`
         );
       } else if (data?.status === "UNSOLD") {
+        SocketService.emitGetActivePlayer();
         toast.error(`${data?.auctionPlayerId} is unsold!`);
       }
-      SocketService.emitGetActivePlayer();
       SocketService.emitGetPlayerCount();
     });
 
-    SocketService.onPlayerCount((data) => setRemainingPlayers(data?.count));
+    SocketService.onPlayerCount((data) => {
+      setRemainingPlayers(data?.count);
+    });
 
     SocketService.onNewUserConnected("new user connected");
 
@@ -549,7 +572,7 @@ const AuctionRoom = () => {
 
     // SocketService.playerSold((data) => {
     //   toast.success(`${data?.playerDetails?.name} is sold to ${data?.userId}`);
-    //   updateAuctionEndTime(auctionId);
+    //
     //   SocketService.emitGetPlayerCount();
     // });
 
@@ -585,7 +608,7 @@ const AuctionRoom = () => {
       if (bidPromiseRef.current) {
         if (data.amount && data.timestamp && data.delay) {
           bidPromiseRef.current.resolve(data);
-        
+
           delayRef.current.time = data?.timestamp;
           delayRef.current.delay = data.delay - 1000;
         } else {
@@ -593,7 +616,6 @@ const AuctionRoom = () => {
         }
         bidPromiseRef.current = null;
       } else {
-        
         if (data.timestamp && data.delay) {
           delayRef.current.time = data?.timestamp;
           delayRef.current.delay = data.delay - 1000;
@@ -613,7 +635,7 @@ const AuctionRoom = () => {
       //     remaining: prev.remaining - data.amount,
       //   }));
       // }
-      
+
       setCurrentBid(data.amount);
     });
 
@@ -648,33 +670,92 @@ const AuctionRoom = () => {
     }
   };
 
+  // ----------------------------------------
+
+  const [auctionStarted, setAuctionStarted] = useState(false);
+  const [timeUntilStart, setTimeUntilStart] = useState(null);
+
   useEffect(() => {
     const initializeSocket = async () => {
       try {
         const response = await setupSocketConnection(token, auctionId);
 
         if (response.connected) {
-          setupSocketListeners();
           setIsConnected(true);
-          SocketService.emitGetRoomSize();
-          SocketService.emitGetActivePlayer();
           SocketService.emitGetPlayerCount();
-          SocketService.emitGetBudget();
-          // SocketService.emitGetPlayerPurchasedCount();
+          setupSocketListeners();
         }
       } catch (error) {
         console.error("Failed to initialize socket:", error);
       }
     };
 
+    const parseCustomDate = (dateString) => {
+      const [datePart, timePart] = dateString.split(", ");
+      const [day, month, year] = datePart.split("/");
+      const date = new Date(year, month - 1, day);
+      if (timePart) {
+        const [hours, minutes, seconds] = timePart.split(":");
+        date.setHours(hours, minutes, seconds);
+      }
+
+      return date;
+    };
+
+    const checkAuctionStart = () => {
+      if (!auctionData?.startTime) return;
+
+      const startTime = parseCustomDate(auctionData.startTime);
+      const bufferTime = 10 * 60 * 1000;
+      const now = new Date();
+
+      if (now >= new Date(startTime.getTime() + bufferTime)) {
+        setAuctionStarted(true);
+        SocketService.emitGetActivePlayer();
+        SocketService.emitGetBudget();
+        SocketService.emitGetRoomSize();
+
+        console.log("indside iff sshshhs");
+      } else {
+        // console.log(auctionData.startTime, "sshshhs");
+        console.log(now, "sshshhs");
+        console.log(new Date(startTime.getTime() + bufferTime), "sshshhs");
+
+        const timeLeft =
+          new Date(startTime.getTime() + bufferTime) - now.getTime();
+        setTimeUntilStart(Math.max(0, timeLeft));
+
+        console.log(timeLeft, "sshshhs");
+        console.log("indside else sshshhs");
+
+        const countdownInterval = setInterval(() => {
+          setTimeUntilStart((prevTime) => {
+            const newTime = Math.max(0, prevTime - 1000);
+
+            if (newTime === 0) {
+              clearInterval(countdownInterval);
+              setAuctionStarted(true);
+              SocketService.emitGetActivePlayer();
+              SocketService.emitGetBudget();
+            }
+
+            return newTime;
+          });
+        }, 1000);
+
+        return () => clearInterval(countdownInterval);
+      }
+    };
+
     initializeSocket();
+    checkAuctionStart();
 
     return () => {
       console.log("Cleaning up socket connection...");
       setIsConnected(false);
       SocketService.disconnect();
     };
-  }, [auctionId, userId, token]);
+  }, [auctionId, token, auctionData?.startTime]);
 
   // ---------------------------------------------------------------------
 
@@ -790,6 +871,97 @@ const AuctionRoom = () => {
     }
   };
 
+  // useEffect(() => {
+  //   const updateAuctionEndTime = async (auctionId) => {
+  //     try {
+  //       const response = await updateEndTime(auctionId);
+  //       if (response) {
+  //         console.log("EndTime Updated", response);
+  //       }
+  //     } catch (error) {
+  //       console.log(error);
+  //     }
+  //   };
+
+  //   if (
+  //     auctionId &&
+  //     arePlayerRegistered !== 0 &&
+  //     remainingPlayers < 1 &&
+  //     isConnected &&
+  //     auctionData?.isEndTimeUpdated === false
+  //   ) {
+  //     updateAuctionEndTime(auctionId);
+  //   }
+  // }, [
+  //   arePlayerRegistered,
+  //   remainingPlayers,
+  //   isConnected,
+  //   auctionId,
+  //   auctionData?.isEndTimeUpdated,
+  // ]);
+
+  if (!auctionStarted && timeUntilStart !== null) {
+    // Convert timeUntilStart to HH:MM:SS format
+    // console.log(timeUntilStart, "sshshhs");
+    const hours = Math.floor(timeUntilStart / (1000 * 60 * 60));
+    const minutes = Math.floor(
+      (timeUntilStart % (1000 * 60 * 60)) / (1000 * 60)
+    );
+    const seconds = Math.floor((timeUntilStart % (1000 * 60)) / 1000);
+
+    const formattedHours = String(hours).padStart(2, "0");
+    const formattedMinutes = String(minutes).padStart(2, "0");
+    const formattedSeconds = String(seconds).padStart(2, "0");
+
+    return (
+      <div className="flex flex-col h-dvh lg:h-screen">
+        <Header heading={`Auction Room #${auctionId}`}></Header>
+        <div className="flex-1 flex flex-col items-center justify-center space-y-4 p-8">
+          <h2 className="text-2xl font-semibold text-blue-900">
+            Auction Lobby
+          </h2>
+
+          <div className="flex flex-col items-center space-y-3 bg-zinc-100/80 rounded-2xl px-12 py-4 shadow-sm border border-zinc-200 hover:border-blue-200 transition-all duration-300">
+            <div className="flex items-center text-blue-800">
+              <Clock className="w-6 h-6 mr-2 animate-pulse text-blue-600" />
+              <span className="font-medium text-lg">Auction starts in</span>
+            </div>
+
+            <div className="flex items-center space-x-2 text-5xl font-bold text-blue-900 p-2">
+              <span>{formattedHours}</span>
+              <span className="text-blue-400">:</span>
+              <span>{formattedMinutes}</span>
+              <span className="text-blue-400">:</span>
+              <span>{formattedSeconds}</span>
+            </div>
+
+            <div className="flex items-center text-gray-600 hover:text-blue-600 transition-colors duration-200">
+              <Calendar className="w-5 h-5 mr-2" />
+              <span className="text-sm font-medium">
+                {auctionData?.startTime}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center text-gray-900 font-semibold">
+            <Radio
+              className={`w-6 h-6 mr-2 ${
+                isConnected ? "text-green-500" : "text-gray-400"
+              }`}
+            />
+            <span className="text-md">
+              {isConnected ? "Connected to auction room" : "Connecting..."}
+            </span>
+          </div>
+          <div className="flex items-center text-gray-600">
+            <Users className="w-4 h-4 mr-2" />
+            <span className="text-md">Room Size: {roomSize}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-dvh lg:h-screen">
       <Header heading={`Auction Room #${auctionId}`}>
@@ -845,13 +1017,16 @@ const AuctionRoom = () => {
 
                   <span className="text-xl"> Cr</span>
                 </p>
+
                 <p className="text-sm font-semibold">
-                  {latestHighestBidderRef.current !== null
+                  {latestHighestBidderRef.current
                     ? "Highest Bidder: " +
                       " " +
                       (latestHighestBidderRef.current === userId
                         ? "You"
-                        : participantMap[latestHighestBidderRef.current])
+                        : participantMapRef.current[
+                            latestHighestBidderRef.current
+                          ] ?? latestHighestBidderRef.current)
                     : "Base Price"}
                 </p>
               </div>
@@ -880,7 +1055,7 @@ const AuctionRoom = () => {
                       <td className="py-1 px-4 flex items-center justify-start space-x-3">
                         <img
                           src={
-                            teamImageMap[bid?.userId.toString()][0] !== "#"
+                            teamImageMap[bid?.userId.toString()]?.[0] !== "#"
                               ? teamImageMap[bid?.userId.toString()][0]
                               : "https://via.placeholder.com/50"
                           }
@@ -1070,7 +1245,7 @@ const AuctionRoom = () => {
                             value={value}
                             onChange={(e) => {
                               handleInputChange(e);
-                              setJump(e.target.value); 
+                              setJump(e.target.value);
                             }}
                             className={`w-full px-3 py-2 border ${
                               value < currentBid || value > budget.remaining
@@ -1182,7 +1357,7 @@ const AuctionRoom = () => {
                             index={index}
                             ongoingPlayerID={activePlayerId}
                             currentUserID={userId}
-                            idToUsernameMap={participantMap}
+                            idToUsernameMap={participantMapRef.current}
                             pullCount={pullCount}
                             setPullCount={setPullCount}
                             teamMap={teamMap}
@@ -1200,7 +1375,7 @@ const AuctionRoom = () => {
                     auctionPlayers={auctionPlayers}
                     activePlayerId={activePlayerId}
                     userId={userId}
-                    participantMap={participantMap}
+                    participantMap={participantMapRef.current}
                     pullCount={pullCount}
                     setPullCount={setPullCount}
                     teamMap={teamMap}
@@ -1220,7 +1395,7 @@ const AuctionRoom = () => {
                               index={index}
                               ongoingPlayerID={activePlayerId}
                               currentUserID={userId}
-                              idToUsernameMap={participantMap}
+                              idToUsernameMap={participantMapRef.current}
                               pullCount={pullCount}
                               setPullCount={setPullCount}
                               teamMap={teamMap}
@@ -1285,7 +1460,7 @@ const AuctionRoom = () => {
                           index={index}
                           ongoingPlayerID={activePlayerId}
                           currentUserID={userId}
-                          idToUsernameMap={participantMap}
+                          idToUsernameMap={participantMapRef.current}
                           pullCount={pullCount}
                           setPullCount={setPullCount}
                           teamMap={teamMap}

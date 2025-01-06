@@ -186,7 +186,6 @@ const Home = () => {
           auctionEndDate <= new Date(endDate)
         );
       });
-      // console.log(filtered, scheduledAuctions);
     }
 
     setFilteredAuctions(filtered);

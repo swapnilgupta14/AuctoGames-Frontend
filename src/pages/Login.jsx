@@ -218,7 +218,7 @@ const Login = () => {
             )}
           </button>
 
-          <div className="relative">
+          {/* <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200"></div>
             </div>
@@ -232,7 +232,7 @@ const Login = () => {
           <button className="w-full border border-gray-400 rounded-xl py-3 flex items-center justify-center gap-2 hover:bg-gray-50 transition-all">
             <img src={googleImage} alt="Google" className="w-5 h-5" />
             <span className="text-gray-600 font-medium">Google</span>
-          </button>
+          </button> */}
 
           <p className="text-center text-gray-600">
             New to the game?{" "}
@@ -246,7 +246,7 @@ const Login = () => {
         </div>
       </div>
 
-      {/* <img src={dsgnElem} alt="Design Element" className="w-full mt-8" /> */}
+      <img src={dsgnElem} alt="Design Element" className="w-full mt-8" />
     </div>
   );
 };

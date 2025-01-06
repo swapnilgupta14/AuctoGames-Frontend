@@ -220,7 +220,7 @@ class SocketService {
   onRoomSize(callback) {
     this.on("auctionRoomSize", (data) => {
       if (data.roomSize >= 2) {
-        this.emitGetActivePlayer();
+        // this.emitGetActivePlayer();
         callback(data);
       } else {
         callback(data);

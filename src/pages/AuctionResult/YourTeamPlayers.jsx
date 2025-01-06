@@ -1,17 +1,14 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../../components/Header";
-import {
-  RefreshCw,
-  X,
-  AlertTriangle,
-} from "lucide-react";
+import { RefreshCw, X, AlertTriangle } from "lucide-react";
 import {
   getTeamResultOfAction,
   checkTeamComposition,
   priorityUpdate,
 } from "../../api/fetch";
 import { useSelector } from "react-redux";
+import toast from "react-hot-toast";
 
 const PlayerCard = ({
   player,
@@ -90,6 +87,8 @@ const YourTeamPlayers = () => {
   const [isOrderChanged, setIsOrderChanged] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
 
+  const [loading, isStillLoading] = useState(false);
+
   const myId = useSelector((state) => state.user).userId;
   const isAuthorizedUser = myId == userId;
 
@@ -118,13 +117,14 @@ const YourTeamPlayers = () => {
       if (res && res.teams && res.teams.length > 0) {
         const team = res.teams[0];
         setTeamId(team.id);
+        // console.log("szdxfcghjklkjh", team?.auction);
         setAuction(team?.auction);
         const players_beforeSorting = team.auctionPlayers || [];
         const players = players_beforeSorting.sort(
           (a, b) => (a?.order || 0) - (b?.order || 0)
         );
 
-        console.log(players);
+        // console.log(players);
         setTeamData(players);
         setPlayerIds(players.map((player) => player.id));
         setTeamName(team?.name);
@@ -144,7 +144,7 @@ const YourTeamPlayers = () => {
   const validateTeamComposition = async (teamId) => {
     try {
       const res = await checkTeamComposition(teamId);
-      console.log(res?.playerTypeCount);
+      // console.log(res?.playerTypeCount);
       if (res?.status === "INVALID_COMPOSITION") {
         setIsValid(false);
         setTeamComposition(res?.playerTypeCount);
@@ -159,19 +159,25 @@ const YourTeamPlayers = () => {
   };
 
   const updatePriority = async () => {
-    const sliced = playerIds.slice(0, 7);
-
     if (teamId && auctionId && playerIds.length > 0) {
+      isStillLoading(true);
       try {
-        const res = await priorityUpdate(teamId, auctionId, sliced);
+        const res = await priorityUpdate(teamId, auctionId, playerIds);
         if (res) {
           await fetchPlayersBought();
           setIsOrderChanged(false);
+          toast.success("Position(s) updated successfully");
+          isStillLoading(false);
         }
       } catch (error) {
+        isStillLoading(false);
         console.error("Error updating priority order:", error);
         setError("Failed to update player priority");
       }
+    } else {
+      toast.error(
+        "Invalid Update Request! Check team composition or try again!"
+      );
     }
   };
 
@@ -314,12 +320,22 @@ const YourTeamPlayers = () => {
   const [remainingTime, setRemainingTime] = useState(null);
 
   useEffect(() => {
+    // console.log(auction?.endTime)
     if (!auction?.endTime) return;
 
-    const endTime = new Date(auction.endTime);
+    const time = auction.endTime;
+    const adjustedDate = new Date(time);
+    const subtractMilliseconds = (5 * 60 + 30) * 60 * 1000; // 5:30 hours in milliseconds
+    const newTimestamp = new Date(
+      adjustedDate.getTime() - subtractMilliseconds
+    ).toISOString();
+
+    const endTime = new Date(newTimestamp);
+    console.log(time, newTimestamp, "hiii", endTime);
 
     const updateCountdown = () => {
       const currentTime = new Date();
+      // console.log(endTime, currentTime)
       const timeDiff = endTime - currentTime;
 
       if (timeDiff <= 0) {
@@ -344,9 +360,15 @@ const YourTeamPlayers = () => {
     return () => clearInterval(interval);
   }, [auction?.endTime]);
 
+  function isTimeLessThanTenMinutes(remainingTime) {
+    if (!remainingTime) return false;
+    const { days, hours, minutes } = remainingTime;
+    const totalMinutes = days * 24 * 60 + hours * 60 + minutes;
+    return totalMinutes < 10;
+  }
+
   const handleAuctionTime = (auctionEndTime) => {
     if (!auctionEndTime) return null;
-    const endTime = new Date(auctionEndTime);
     const currentTime = new Date();
 
     const formatTime = (date) => {
@@ -362,6 +384,15 @@ const YourTeamPlayers = () => {
 
       return date.toLocaleString("en-US", options);
     };
+
+    const time = auctionEndTime;
+    const adjustedDate = new Date(time);
+    const subtractMilliseconds = (5 * 60 + 30) * 60 * 1000;
+    const newTimestamp = new Date(
+      adjustedDate.getTime() - subtractMilliseconds
+    ).toISOString();
+
+    const endTime = new Date(newTimestamp);
 
     const isAuctionEnded = currentTime > endTime;
 
@@ -384,14 +415,24 @@ const YourTeamPlayers = () => {
         : null,
     };
   };
-  
+
   const truncateText = (text = "", maxLength = 20) => {
     if (!text || typeof text !== "string") return "";
     return text.length > maxLength
       ? `${text.substring(0, maxLength)}...`
       : text;
   };
-  
+
+  function formatToIST(dateString) {
+    if (!dateString) return "Invalid date";
+
+    return new Date(dateString).toLocaleString("en-IN", {
+      timeZone: "UTC",
+      dateStyle: "long",
+      timeStyle: "short",
+    });
+  }
+
   if (isLoading) {
     return (
       <div className="flex flex-col h-dvh lg:h-screen">
@@ -433,7 +474,7 @@ const YourTeamPlayers = () => {
                 <span className="text-sm">
                   {isValid
                     ? "You can change positions of players in your team!"
-                    : "You cannot change positions of players in your team!"}
+                    : null}
                 </span>
               )}
               <div className="text-gray-600">
@@ -447,7 +488,7 @@ const YourTeamPlayers = () => {
             </div>
           ) : (
             <div className="text-red-500 text-sm">
-              Auction ended at {auction?.endTime}. <br />
+              Auction ended at {formatToIST(auction?.endTime)}. <br />
               {isAuthorizedUser && (
                 <span className="text-black font-medium">
                   You cannot change positions of your players now.
@@ -490,6 +531,9 @@ const YourTeamPlayers = () => {
                 auctionDetails.isAuctionEnded === true ||
                 auction?.status === "COMPLETED"
                   ? "bg-red-50 border border-red-200"
+                  : auction?.isEndTimeUpdated === true &&
+                    isTimeLessThanTenMinutes(remainingTime)
+                  ? "bg-yellow-50 border border-yellow-200"
                   : "bg-blue-50 border border-blue-200"
               } 
               p-4 rounded-xl shadow-lg
@@ -509,7 +553,7 @@ const YourTeamPlayers = () => {
                       {auctionDetails.isAuctionEnded === true ||
                       auction?.status === "COMPLETED"
                         ? "Auction is Ended!"
-                        : "Auction is still live!"}
+                        : "Invalid Team Composition!"}
                     </p>
                     <button
                       onClick={() => setShowBanner(false)}
@@ -519,23 +563,42 @@ const YourTeamPlayers = () => {
                     </button>
                   </div>
 
+                  {!auctionDetails.isAuctionEnded && (
+                    <div className="text-gray-600">
+                      Auction will end in{" "}
+                      <span className="font-medium text-red-500">
+                        {" "}
+                        {remainingTime?.days ?? "0"}d{" "}
+                        {remainingTime?.hours ?? "0"}h{" "}
+                        {remainingTime?.minutes ?? "0"}m{" "}
+                        {remainingTime?.seconds ?? "0"}s{" "}
+                      </span>
+                    </div>
+                  )}
+
                   <p
                     className={`text-sm mt-1 ${
                       auctionDetails.isAuctionEnded === true ||
                       auction?.status === "COMPLETED"
                         ? "text-red-600"
+                        : auction?.isEndTimeUpdated === true &&
+                          isTimeLessThanTenMinutes(remainingTime)
+                        ? "text-yellow-700"
                         : "text-blue-600"
                     }`}
                   >
                     {auctionDetails.isAuctionEnded === true ||
                     auction?.status === "COMPLETED"
                       ? "Your team composition is not valid. Your auction has failed."
-                      : "Your team composition is currently not valid. Go to Auction and buy players to make it valid."}
+                      : auction?.isEndTimeUpdated === false &&
+                        !isTimeLessThanTenMinutes(remainingTime)
+                      ? `Go to Auction and buy players to make it valid.`
+                      : "10 minute window is open to update the player's position in your team"}
                   </p>
 
                   <div className="mt-3 flex items-center gap-2 flex-wrap">
                     <div className="text-sm font-medium text-gray-700">
-                      Total Player in Team: {teamData.length}
+                      Total Player in Team: {teamData.length} /11
                     </div>
                     {teamComposition && (
                       <div className="flex gap-2">
@@ -589,11 +652,33 @@ const YourTeamPlayers = () => {
           <button
             className={`${
               !isValid ? "bg-gray-500 cursor-not-allowed" : "bg-blue-800"
-            } rounded-xl py-3 px-6 text-white w-screen`}
+            } rounded-xl py-3 px-6 text-white w-screen disabled:opacity-95`}
             onClick={updatePriority}
-            disabled={!isValid}
+            disabled={!isValid || loading}
           >
-            Update Positions
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                Updating Positions...
+              </span>
+            ) : (
+              "Positions modified, Update"
+            )}
           </button>
         </div>
       )}
