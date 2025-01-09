@@ -706,7 +706,7 @@ const AuctionRoom = () => {
       if (!auctionData?.startTime) return;
 
       const startTime = parseCustomDate(auctionData.startTime);
-      const bufferTime = 10 * 60 * 1000;
+      const bufferTime = 5 * 60 * 1000;
       const now = new Date();
 
       if (now >= new Date(startTime.getTime() + bufferTime)) {
