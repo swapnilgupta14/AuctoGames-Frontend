@@ -319,6 +319,7 @@ const AuctionRoom = () => {
           ...playerDetails?.player,
           ...dataToGet,
           imageUrl: playerDetails?.imageUrl,
+          bonusPoints: playerDetails?.points?.bonus,
         };
 
         if (playerDetails?.highestBidderId === null) {
@@ -995,7 +996,7 @@ const AuctionRoom = () => {
                 </p>
 
                 <p className="border-2 border-b-zinc-200 py-1 px-2 text-end">
-                  Points: {800}
+                  Points: {activePlayer?.bonusPoints ?? 0}
                 </p>
                 <p className="border-2 border-b-zinc-200 py-1 px-2 text-end">
                   Base Price: {currentBid || "N/A"}

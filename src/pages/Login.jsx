@@ -107,7 +107,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-dvh bg-gradient-to-b from-white to-blue-50">
+    <div className="min-h-dvh overflow-clip max-h-dvh bg-gradient-to-b from-white to-blue-50">
       <div className="w-full h-16 flex items-center px-4 shadow-sm bg-white">
         <div
           className="cursor-pointer p-2 hover:bg-gray-100 rounded-full transition-all"
