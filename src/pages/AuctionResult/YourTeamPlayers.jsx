@@ -66,7 +66,7 @@ const PlayerCard = ({
         <div className="text-red-700">
           <p className="text-sm font-semibold text-gray-600">Points</p>
           <p className="font-semibold">
-            {player?.points?.positions[index + 1] + (player?.points ?? 0) ||
+            {player?.points?.positions[index + 1] + (player?.points?.bonus ?? 0) ||
               "0"}
           </p>
         </div>
