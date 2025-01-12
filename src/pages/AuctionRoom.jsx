@@ -462,6 +462,11 @@ const AuctionRoom = () => {
 
   const handleJumpCount = () => {
     if (jump > currentBid && jump <= budget.remaining) {
+      const isCompositionValid = validatePlayerTypeCount(teamComposition);
+      if (!isCompositionValid?.valid) {
+        toast.error(`${isCompositionValid?.message}`);
+        return;
+      }
       handlePlaceBid(jump, "jump");
     } else {
       jump < currentBid &&
@@ -473,6 +478,8 @@ const AuctionRoom = () => {
 
   const [isPulling, setIsPulling] = useState(new Map());
   const pullBackTimeouts = new Map();
+
+  // console.log(participantMapRef.current, "lowkey");
 
   const handlePullBackPlayer = (auctionId, item, playerName) => {
     setIsPulling((prev) => new Map(prev).set(item, true));
