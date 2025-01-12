@@ -15,13 +15,14 @@ const PlayerCard = ({
   index,
   isValid,
   onTouchStart,
+  points,
   onTouchMove,
   onTouchEnd,
   isDragging,
   draggedIndex,
   isAuthorizedUser,
 }) => {
-  // console.log(isAuthorizedUser, "hiii")
+  // console.log(player, "hiii", index+1)
   return (
     <div
       data-player-index={index}
@@ -66,8 +67,7 @@ const PlayerCard = ({
         <div className="text-red-700">
           <p className="text-sm font-semibold text-gray-600">Points</p>
           <p className="font-semibold">
-            {player?.points?.positions[index + 1] + (player?.points?.bonus) ||
-              "0"}
+            {points}
           </p>
         </div>
       </div>
@@ -125,7 +125,7 @@ const YourTeamPlayers = () => {
           (a, b) => (a?.order || 0) - (b?.order || 0)
         );
 
-        // console.log(players);
+        console.log(players, "teammmm");
         setTeamData(players);
         setPlayerIds(players.map((player) => player.id));
         setTeamName(team?.name);
@@ -499,12 +499,13 @@ const YourTeamPlayers = () => {
           )}
         </div>
         {teamData.length > 0 ? (
-          teamData.map((player, index) => (
+          teamData.map((item, index) => (
             <PlayerCard
-              key={player.id}
-              player={player}
+              key={item.id}
+              player={item}
               index={index}
               isValid={isValid}
+              points = {(item.points.positions[index + 1] ?? 0) + (item.points.bonus ?? 0)}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
