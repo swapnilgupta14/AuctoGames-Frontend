@@ -32,7 +32,8 @@ import {
   getAllPLayersInAuction,
   getAllTeamsInAuction,
   checkTeamComposition,
-  updateEndTime,
+  // updateEndTime,
+  // getTeamResultOfAction,
 } from "../api/fetch";
 
 const AuctionRoom = () => {
@@ -346,16 +347,16 @@ const AuctionRoom = () => {
   // ---------------------------------------------------------------
 
   function validatePlayerTypeCount(playerTypeCount) {
-    console.log(activePlayer, "lo jiii karlo check", playerTypeCount);
-
+   
     const ActivePlayerType = activePlayer?.stats?.type;
-    let playerType =
-      ActivePlayerType.split(" ")?.[0] ?? activePlayer?.stats?.type;
+    let playerType = ActivePlayerType.split(" ")?.[0];
 
     if (playerType === "Wicket-Keeper") {
       playerType = "Wicket Keeper";
     } else if (playerType === "All-Rounder") {
       playerType = "All Rounder";
+    } else if (playerType === "Batsmen") {
+      playerType = "Batsman";
     }
 
     const MAX_PLAYERS = 11;
@@ -370,7 +371,7 @@ const AuctionRoom = () => {
       (sum, count) => sum + count,
       0
     );
-    if (totalPlayers > MAX_PLAYERS) {
+    if (totalPlayers >= MAX_PLAYERS) {
       return {
         valid: false,
         message: "Total players exceed the maximum allowed limit of 11.",
@@ -462,11 +463,6 @@ const AuctionRoom = () => {
 
   const handleJumpCount = () => {
     if (jump > currentBid && jump <= budget.remaining) {
-      const isCompositionValid = validatePlayerTypeCount(teamComposition);
-      if (!isCompositionValid?.valid) {
-        toast.error(`${isCompositionValid?.message}`);
-        return;
-      }
       handlePlaceBid(jump, "jump");
     } else {
       jump < currentBid &&
@@ -484,22 +480,23 @@ const AuctionRoom = () => {
   const handlePullBackPlayer = (auctionId, item, playerName) => {
     setIsPulling((prev) => new Map(prev).set(item, true));
     SocketService.emitPullBackPlayer(auctionId, item);
-    const timeoutId = setTimeout(() => {
-      toast.error(`Pull back failed for ${playerName}`);
-      setIsPulling((prev) => {
-        const newMap = new Map(prev);
-        newMap.set(item, false);
-        return newMap;
-      });
-      pullBackTimeouts.delete(item);
-    }, 5000);
-    pullBackTimeouts.set(item, timeoutId);
+    // const timeoutId = setTimeout(() => {
+    //   toast.error(`Pull back failed for ${playerName}`);
+    //   setIsPulling((prev) => {
+    //     const newMap = new Map(prev);
+    //     newMap.set(item, false);
+    //     return newMap;
+    //   });
+    //   pullBackTimeouts.delete(item);
+    // }, 5000);
+    // pullBackTimeouts.set(item, timeoutId);
   };
   // ----------------------------------------------------------
 
   const setupSocketListeners = () => {
     SocketService.onRoomSize((data) => {
-      if (data.roomSize >= 2 && auctionStarted && timeUntilStart === null) {
+      if (data.roomSize >= 2 && auctionStarted) {
+        console.log("hiiiii");
         SocketService.emitGetActivePlayer();
       }
       setRoomSize(data.roomSize);
@@ -507,9 +504,11 @@ const AuctionRoom = () => {
 
     SocketService.onActivePlayer((data) => {
       // setReferenceTime(data?.time);
+
       delayRef.current.time = data?.time;
-      delayRef.current.delay = 22000;
+      delayRef.current.delay = 21000;
       fetchPlayerById(data);
+
       console.log("active player.......", data);
       fetchAllPlayerInAuction();
     });
@@ -722,19 +721,10 @@ const AuctionRoom = () => {
         SocketService.emitGetActivePlayer();
         SocketService.emitGetBudget();
         SocketService.emitGetRoomSize();
-
-        console.log("indside iff sshshhs");
       } else {
-        // console.log(auctionData.startTime, "sshshhs");
-        console.log(now, "sshshhs");
-        console.log(new Date(startTime.getTime() + bufferTime), "sshshhs");
-
         const timeLeft =
           new Date(startTime.getTime() + bufferTime) - now.getTime();
         setTimeUntilStart(Math.max(0, timeLeft));
-
-        console.log(timeLeft, "sshshhs");
-        console.log("indside else sshshhs");
 
         const countdownInterval = setInterval(() => {
           setTimeUntilStart((prevTime) => {
@@ -786,13 +776,40 @@ const AuctionRoom = () => {
     return false;
   };
 
+  // const fetchTeamByUserIdAndAuctionId = async () => {
+  //   if (!userId || !auctionId) {
+  //     return;
+  //   }
+  //   const playerTypeCount = {
+  //     Batsman: 0,
+  //     Bowler: 0,
+  //     "Wicket Keeper": 0,
+  //     "All Rounder": 0,
+  //   };
+
+  //   const res = getTeamResultOfAction(auctionId, userId);
+  //   if (res) {
+  //     console.log(res);
+
+  //     const players = res?.teams[0]?.auctionPlayers;
+  //     if (players.length >= 11) {
+  //       return false;
+  //     }
+
+  //     // const
+  //   }
+  // };
+
   const handlePlaceBid = (amount, type) => {
     if (isUserHighestBidder()) {
       toast.error("You are already the highest bidder!");
       return;
     }
+
+    // const doubleCheckTeamComposition = fetchTeamByUserIdAndAuctionId();
+
     const isCompositionValid = validatePlayerTypeCount(teamComposition);
-    if (!isCompositionValid?.valid) {
+    if (isCompositionValid?.valid !== true) {
       toast.error(`${isCompositionValid?.message}`);
       return;
     }
@@ -801,6 +818,7 @@ const AuctionRoom = () => {
       const timeoutId = setTimeout(() => {
         if (bidPromiseRef.current) {
           bidPromiseRef.current = null;
+          console.log("lo jiii karlo check - timeout");
           reject(new Error("Bid request timed out. Please try again."));
         }
       }, 10000);

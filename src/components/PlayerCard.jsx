@@ -13,7 +13,7 @@ const PlayerCard = ({
   const auctionId = location?.state?.auction?.id;
 
   return (
-    <div className="w-full shadow-2xl bg-white px-4 py-2 my-2 rounded-xl flex items-center gap-4 justify-between border border-gray-200">
+    <div className="w-full shadow-2xl bg-white px-4 py-2 my-2 rounded-xl flex  gap-4 justify-between border border-gray-200">
       <div className="flex gap-3 items-center">
         <div>
           <div className="bg-zinc-200 w-14 h-14 rounded-full border-black border-2 overflow-hidden">
@@ -70,21 +70,29 @@ const PlayerCard = ({
         </div>
       </div>
 
-      {tabType === "Your Team" && (
-        <div>
-          <p className="font-medium">{item.type}</p>
-          <p className="text-xs">({item.order})</p>
+      {tabType === "My Team" && (
+        <div className="flex self-end h-full">
+          <p className="font-medium text-xs text-right">{item.type}</p>
+          {/* <p className="text-xs">({item.order})</p> */}
         </div>
       )}
 
       {tabType === "pullback" &&
         item.status === "unsold" &&
         item.highestBidderId === null && (
-          <div>
+          <div className="self-center">
             <button
-              className={` py-1 px-3 rounded-2xl text-white flex items-center justify-center w-full ${pulling.get(item?.auctionPlayerId) ? "bg-gray-600" : "bg-blue-700"}`}
+              className={` py-1 px-3 rounded-2xl text-white flex items-center justify-center w-full ${
+                pulling.get(item?.auctionPlayerId)
+                  ? "bg-gray-600"
+                  : "bg-blue-700"
+              }`}
               onClick={() => {
-                handlePullBackPlayer(auctionId, item?.auctionPlayerId, item?.playerName);
+                handlePullBackPlayer(
+                  auctionId,
+                  item?.auctionPlayerId,
+                  item?.playerName
+                );
               }}
             >
               {pulling.get(item?.auctionPlayerId) ? "WAIT.." : "PULL"}

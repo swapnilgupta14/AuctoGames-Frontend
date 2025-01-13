@@ -23,6 +23,7 @@ const PlayerCard = ({
   isAuthorizedUser,
 }) => {
   // console.log(player, "hiii", index+1)
+
   return (
     <div
       data-player-index={index}
@@ -56,19 +57,17 @@ const PlayerCard = ({
         <div>
           <p className="font-medium text-md">{player?.player?.name || "N/A"}</p>
           <p className="text-red-700 font-semibold text-xs">
-            Sold for - {player?.currentBid || "N/A"}Cr
+            Sold for - {(player?.currentBid + "Cr")}
           </p>
           <p className="text-blue-700 font-semibold text-xs">
-            Base Price - {player?.startingBid || "N/A"}Cr
+            {player?.player?.stats?.type || "Player Type N/A"}
           </p>
         </div>
       </div>
       <div className="flex items-center justify-between gap-4">
         <div className="text-red-700">
           <p className="text-sm font-semibold text-gray-600">Points</p>
-          <p className="font-semibold">
-            {points}
-          </p>
+          <p className="font-semibold">{points}</p>
         </div>
       </div>
     </div>
@@ -505,7 +504,10 @@ const YourTeamPlayers = () => {
               player={item}
               index={index}
               isValid={isValid}
-              points = {(item.points.positions[index + 1] ?? 0) + (item.points.bonus ?? 0)}
+              points={
+                (item.points.positions[index + 1] ?? 0) +
+                (item.points.bonus ?? 0)
+              }
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
