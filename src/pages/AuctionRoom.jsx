@@ -1104,7 +1104,7 @@ const AuctionRoom = () => {
                           src={
                             teamImageMap[bid?.userId.toString()]?.[0] !== "#"
                               ? teamImageMap[bid?.userId.toString()]?.[0]
-                              : "https://via.placeholder.com/50"
+                              : "https://placehold.co/600x400"
                           }
                           // alt={`${bid?.team} logo`}
                           className="w-8 h-8 rounded-full"

@@ -36,9 +36,10 @@ const MyProfile = () => {
     const file = e.target.files[0];
     if (file) {
       setImagePreview(URL.createObjectURL(file));
+      const imgP = URL.createObjectURL(file);
       setLoading(true);
       try {
-        await uploadProfilePhoto(userId, file);
+        await uploadProfilePhoto(userId, imgP);
       } catch (error) {
         console.error("Upload failed:", error);
       } finally {
@@ -57,7 +58,7 @@ const MyProfile = () => {
         // For example: await uploadQRCode(userId, file);
         console.log("QR Upload:", file);
         // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (error) {
         console.error("QR Upload failed:", error);
       } finally {
@@ -91,7 +92,7 @@ const MyProfile = () => {
 
       <main className="container mx-auto px-4 py-6 max-w-xl">
         {/* Profile Section */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-4">
+        <div className="p-3 mb-4">
           <div className="flex flex-col items-center">
             <div className="relative">
               <button
@@ -133,11 +134,11 @@ const MyProfile = () => {
         </div>
 
         {/* Payment Methods Section */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-4">
+        <div className="bg-white rounded-xl shadow-md p-4 mb-4">
           <h3 className="text-lg font-semibold mb-4 text-gray-900">
             Payment Methods
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {[
               {
                 icon: QrCode,
