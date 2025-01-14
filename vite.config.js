@@ -7,7 +7,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
+      includeAssets: [
+        "favicon.ico",
+        "apple-touch-icon.png",
+        "masked-icon.svg",
+      ],
       manifest: {
         name: "Aucto Games",
         short_name: "Aucto",
@@ -17,12 +21,12 @@ export default defineConfig({
         display: "standalone",
         icons: [
           {
-            src: "/vite.svg", // Make sure to update these with actual icon paths
+            src: "/vite-192x192.png",
             sizes: "192x192",
             type: "image/png",
           },
           {
-            src: "/vite.svg", // Make sure to update these with actual icon paths
+            src: "/vite-512x512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "any maskable",
@@ -33,7 +37,7 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         runtimeCaching: [
           {
-            // Main API endpoint caching
+            // Cache main API endpoint
             urlPattern:
               /^https:\/\/server\.rishabh17704\.workers\.dev\/api\/.*/i,
             handler: "NetworkFirst",
@@ -41,30 +45,29 @@ export default defineConfig({
               cacheName: "main-api-cache",
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24, // 24 hours
+                maxAgeSeconds: 24 * 60 * 60, // 1 day
               },
               networkTimeoutSeconds: 10,
               cacheableResponse: {
-                statuses: [0, 200], // Cache successful responses and CORS responses
+                statuses: [0, 200],
               },
               matchOptions: {
-                ignoreSearch: false, // Consider query parameters in the cache key
+                ignoreSearch: false,
               },
             },
           },
           {
-            // Admin API endpoint caching (might want different caching strategy)
+            // Admin API routes (no cache, adjusted to remove networkTimeoutSeconds)
             urlPattern:
               /^https:\/\/server\.rishabh17704\.workers\.dev\/api\/admin\/.*/i,
-            handler: "NetworkOnly", // Admin routes typically shouldn't be cached
+            handler: "NetworkOnly",
             options: {
               cacheName: "admin-api-cache",
-              networkTimeoutSeconds: 10,
             },
           },
           {
-            // Cache static assets from CDNs or external sources
-            urlPattern: /^https:\/\/.*\.(png|jpg|jpeg|svg|gif)$/,
+            // Cache external image assets
+            urlPattern: /^https:\/\/.*\.(png|jpg|jpeg|svg|gif)$/i,
             handler: "CacheFirst",
             options: {
               cacheName: "external-assets",
@@ -81,6 +84,18 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    chunkSizeWarningLimit: 1000, // Increase limit to suppress warnings
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Code splitting for large dependencies
+          react: ["react", "react-dom"],
+          vendor: ["axios"], // Add more as needed
+        },
+      },
+    },
+  },
   server: {
     port: 5174,
   },
