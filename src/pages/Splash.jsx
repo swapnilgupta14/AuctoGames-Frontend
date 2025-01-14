@@ -1,8 +1,28 @@
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import splashImg from "../assets/Rectangle 1.svg";
 
 const Splash = () => {
   const navigate = useNavigate();
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallButton(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt
+      );
+    };
+  }, []);
 
   const handleGetStarted = () => {
     const token = localStorage.getItem("shopCoToken");
@@ -10,6 +30,20 @@ const Splash = () => {
       navigate("/home");
     } else {
       navigate("/signup");
+    }
+  };
+
+  const handleInstallApp = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const choiceResult = await deferredPrompt.userChoice;
+      if (choiceResult.outcome === "accepted") {
+        console.log("App installed");
+      } else {
+        console.log("App installation declined");
+      }
+      setDeferredPrompt(null);
+      setShowInstallButton(false);
     }
   };
 
@@ -36,6 +70,14 @@ const Splash = () => {
         >
           Get Started
         </button>
+        {showInstallButton && (
+          <button
+            className="w-full max-w-[95%] bg-[#FFD700] text-[#050F40] py-3 rounded-3xl font-bold text-[4vw] md:text-[18px]"
+            onClick={handleInstallApp}
+          >
+            Install Now
+          </button>
+        )}
       </div>
     </div>
   );
