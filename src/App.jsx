@@ -28,6 +28,8 @@ import MyAuctions from "./pages/MyAuctions";
 import TeamsPage from "./pages/TeamsPage";
 const Admin = lazy(() => import("./admin"));
 
+import PWAPrompt from "./components/PWAPrompt";
+
 const PAGE_TITLES = {
   "/home": "Home",
   "/login": "Login",
@@ -192,6 +194,7 @@ function App() {
         />
       </Routes>
       <Toaster />
+      <PWAPrompt />
     </div>
   );
 }
