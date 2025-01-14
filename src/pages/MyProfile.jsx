@@ -2,14 +2,19 @@ import React, { useState } from "react";
 import {
   User,
   LogOut,
-  History,
-  RefreshCw,
   CreditCard,
-  Settings,
+  Camera,
+  X,
+  QrCode,
+  Phone,
+  Wallet,
+  ChevronRight,
+  Upload,
+  Eye,
+  Loader2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import userIcon from "../assets/user (2).png";
 import { uploadProfilePhoto } from "../api/fetch";
 import { useSelector } from "react-redux";
 
@@ -17,32 +22,53 @@ const MyProfile = () => {
   const navigate = useNavigate();
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [uploadingQR, setUploadingQR] = useState(false);
+  const [showProfileOptions, setShowProfileOptions] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPaymentType, setSelectedPaymentType] = useState(null);
+  const [showFullProfile, setShowFullProfile] = useState(false);
+
   const { userId } = useSelector((state) => state.user);
   const user = useSelector((state) => state.user);
-console.log(user)
   const username = localStorage.getItem("email") || "User";
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
       setImagePreview(URL.createObjectURL(file));
+      setLoading(true);
+      try {
+        await uploadProfilePhoto(userId, file);
+      } catch (error) {
+        console.error("Upload failed:", error);
+      } finally {
+        setLoading(false);
+        setShowProfileOptions(false);
+      }
     }
   };
 
-  const handleUpload = async () => {
-    if (!imagePreview) {
-      alert("Please select an image first.");
-      return;
+  const handleQRUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setUploadingQR(true);
+      try {
+        // Add your QR upload logic here
+        // For example: await uploadQRCode(userId, file);
+        console.log("QR Upload:", file);
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        console.error("QR Upload failed:", error);
+      } finally {
+        setUploadingQR(false);
+      }
     }
-    setLoading(true);
-    try {
-      await uploadProfilePhoto(userId, imagePreview);
-      alert("Profile photo uploaded successfully!");
-    } catch (error) {
-      alert("Failed to upload profile photo. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+  };
+
+  const handlePaymentClick = (type) => {
+    setSelectedPaymentType(type);
+    setShowPaymentModal(true);
   };
 
   const handleLogout = () => {
@@ -53,100 +79,259 @@ console.log(user)
     navigate("/");
   };
 
-  const ProfileActionButton = ({
-    icon: Icon,
-    text,
-    onClick,
-    className = "",
-  }) => (
-    <button
-      onClick={onClick}
-      className={`flex items-center justify-start w-full p-3 rounded-lg hover:bg-gray-100 transition-colors group ${className}`}
-    >
-      <Icon
-        className="mr-3 text-gray-500 group-hover:text-gray-700"
-        size={20}
-      />
-      <span className="text-gray-700 group-hover:text-gray-900 font-medium">
-        {text}
-      </span>
-    </button>
-  );
+  const staticPaymentData = {
+    upiId: "user@upi",
+    phone: "+91 9876543210",
+    qrCode: "static-qr-code",
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header heading="My Profile" />
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
+      <main className="container mx-auto px-4 py-6 max-w-xl">
+        {/* Profile Section */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-4">
           <div className="flex flex-col items-center">
-            <div className="relative w-24 h-24 mb-4">
-              <img
-                src={user?.imageUrl || imagePreview || userIcon}
-                alt="Profile"
-                className="w-full h-full rounded-full object-cover border border-gray-200"
-              />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="absolute inset-0 opacity-0 cursor-pointer"
-              />
-              <div className="absolute bottom-0 right-0 bg-gray-200 rounded-full p-1">
-                <User className="text-gray-600" size={16} />
-              </div>
+            <div className="relative">
+              <button
+                onClick={() => setShowProfileOptions(true)}
+                className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200 hover:opacity-90 transition-opacity"
+              >
+                {imagePreview || user?.imageUrl ? (
+                  <img
+                    src={imagePreview || user?.imageUrl}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                    <User className="w-8 h-8 text-gray-400" />
+                  </div>
+                )}
+                {loading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-white"></div>
+                  </div>
+                )}
+              </button>
+              <button
+                onClick={() => setShowProfileOptions(true)}
+                className="absolute bottom-0 right-0 p-2 bg-blue-600 rounded-full text-white shadow-lg hover:bg-blue-700"
+              >
+                <Camera className="w-4 h-4" />
+              </button>
             </div>
-            <h2 className="text-xl font-semibold text-gray-800">{username}</h2>
-            <button
-              onClick={handleUpload}
-              disabled={loading}
-              className={`mt-4 px-6 py-2 rounded-md flex items-center ${
-                loading
-                  ? "bg-gray-200 text-gray-500"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              {loading ? "Uploading..." : "Update Profile Photo"}
-            </button>
+
+            <div className="mt-4 text-center">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {user.username || username}
+              </h2>
+              <p className="text-gray-500 text-sm mt-1">{user.email}</p>
+            </div>
           </div>
         </div>
 
-        {/* Profile Actions */}
-        <div className="bg-white shadow-sm rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">
-            Account Actions
+        {/* Payment Methods Section */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-4">
+          <h3 className="text-lg font-semibold mb-4 text-gray-900">
+            Payment Methods
           </h3>
-          <div className="space-y-2">
-            <ProfileActionButton
-              icon={History}
-              text="Bid History"
-              onClick={() => {
-                /* Navigate to bid history */
-              }}
-            />
-            <ProfileActionButton
-              icon={CreditCard}
-              text="Payment Methods"
-              onClick={() => {
-                /* Navigate to payment methods */
-              }}
-            />
-            <ProfileActionButton
-              icon={Settings}
-              text="Account Settings"
-              onClick={() => {
-                /* Navigate to account settings */
-              }}
-            />
-            <ProfileActionButton
-              icon={LogOut}
-              text="Logout"
-              onClick={handleLogout}
-              className="hover:bg-red-50"
-            />
+          <div className="space-y-3">
+            {[
+              {
+                icon: QrCode,
+                title: "QR Code",
+                subtitle: "Manage payment QR",
+                type: "qr",
+              },
+              {
+                icon: Wallet,
+                title: "UPI ID",
+                subtitle: staticPaymentData.upiId,
+                type: "upi",
+              },
+              {
+                icon: Phone,
+                title: "Phone Number",
+                subtitle: staticPaymentData.phone,
+                type: "phone",
+              },
+            ].map((item) => (
+              <button
+                key={item.type}
+                onClick={() => handlePaymentClick(item.type)}
+                className="w-full flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <item.icon className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div className="text-left">
+                    <h4 className="font-medium text-gray-900">{item.title}</h4>
+                    <p className="text-gray-500 text-sm">{item.subtitle}</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </button>
+            ))}
           </div>
         </div>
-      </div>
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="w-full mt-4 p-4 flex items-center justify-center gap-2 text-red-600 bg-white rounded-xl shadow-sm hover:bg-red-50 transition-colors font-medium"
+        >
+          <LogOut className="w-5 h-5" />
+          <span>Logout</span>
+        </button>
+
+        {/* Profile Options Bottom Sheet */}
+        {showProfileOptions && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
+            <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Profile Picture
+                </h3>
+                <button
+                  onClick={() => setShowProfileOptions(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <button
+                  onClick={() => {
+                    setShowFullProfile(true);
+                    setShowProfileOptions(false);
+                  }}
+                  className="w-full p-4 text-left hover:bg-gray-50 rounded-xl flex items-center gap-3 text-gray-700"
+                >
+                  <Eye className="w-5 h-5 text-gray-600" />
+                  <span className="font-medium">View Profile Picture</span>
+                </button>
+                <label className="block w-full p-4 text-left hover:bg-gray-50 rounded-xl flex items-center gap-3 text-gray-700 cursor-pointer">
+                  <Upload className="w-5 h-5 text-gray-600" />
+                  <span className="font-medium">Upload New Picture</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Full Profile Picture Modal */}
+        {showFullProfile && (
+          <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+            <div className="relative w-full max-w-2xl mx-4">
+              <button
+                onClick={() => setShowFullProfile(false)}
+                className="absolute top-4 right-4 p-2 text-white hover:bg-white/10 rounded-full"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <img
+                src={imagePreview || user?.imageUrl}
+                alt="Profile"
+                className="w-full h-auto rounded-lg"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Payment Modal */}
+        {showPaymentModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div className="bg-white rounded-xl p-4 w-11/12 max-w-md mx-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {selectedPaymentType === "qr"
+                    ? "QR Code"
+                    : selectedPaymentType === "upi"
+                    ? "UPI ID"
+                    : "Phone Number"}
+                </h3>
+                <button
+                  onClick={() => setShowPaymentModal(false)}
+                  className="p-1.5 hover:bg-gray-100 rounded-full"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {selectedPaymentType === "qr" && (
+                  <div className="space-y-4">
+                    <div className="flex justify-center p-4 bg-gray-50 rounded-lg">
+                      <QrCode className="w-40 h-40 text-gray-800" />
+                    </div>
+                    <div className="flex gap-2">
+                      <label className="flex-1">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleQRUpload}
+                          className="hidden"
+                          disabled={uploadingQR}
+                        />
+                        <div className="w-full p-2.5 bg-blue-50 text-blue-600 rounded-lg text-center text-sm font-medium hover:bg-blue-100 cursor-pointer">
+                          {uploadingQR ? (
+                            <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                          ) : (
+                            "Upload New QR"
+                          )}
+                        </div>
+                      </label>
+                      <button
+                        className="flex-1 p-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                        disabled={uploadingQR}
+                      >
+                        Update
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {selectedPaymentType === "upi" && (
+                  <>
+                    <input
+                      type="text"
+                      defaultValue={staticPaymentData.upiId}
+                      className="w-full p-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter UPI ID"
+                    />
+                    <button className="w-full p-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+                      Update
+                    </button>
+                  </>
+                )}
+
+                {selectedPaymentType === "phone" && (
+                  <>
+                    <input
+                      type="tel"
+                      defaultValue={staticPaymentData.phone}
+                      className="w-full p-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter phone number"
+                    />
+                    <button className="w-full p-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+                      Update
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 };

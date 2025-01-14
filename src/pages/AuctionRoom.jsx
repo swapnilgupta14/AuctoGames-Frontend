@@ -32,6 +32,7 @@ import {
   getAllPLayersInAuction,
   getAllTeamsInAuction,
   checkTeamComposition,
+  updateEndTime,
   // updateEndTime,
   // getTeamResultOfAction,
 } from "../api/fetch";
@@ -79,6 +80,12 @@ const AuctionRoom = () => {
   const [value, setValue] = useState(2);
   const [teamComposition, setTeamComposition] = useState(null);
 
+  // const [auctionStarted, setAuctionStarted] = useState(false);
+
+  const auctionStarted = useRef(false);
+  const [timeUntilStart, setTimeUntilStart] = useState(null);
+  const [isDisabled, setIsDisabled] = useState(false);
+
   const getComposition = async (teamId) => {
     try {
       const res = await checkTeamComposition(teamId);
@@ -122,20 +129,20 @@ const AuctionRoom = () => {
 
   useEffect(() => {
     if (auctionData?.participants) {
-      const shouldUpdate = auctionData.participants.some(
-        (participant) =>
-          participantMapRef.current[participant.id] !== participant.username
-      );
+      // const shouldUpdate = auctionData.participants.some(
+      //   (participant) =>
+      //     participantMapRef.current[participant.id] !== participant.username
+      // );
 
-      if (shouldUpdate) {
-        participantMapRef.current = auctionData.participants.reduce(
-          (acc, participant) => {
-            acc[participant.id] = participant.username;
-            return acc;
-          },
-          {}
-        );
-      }
+      // if (shouldUpdate) {
+      participantMapRef.current = auctionData.participants.reduce(
+        (acc, participant) => {
+          acc[participant.id] = participant.username;
+          return acc;
+        },
+        {}
+      );
+      // }
     }
   }, [auctionData]);
 
@@ -347,7 +354,6 @@ const AuctionRoom = () => {
   // ---------------------------------------------------------------
 
   function validatePlayerTypeCount(playerTypeCount) {
-   
     const ActivePlayerType = activePlayer?.stats?.type;
     let playerType = ActivePlayerType.split(" ")?.[0];
 
@@ -495,7 +501,8 @@ const AuctionRoom = () => {
 
   const setupSocketListeners = () => {
     SocketService.onRoomSize((data) => {
-      if (data.roomSize >= 2 && auctionStarted) {
+      console.log("hiiiii");
+      if (data.roomSize >= 2 && auctionStarted.current === true) {
         console.log("hiiiii");
         SocketService.emitGetActivePlayer();
       }
@@ -517,14 +524,20 @@ const AuctionRoom = () => {
       console.log("onAskNewPlayer timeee", data);
       if (data?.status === "SOLD") {
         SocketService.emitGetActivePlayer();
+        let name = auctionPlayers?.find((it) => it.id == data?.auctionPlayerId)
+          ?.player.name;
+        if (!name) name = data?.auctionPlayerId;
         toast.success(
-          `${data?.auctionPlayerId} is Sold Successfully to ${
+          `${name} is Sold Successfully to ${
             participantMapRef.current[data?.userId] || data?.userId
           }`
         );
       } else if (data?.status === "UNSOLD") {
         SocketService.emitGetActivePlayer();
-        toast.error(`${data?.auctionPlayerId} is unsold!`);
+        let name = auctionPlayers?.find((it) => it.id == data?.auctionPlayerId)
+          ?.player.name;
+        if (!name) name = data?.auctionPlayerId;
+        toast.error(`${name} is unsold!`);
       }
       SocketService.emitGetPlayerCount();
     });
@@ -627,6 +640,7 @@ const AuctionRoom = () => {
           delayRef.current.time = data?.timestamp;
           delayRef.current.delay = data.delay - 1000;
         }
+        setIsDisabled(false);
         toast.success(`${data.amount}Cr Bid is placed`);
       }
 
@@ -679,9 +693,6 @@ const AuctionRoom = () => {
 
   // ----------------------------------------
 
-  const [auctionStarted, setAuctionStarted] = useState(false);
-  const [timeUntilStart, setTimeUntilStart] = useState(null);
-
   useEffect(() => {
     const initializeSocket = async () => {
       try {
@@ -717,7 +728,7 @@ const AuctionRoom = () => {
       const now = new Date();
 
       if (now >= new Date(startTime.getTime() + bufferTime)) {
-        setAuctionStarted(true);
+        auctionStarted.current = true;
         SocketService.emitGetActivePlayer();
         SocketService.emitGetBudget();
         SocketService.emitGetRoomSize();
@@ -732,7 +743,7 @@ const AuctionRoom = () => {
 
             if (newTime === 0) {
               clearInterval(countdownInterval);
-              setAuctionStarted(true);
+              auctionStarted.current = true;
               SocketService.emitGetActivePlayer();
               SocketService.emitGetBudget();
             }
@@ -801,7 +812,9 @@ const AuctionRoom = () => {
   // };
 
   const handlePlaceBid = (amount, type) => {
+    setIsDisabled(true);
     if (isUserHighestBidder()) {
+      setIsDisabled(false);
       toast.error("You are already the highest bidder!");
       return;
     }
@@ -810,6 +823,7 @@ const AuctionRoom = () => {
 
     const isCompositionValid = validatePlayerTypeCount(teamComposition);
     if (isCompositionValid?.valid !== true) {
+      setIsDisabled(false);
       toast.error(`${isCompositionValid?.message}`);
       return;
     }
@@ -845,8 +859,14 @@ const AuctionRoom = () => {
       promise,
       {
         loading: "Placing your bid...",
-        success: (data) => `${data.amount}Cr Bid is Placed!`,
-        error: (err) => err.message || "Bid placement failed!",
+        success: (data) => {
+          setIsDisabled(false);
+          return `${data.amount}Cr Bid is Placed!`;
+        },
+        error: (err) => {
+          setIsDisabled(false);
+          return err.message || "Bid placement failed!";
+        },
       },
       {
         success: { duration: 4000 },
@@ -855,6 +875,7 @@ const AuctionRoom = () => {
     );
 
     promise.catch((err) => {
+      setIsDisabled(false);
       console.error("Bid placement failed:", err);
     });
   };
@@ -897,36 +918,36 @@ const AuctionRoom = () => {
     }
   };
 
-  // useEffect(() => {
-  //   const updateAuctionEndTime = async (auctionId) => {
-  //     try {
-  //       const response = await updateEndTime(auctionId);
-  //       if (response) {
-  //         console.log("EndTime Updated", response);
-  //       }
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   };
+  const updateAuctionEndTime = async (auctionId) => {
+    try {
+      const response = await updateEndTime(auctionId);
+      if (response) {
+        console.log("EndTime Updated", response);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-  //   if (
-  //     auctionId &&
-  //     arePlayerRegistered !== 0 &&
-  //     remainingPlayers < 1 &&
-  //     isConnected &&
-  //     auctionData?.isEndTimeUpdated === false
-  //   ) {
-  //     updateAuctionEndTime(auctionId);
-  //   }
-  // }, [
-  //   arePlayerRegistered,
-  //   remainingPlayers,
-  //   isConnected,
-  //   auctionId,
-  //   auctionData?.isEndTimeUpdated,
-  // ]);
+  useEffect(() => {
+    if (
+      auctionId &&
+      arePlayerRegistered !== 0 &&
+      remainingPlayers <= 1 &&
+      isConnected &&
+      auctionData?.isEndTimeUpdated === false
+    ) {
+      updateAuctionEndTime(auctionId);
+    }
+  }, [
+    arePlayerRegistered,
+    remainingPlayers,
+    isConnected,
+    auctionId,
+    auctionData?.isEndTimeUpdated,
+  ]);
 
-  if (!auctionStarted && timeUntilStart !== null) {
+  if (auctionStarted.current !== true && timeUntilStart !== null) {
     // Convert timeUntilStart to HH:MM:SS format
     // console.log(timeUntilStart, "sshshhs");
     const hours = Math.floor(timeUntilStart / (1000 * 60 * 60));
@@ -1082,7 +1103,7 @@ const AuctionRoom = () => {
                         <img
                           src={
                             teamImageMap[bid?.userId.toString()]?.[0] !== "#"
-                              ? teamImageMap[bid?.userId.toString()][0]
+                              ? teamImageMap[bid?.userId.toString()]?.[0]
                               : "https://via.placeholder.com/50"
                           }
                           // alt={`${bid?.team} logo`}
@@ -1199,10 +1220,19 @@ const AuctionRoom = () => {
                 </button>
 
                 <button
-                  onClick={handleJumpClick}
-                  disabled={budget.remaining < jump || isUserHighestBidder()}
+                  onClick={() => {
+                    // handleClick();
+                    handleJumpClick();
+                  }}
+                  disabled={
+                    isDisabled === true ||
+                    budget.remaining < jump ||
+                    isUserHighestBidder()
+                  }
                   className={`flex-1/4 mx-1 ${
-                    budget.remaining < jump || isUserHighestBidder()
+                    isDisabled ||
+                    budget.remaining < jump ||
+                    isUserHighestBidder()
                       ? `bg-blue-400 cursor-not-allowed`
                       : `bg-blue-700`
                   } text-white py-2 px-3 rounded-3xl flex items-center justify-between gap-1 text-center text-sm sm:text-base font-semibold`}
@@ -1312,15 +1342,22 @@ const AuctionRoom = () => {
                 )}
 
                 <button
-                  onClick={() =>
+                  onClick={() => {
+                    // handleClick();
                     handlePlaceBid(
                       currentBid < 5 && currentBid >= 0 ? 0.25 : 0.5,
                       "increment"
-                    )
+                    );
+                  }}
+                  disabled={
+                    isDisabled === true ||
+                    budget.remaining < 1 ||
+                    isUserHighestBidder()
                   }
-                  disabled={budget.remaining < 1 || isUserHighestBidder()}
                   className={`flex-1/4 mx-1 ${
-                    budget.remaining < 1 || isUserHighestBidder()
+                    isDisabled === true ||
+                    budget.remaining < 1 ||
+                    isUserHighestBidder()
                       ? `bg-blue-400 cursor-not-allowed`
                       : `bg-blue-700`
                   } text-white py-2 px-3 rounded-3xl text-center text-sm sm:text-base flex items-center justify-between gap-1 font-semibold`}

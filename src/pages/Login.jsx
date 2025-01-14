@@ -53,7 +53,7 @@ const Login = () => {
       }
 
       if (finalRes.status === 201) {
-        const { user, token } = finalRes;
+        const { user, token, imageUrl, role } = finalRes;
         localStorage.setItem("shopCoToken", finalRes.token);
         localStorage.setItem("userId", finalRes.user.id);
         localStorage.setItem("email", finalRes.user.email);
@@ -62,12 +62,15 @@ const Login = () => {
           Date.now() + finalRes?.session_timeout * 60 * 1000;
         localStorage.setItem("SessionExpiryTime", sessionExpiryTime.toString());
 
+        console.log(finalRes);
         dispatch(
           setUser({
             userId: finalRes.user.id,
             email: user.email,
             username: user.username,
             token,
+            imageUrl : user.imageUrl,
+            role: user.role,
           })
         );
         toast.success("loggedIn successfully");
