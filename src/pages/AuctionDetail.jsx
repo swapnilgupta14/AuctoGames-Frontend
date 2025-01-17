@@ -261,11 +261,18 @@ const AuctionDetail = () => {
     );
   };
 
+  const truncateText = (text = "", maxLength = 24) => {
+    if (!text || typeof text !== "string") return "";
+    return text.length > maxLength
+      ? `${text.substring(0, maxLength)}...`
+      : text;
+  };
+
   return (
     <div className="relative pb-20">
       {renderValidationPopup()}
 
-      <Header heading={"Upcoming Auction"}></Header>
+      <Header heading={truncateText(auction.title)}></Header>
 
       <div className="p-4 relative">
         <div className="w-full h-64">

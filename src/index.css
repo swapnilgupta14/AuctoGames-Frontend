@@ -12,5 +12,23 @@
 
 body,
 html {
-    font-family: "Poppins", serif;
+  font-family: "Poppins", serif;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.animate-confetti-fall {
+  animation: confettiFall 4s linear infinite;
 }

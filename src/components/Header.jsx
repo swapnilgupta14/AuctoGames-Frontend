@@ -52,14 +52,14 @@ const Header = ({ heading, backAllowed = true, homeAllowed = true }) => {
   return (
     <div>
       {/* Header */}
-      <div className="w-full h-[65px] border border-black bg-[#1F41BB] flex justify-between items-center px-4">
+      <div className="w-full h-[65px] border border-black bg-[#1F41BB] flex justify-between items-center px-4 z-20">
         {backAllowed && (
           <div>
             <img
               src={rightArr}
               alt="Back"
               className="w-[14px] h-[16px]"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/home")}
             />
           </div>
         )}

@@ -43,6 +43,15 @@ const AuctionRoom = () => {
   const bidPromiseRef = useRef(null);
   const delayRef = useRef({ time: null, delay: null });
   const latestHighestBidderRef = useRef(null);
+  const { auction } = location.state;
+  // console.log(auction)
+
+  const truncateText = (text = "", maxLength = 24) => {
+    if (!text || typeof text !== "string") return "";
+    return text.length > maxLength
+      ? `${text.substring(0, maxLength)}...`
+      : text;
+  };
 
   const auctionId = location?.state?.auction?.id;
 
@@ -966,7 +975,7 @@ const AuctionRoom = () => {
 
     return (
       <div className="flex flex-col h-dvh lg:h-screen">
-        <Header heading={`Auction Room #${auctionId}`}></Header>
+        <Header heading={`Room - ${truncateText(auction?.title)}`}></Header>
         <div className="flex-1 flex flex-col items-center justify-center space-y-4 p-8">
           <h2 className="text-2xl font-semibold text-blue-900">
             Auction Lobby
@@ -1015,9 +1024,8 @@ const AuctionRoom = () => {
 
   return (
     <div className="flex flex-col h-dvh lg:h-screen">
-      <Header heading={`Auction Room #${auctionId}`}>
+        <Header heading={`Room - ${truncateText(auction?.title)}`}></Header>
         {/* <ConnectionStatus /> */}
-      </Header>
 
       {remainingPlayers > 0 && roomSize >= 2 ? (
         <div className="flex-1 w-full font-sans flex flex-col items-center justify-between relative">
