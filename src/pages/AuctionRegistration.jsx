@@ -4,7 +4,10 @@ import { useSelector } from "react-redux";
 import { Upload, AlertCircle, Trash2, ImagePlus, X } from "lucide-react";
 import Header from "../components/Header";
 import heroImg from "../assets/image 1.png";
-import { submitRegistrationRequest } from "../api/fetch";
+import {
+  submitRegistrationRequest,
+  validateAuctionRegistration,
+} from "../api/fetch";
 
 const AuctionRegistration = () => {
   const { username, token, userId } = useSelector((state) => state.user);
@@ -76,6 +79,28 @@ const AuctionRegistration = () => {
     setErrors(newErrors);
   };
 
+  const validateUser = async (auctionId, userId) => {
+    try {
+      const res = await validateAuctionRegistration(Number(auctionId), userId);
+      let status = "error";
+
+      if (res?.status === "REGISTERED") {
+        status = "success";
+      } else if (res?.status === "ELIGIBLE") {
+        status = "not_registered";
+      } else if (res?.status === "INSUFFICIENT_BALANCE") {
+        status = "insufficient_balance";
+      } else if (res?.status === "COMPLETED") {
+        status = "ENDED";
+      } else {
+        status = "ineligible";
+      }
+      return status;
+    } catch (error) {
+      console.error("Validation error:", error);
+    }
+  };
+
   const [auctionStatus, setAuctionStatus] = useState(null);
   const openModal = (type, message, status) => {
     setModalType(type);
@@ -90,11 +115,18 @@ const AuctionRegistration = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+
+    const state = await validateUser(auction.id, userId);
+    if (state === "success") {
+      openModal("error", "You are already registered", "ERROR");
+      setIsSubmitting(false);
+      return;
+    }
 
     if (!validateForm()) {
       return;
     }
-    setIsSubmitting(true);
 
     try {
       const formData = new FormData();
