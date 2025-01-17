@@ -7,7 +7,7 @@ import aucLogo from "../assets/pl logo.svg";
 import chevronRight from "../assets/chevron-circle-right-Regular.svg";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import { Calendar, Hammer, HouseIcon } from "lucide-react";
+import { Calendar, ChevronRight, Hammer, HouseIcon, Image } from "lucide-react";
 
 const carouselStyles = {
   container:
@@ -375,29 +375,6 @@ const Home = () => {
       )}
 
       <div className="my-3 px-3">
-        <div className="flex mb-4 bg-gray-100 p-1 rounded-lg text-sm">
-          <button
-            className={`flex-1 py-2 rounded-lg transition-all ${
-              selectedTab === "SCHEDULED"
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-gray-600"
-            }`}
-            onClick={() => handleTabChange("SCHEDULED")}
-          >
-            Scheduled
-          </button>
-          <button
-            className={`flex-1 py-2 rounded-lg transition-all ${
-              selectedTab === "COMPLETED"
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-gray-600"
-            }`}
-            onClick={() => handleTabChange("COMPLETED")}
-          >
-            Completed
-          </button>
-        </div>
-
         <div className="flex justify-between items-center mb-4">
           <DateRangeDisplay
             startDate={dateRange[0].startDate}
@@ -408,6 +385,29 @@ const Home = () => {
             onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
           >
             <Calendar className="w-5 h-5 text-gray-600" />
+          </button>
+        </div>
+
+        <div className="flex mb-4 bg-gray-50 p-1 rounded-lg text-sm">
+          <button
+            className={`flex-1 py-2 rounded-lg transition-all font-semibold ${
+              selectedTab === "SCHEDULED"
+                ? "bg-white text-blue-700 shadow-sm"
+                : "text-gray-600"
+            }`}
+            onClick={() => handleTabChange("SCHEDULED")}
+          >
+            Scheduled
+          </button>
+          <button
+            className={`flex-1 py-2 rounded-lg transition-all font-semibold ${
+              selectedTab === "COMPLETED"
+                ? "bg-white text-blue-700 shadow-sm"
+                : "text-gray-600"
+            }`}
+            onClick={() => handleTabChange("COMPLETED")}
+          >
+            Completed
           </button>
         </div>
 
@@ -435,31 +435,45 @@ const Home = () => {
         {isLoading ? (
           <AuctionListSkeleton />
         ) : filteredAuctions.length > 0 ? (
-          <ul className="space-y-4">
+          <ul className="space-y-3">
             {filteredAuctions.map((auction) => (
               <li
                 key={auction.id}
-                className="border-gray-500 rounded-lg p-4 bg-[#3868D4] text-white flex justify-between items-center cursor-pointer hover:bg-[#2d52a8] transition-colors"
+                className="border border-gray-200 rounded-lg p-4 bg-gray-50 transition-all cursor-pointer shadow-sm hover:shadow-md"
                 onClick={() =>
                   navigate(`/auction/${auction.id}`, { state: { auction } })
                 }
               >
-                <div className="flex gap-3 items-center">
-                  <img src={aucLogo} alt="" className="w-12 h-12" />
-                  <div>
-                    <div className="text-lg font-semibold">
-                      {truncateText(auction.title)}
-                    </div>
-                    <div className="text-sm opacity-90">
-                      {auction.startTime}
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-4 items-center">
+                    {auction.imageUrl ? (
+                      <img
+                        src={auction.imageUrl}
+                        alt=""
+                        className="w-10 h-10 rounded-xl object-cover border border-gray-100 
+                               group-hover:border-blue-100 transition-colors"
+                      />
+                    ) : (
+                      <div
+                        className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center
+                                  border border-blue-100 group-hover:bg-blue-100/50 transition-colors"
+                      >
+                        <Image className="w-7 h-7 text-blue-600" />
+                      </div>
+                    )}
+
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-900">
+                        {truncateText(auction.title || auction.imageUrl)}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {auction.startTime}
+                      </span>
                     </div>
                   </div>
+
+                  <ChevronRight className="w-5 h-5 text-[#3868D4]" />
                 </div>
-                <img
-                  src={chevronRight}
-                  alt="View details"
-                  className="w-6 h-6"
-                />
               </li>
             ))}
           </ul>
