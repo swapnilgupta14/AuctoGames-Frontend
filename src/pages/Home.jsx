@@ -3,8 +3,6 @@ import { useSelector } from "react-redux";
 import { DateRangePicker } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
-import aucLogo from "../assets/pl logo.svg";
-import chevronRight from "../assets/chevron-circle-right-Regular.svg";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import { Calendar, ChevronRight, Hammer, HouseIcon, Image } from "lucide-react";
@@ -308,12 +306,11 @@ const Home = () => {
                       className="w-full h-full object-cover rounded-2xl"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gray-300 rounded-2xl flex items-center justify-center">
-                      <Hammer
-                        size={64}
-                        className="text-gray-400"
-                        strokeWidth={1.5}
-                      />
+                    <div
+                      className="w-full h-full rounded-xl bg-gray-200 flex items-center justify-center
+                                  border border-blue-100 group-hover:bg-blue-100/50 transition-colors"
+                    >
+                      <Image className="w-12 h-12 text-blue-600" />
                     </div>
                   )}
                 </div>

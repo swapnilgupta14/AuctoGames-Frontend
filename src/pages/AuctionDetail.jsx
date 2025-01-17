@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import {
   ArrowUpLeftFromCircleIcon,
   ArrowUpRightFromCircleIcon,
+  Image,
   LucideHammer,
   RefreshCw,
   WatchIcon,
@@ -283,13 +284,12 @@ const AuctionDetail = () => {
               className="w-full h-full object-cover rounded-2xl"
             />
           ) : (
-            <div className="w-full h-full bg-gray-300 rounded-2xl flex items-center justify-center">
-              <LucideHammer
-                size={64}
-                className="text-gray-400"
-                strokeWidth={1.5}
-              />
-            </div>
+            <div
+            className="w-full h-full rounded-xl bg-gray-200 flex items-center justify-center
+                        border border-blue-100 group-hover:bg-blue-100/50 transition-colors"
+          >
+            <Image className="w-12 h-12 text-blue-600" />
+          </div>
           )}
         </div>
 
