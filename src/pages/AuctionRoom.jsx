@@ -845,7 +845,6 @@ const AuctionRoom = () => {
       const timeoutId = setTimeout(() => {
         if (bidPromiseRef.current) {
           bidPromiseRef.current = null;
-          console.log("lo jiii karlo check - timeout");
           reject(new Error("Bid request timed out. Please try again."));
         }
       }, 10000);
