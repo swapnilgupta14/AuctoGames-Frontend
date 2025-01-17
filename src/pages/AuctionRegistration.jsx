@@ -115,8 +115,12 @@ const AuctionRegistration = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsSubmitting(true);
-
     const state = await validateUser(auction.id, userId);
     if (state === "success") {
       openModal("error", "You are already registered", "ERROR");
@@ -124,9 +128,6 @@ const AuctionRegistration = () => {
       return;
     }
 
-    if (!validateForm()) {
-      return;
-    }
 
     try {
       const formData = new FormData();
