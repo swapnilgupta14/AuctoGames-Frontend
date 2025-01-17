@@ -1,6 +1,20 @@
 import { axiosInstance } from "./axiosInstance";
 import { axiosInstanceAdmin } from "./axiosInstance";
 
+export const fetchUserById = async (userId) => {
+  try {
+    const response = await axiosInstanceAdmin.post(`/user/getById`, {
+      userId,
+    });
+    if (response?.status === 200) {
+      return response?.data;
+    }
+  } catch (error) {
+    console.error("Error Login Admin", error);
+    throw error;
+  }
+};
+
 export const fetchAuctionPlayers = async (playerId, auctionId) => {
   try {
     const response = await axiosInstance.get("/auction-players", {
@@ -334,11 +348,14 @@ export const priorityUpdate = async (teamId, auctionId, arr) => {
 export const RegisterPlayerToIndividualAuction = async (data) => {
   try {
     const player = data?.player;
-    const auctionId = data?.auctionId
-    const response = await axiosInstance.post(`/players/register-to-auction-3`, {
-      player,
-      auctionId,
-    });
+    const auctionId = data?.auctionId;
+    const response = await axiosInstance.post(
+      `/players/register-to-auction-3`,
+      {
+        player,
+        auctionId,
+      }
+    );
     if (response?.status === 200) {
       console.log(response?.data);
       return response?.data;
@@ -567,7 +584,6 @@ export const createNewAuction = async ({ formData, imagePreview }) => {
   }
 };
 
-
 export const uploadProfilePhoto = async (userId, imagePreview) => {
   try {
     if (!userId || !imagePreview) {
@@ -584,7 +600,7 @@ export const uploadProfilePhoto = async (userId, imagePreview) => {
     });
 
     console.log("Image upload successful", imageRes.data);
-    return imageRes.data; 
+    return imageRes.data;
   } catch (error) {
     console.error("Error uploading profile photo:", error.message);
     throw error;

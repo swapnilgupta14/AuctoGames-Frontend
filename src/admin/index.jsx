@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import { LogIn, ShieldAlert } from "lucide-react";
 import { axiosInstanceAdmin } from "../api/axiosInstance";
 
@@ -32,7 +38,7 @@ const AdminLogin = () => {
 
     try {
       const response = await axiosInstanceAdmin.post("/admin-login", {
-        email: username,
+        email: username.toLowerCase(),
         password: password,
       });
 
@@ -42,7 +48,10 @@ const AdminLogin = () => {
 
         const sessionExpiryTime =
           Date.now() + (response.data?.session_timeout || 30) * 60 * 1000;
-        localStorage.setItem("AdminSessionTimeout", sessionExpiryTime.toString());
+        localStorage.setItem(
+          "AdminSessionTimeout",
+          sessionExpiryTime.toString()
+        );
 
         navigate("/admin/auctions");
       } else {
@@ -50,8 +59,7 @@ const AdminLogin = () => {
       }
     } catch (error) {
       setError(
-        error.response?.data?.message || 
-        "An error occurred during login"
+        error.response?.data?.message || "An error occurred during login"
       );
       console.error("Login error:", error);
     } finally {
@@ -81,7 +89,7 @@ const AdminLogin = () => {
               htmlFor="username"
               className="block text-sm font-medium text-gray-700"
             >
-              Username
+              E-mail
             </label>
             <input
               id="username"
@@ -133,7 +141,7 @@ const AdminLogin = () => {
             ) : (
               <LogIn className="mr-2 h-5 w-5" />
             )}
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? "Signing in..." : "Sign In"}
           </button>
         </form>
       </div>
@@ -147,7 +155,9 @@ const useSessionTimeout = () => {
 
   useEffect(() => {
     const checkSessionTimeout = () => {
-      const storedSessionExpiryTime = localStorage.getItem("AdminSessionTimeout");
+      const storedSessionExpiryTime = localStorage.getItem(
+        "AdminSessionTimeout"
+      );
       const adminToken = localStorage.getItem("adminToken");
       const currentTime = Date.now();
 
@@ -157,7 +167,7 @@ const useSessionTimeout = () => {
         }
         return;
       }
-  
+
       const expiryTime = parseInt(storedSessionExpiryTime, 10);
       if (currentTime >= expiryTime) {
         handleLogout();
@@ -168,7 +178,7 @@ const useSessionTimeout = () => {
       localStorage.removeItem("AdminSessionTimeout");
       localStorage.removeItem("adminToken");
       localStorage.removeItem("adminAuth");
-      
+
       if (location.pathname !== "/admin/login") {
         navigate("/admin/login");
       }
@@ -176,11 +186,11 @@ const useSessionTimeout = () => {
 
     checkSessionTimeout();
 
-    window.addEventListener('focus', checkSessionTimeout);
+    window.addEventListener("focus", checkSessionTimeout);
     const intervalId = setInterval(checkSessionTimeout, 60000);
 
     return () => {
-      window.removeEventListener('focus', checkSessionTimeout);
+      window.removeEventListener("focus", checkSessionTimeout);
       clearInterval(intervalId);
     };
   }, [navigate, location.pathname]);
@@ -194,8 +204,8 @@ const ProtectedRoute = () => {
 
   useSessionTimeout();
 
-  const isAuthenticated = 
-    localStorage.getItem("adminAuth") === "true" && 
+  const isAuthenticated =
+    localStorage.getItem("adminAuth") === "true" &&
     !!localStorage.getItem("adminToken");
 
   if (!isAuthenticated) {

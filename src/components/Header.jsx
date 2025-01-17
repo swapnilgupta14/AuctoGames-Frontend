@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import bellIcon from "../assets/bellIcon.svg";
 import rightArr from "../assets/rightArrWhite.svg";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -18,7 +17,6 @@ const Header = ({ heading, backAllowed = true, homeAllowed = true }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [balance, setBalance] = useState(0);
 
-  // Memoize fetchWalletData to prevent unnecessary re-creation
   const fetchWalletData = useCallback(async (userId) => {
     try {
       const balanceRes = await getWalletBalance(userId);
@@ -28,10 +26,8 @@ const Header = ({ heading, backAllowed = true, homeAllowed = true }) => {
     }
   }, []);
 
-  // Memoize the balance to avoid re-calculation unless balance changes
   const memoizedBalance = useMemo(() => balance, [balance]);
 
-  // Toggle Sidebar and Fetch Wallet Data only when opening the sidebar
   const toggleSidebar = () => {
     if (!isSidebarOpen) {
       fetchWalletData(userId);
@@ -47,7 +43,6 @@ const Header = ({ heading, backAllowed = true, homeAllowed = true }) => {
     navigate("/");
   };
 
-  // Optional: Fetch balance on mount if required
   useEffect(() => {
     if (userId) {
       fetchWalletData(userId);

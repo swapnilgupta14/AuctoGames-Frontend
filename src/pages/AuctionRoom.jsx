@@ -86,6 +86,8 @@ const AuctionRoom = () => {
   const [timeUntilStart, setTimeUntilStart] = useState(null);
   const [isDisabled, setIsDisabled] = useState(false);
 
+  const typeOrder = ["Batter", "Bowler", "Wicket-Keeper", "All-Rounder"];
+
   const getComposition = async (teamId) => {
     try {
       const res = await checkTeamComposition(teamId);
@@ -479,7 +481,7 @@ const AuctionRoom = () => {
   };
 
   const [isPulling, setIsPulling] = useState(new Map());
-  const pullBackTimeouts = new Map();
+  // const pullBackTimeouts = new Map();
 
   // console.log(participantMapRef.current, "lowkey");
 
@@ -573,10 +575,10 @@ const AuctionRoom = () => {
       toast.success("Player Pulled Back Successfully!");
       const p_id = data?.auctionPlayerId;
 
-      if (pullBackTimeouts.has(p_id)) {
-        clearTimeout(pullBackTimeouts.get(p_id));
-        pullBackTimeouts.delete(p_id);
-      }
+      // if (pullBackTimeouts.has(p_id)) {
+      //   clearTimeout(pullBackTimeouts.get(p_id));
+      //   pullBackTimeouts.delete(p_id);
+      // }
 
       fetchAllPlayerInAuction(p_id);
 
@@ -700,8 +702,10 @@ const AuctionRoom = () => {
 
         if (response.connected) {
           setIsConnected(true);
-          SocketService.emitGetPlayerCount();
-          setupSocketListeners();
+          if (error !== "Previous session not terminated!") {
+            SocketService.emitGetPlayerCount();
+            setupSocketListeners();
+          }
         }
       } catch (error) {
         console.error("Failed to initialize socket:", error);
@@ -1032,10 +1036,10 @@ const AuctionRoom = () => {
                   {teamComposition != null
                     ? `B${teamComposition?.Batsman ?? 0} | WK${
                         teamComposition["Wicket Keeper"] ?? 0
-                      } | AR${teamComposition["All Rounder"] ?? 0} | B${
+                      } | AR${teamComposition["All Rounder"] ?? 0} | BOW${
                         teamComposition?.Bowler
                       }`
-                    : `B0 | WK0 | AR0 | B0`}
+                    : `B0 | WK0 | AR0 | BOW0`}
                 </p>
                 <p className="border-2 border-t-zinc-200 py-1 px-2 text-end">
                   {activePlayer?.stats?.type || "N/A"}
@@ -1448,26 +1452,32 @@ const AuctionRoom = () => {
                 {activeTab === "Upcoming" && (
                   <div className="overflow-y-auto h-[75%] rounded-lg">
                     {auctionPlayers
-                      .filter((it) => it.status === "available")
-                      .map((item, index) => {
+                      .filter((player) => player.status === "available")
+                      .sort((a, b) => {
+                        if (a.order !== b.order) {
+                          return a.order - b.order;
+                        }
                         return (
-                          <div key={item.auctionPlayerId} className="px-4">
-                            <PlayerCard
-                              tabType={"Upcoming"}
-                              item={item}
-                              index={index}
-                              ongoingPlayerID={activePlayerId}
-                              currentUserID={userId}
-                              idToUsernameMap={participantMapRef.current}
-                              pullCount={pullCount}
-                              setPullCount={setPullCount}
-                              teamMap={teamMap}
-                              handlePullBackPlayer={handlePullBackPlayer}
-                              pulling={isPulling}
-                            />
-                          </div>
+                          typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type)
                         );
-                      })}
+                      })
+                      .map((item, index) => (
+                        <div key={item.auctionPlayerId} className="px-4">
+                          <PlayerCard
+                            tabType={"Upcoming"}
+                            item={item}
+                            index={index}
+                            ongoingPlayerID={activePlayerId}
+                            currentUserID={userId}
+                            idToUsernameMap={participantMapRef.current}
+                            pullCount={pullCount}
+                            setPullCount={setPullCount}
+                            teamMap={teamMap}
+                            handlePullBackPlayer={handlePullBackPlayer}
+                            pulling={isPulling}
+                          />
+                        </div>
+                      ))}
                   </div>
                 )}
               </div>
@@ -1666,11 +1676,15 @@ const AuctionRoom = () => {
                   <span className="block font-bold text-3xl">
                     {arePlayerRegistered === 0
                       ? "No Player Found"
+                      : error === "Previous session not terminated!"
+                      ? ""
                       : "Auction is Ended"}
                   </span>
                   <span className="block">
                     {arePlayerRegistered === 0
                       ? "No player found in this auction!"
+                      : error === "Previous session not terminated!"
+                      ? "You are already connected from another device to this auction"
                       : "All players have been sold"}
                   </span>
                 </p>
@@ -1707,7 +1721,8 @@ const AuctionRoom = () => {
 
             {arePlayerRegistered !== 0 &&
             remainingPlayers < 1 &&
-            isConnected ? (
+            isConnected &&
+            error !== "Previous session not terminated!" ? (
               <div className="flex gap-2">
                 <button
                   className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-900 focus:ring-2 focus:ring-blue-300 focus:outline-none flex items-center justify-center gap-2"

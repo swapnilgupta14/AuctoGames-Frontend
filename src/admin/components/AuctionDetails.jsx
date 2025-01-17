@@ -9,7 +9,7 @@ const AuctionDetails = ({ onClose }) => {
   const { selectedAuction, fetchAllAuctions } = useAuctionContext();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
-  console.log(selectedAuction)
+  console.log(selectedAuction);
 
   const handleBanUnbanUsers = async (participantId, type) => {
     try {
@@ -244,9 +244,13 @@ const AuctionDetails = ({ onClose }) => {
               <div className="p-4">
                 <button
                   onClick={openPopup}
-                  className="flex items-center px-2 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  disabled={
+                    selectedAuction.status === "LIVE" &&
+                    selectedAuction.auctionPlayers.length > 0
+                  }
+                  className="flex items-center px-2 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Users className="mr-2" /> Players Registration
+                  <Users className="mr-2 h-4 w-4" /> Register Players
                 </button>
 
                 <PlayersPopup

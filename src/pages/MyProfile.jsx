@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   User,
   LogOut,
-  CreditCard,
   Camera,
   X,
   QrCode,
@@ -15,8 +14,10 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import { uploadProfilePhoto } from "../api/fetch";
-import { useSelector } from "react-redux";
+import { fetchUserById, uploadProfilePhoto } from "../api/fetch";
+import { useDispatch, useSelector } from "react-redux";
+import { setUser } from "../slices/userSlice";
+import toast from "react-hot-toast";
 
 const MyProfile = () => {
   const navigate = useNavigate();
@@ -28,20 +29,51 @@ const MyProfile = () => {
   const [selectedPaymentType, setSelectedPaymentType] = useState(null);
   const [showFullProfile, setShowFullProfile] = useState(false);
 
+  const dispatch = useDispatch();
+
   const { userId } = useSelector((state) => state.user);
-  const user = useSelector((state) => state.user);
+  let user = useSelector((state) => state.user);
   const username = localStorage.getItem("email") || "User";
+
+  const getUser = async () => {
+    if (!userId) return null;
+    const res = await fetchUserById(userId);
+    if (res) {
+      console.log(res.user);
+      dispatch(
+        setUser({
+          userId: res.user.id,
+          email: res.user.email,
+          username: res.user.username,
+          token: user?.token,
+          imageUrl: res.user.imageUrl,
+          role: res.user.role,
+        })
+      );
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    getUser();
+  }, []);
+
+  console.log(user);
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
+      setShowProfileOptions(false);
       setImagePreview(URL.createObjectURL(file));
       const imgP = URL.createObjectURL(file);
       setLoading(true);
       try {
         await uploadProfilePhoto(userId, imgP);
+        getUser();
+        toast.success("Profile picture updated successfully");
       } catch (error) {
         console.error("Upload failed:", error);
+        toast.error("Profile picture upload failed");
       } finally {
         setLoading(false);
         setShowProfileOptions(false);
@@ -97,7 +129,7 @@ const MyProfile = () => {
             <div className="relative">
               <button
                 onClick={() => setShowProfileOptions(true)}
-                className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200 hover:opacity-90 transition-opacity"
+                className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200 hover:opacity-90 transition-opacity bg-gray-300"
               >
                 {imagePreview || user?.imageUrl ? (
                   <img
@@ -133,7 +165,6 @@ const MyProfile = () => {
           </div>
         </div>
 
-        {/* Payment Methods Section */}
         <div className="bg-white rounded-xl shadow-md p-4 mb-4">
           <h3 className="text-lg font-semibold mb-4 text-gray-900">
             Payment Methods
@@ -179,7 +210,6 @@ const MyProfile = () => {
           </div>
         </div>
 
-        {/* Logout Button */}
         <button
           onClick={handleLogout}
           className="w-full mt-4 p-4 flex items-center justify-center gap-2 text-red-600 bg-white rounded-xl shadow-sm hover:bg-red-50 transition-colors font-medium"
@@ -188,7 +218,6 @@ const MyProfile = () => {
           <span>Logout</span>
         </button>
 
-        {/* Profile Options Bottom Sheet */}
         {showProfileOptions && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
             <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-6">

@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import {
   ArrowUpLeftFromCircleIcon,
   ArrowUpRightFromCircleIcon,
+  LucideHammer,
   RefreshCw,
   WatchIcon,
   X,
@@ -267,11 +268,23 @@ const AuctionDetail = () => {
       <Header heading={"Upcoming Auction"}></Header>
 
       <div className="p-4 relative">
-        <img
-          src={auction?.imageUrl}
-          alt={auction.title}
-          className="w-full h-64 object-cover rounded-lg"
-        />
+        <div className="w-full h-64">
+          {auction?.imageUrl ? (
+            <img
+              src={auction.imageUrl}
+              alt={auction.title}
+              className="w-full h-full object-cover rounded-2xl"
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-300 rounded-2xl flex items-center justify-center">
+              <LucideHammer
+                size={64}
+                className="text-gray-400"
+                strokeWidth={1.5}
+              />
+            </div>
+          )}
+        </div>
 
         {auction?.ytLink && (
           <a
@@ -284,9 +297,9 @@ const AuctionDetail = () => {
           </a>
         )}
 
-        <h1 className="text-[20px] font-bold mt-4 px-3 flex justify-between">
+        <h1 className="text-[20px] font-semibold mt-4 px-3 flex justify-between">
           {auction.title}{" "}
-          <span className="bg-gray-600 text-xs text-white py-2 px-2 rounded-xl h-fit w-fit">
+          <span className="bg-gray-600 text-xs text-white py-2 px-3 rounded-xl h-fit w-fit">
             {auction?.status}
           </span>
         </h1>

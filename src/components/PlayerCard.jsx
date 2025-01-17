@@ -70,9 +70,13 @@ const PlayerCard = ({
         </div>
       </div>
 
-      {tabType === "My Team" && (
+      {(tabType === "My Team" ||
+        tabType === "Upcoming" ||
+        tabType === "Teams") && (
         <div className="flex self-end h-full">
-          <p className="font-medium text-xs text-right">{item.type}</p>
+          <p className="font-medium text-xs text-right">
+            {item?.type === "Batter" ? "Batsmen" : item?.type} {item?.order}
+          </p>
           {/* <p className="text-xs">({item.order})</p> */}
         </div>
       )}
@@ -80,7 +84,7 @@ const PlayerCard = ({
       {tabType === "pullback" &&
         item.status === "unsold" &&
         item.highestBidderId === null && (
-          <div className="self-center">
+          <div className="self-center flex flex-col justify-evenly items-center gap-2">
             <button
               className={` py-1 px-3 rounded-2xl text-white flex items-center justify-center w-full ${
                 pulling.get(item?.auctionPlayerId)
@@ -97,6 +101,9 @@ const PlayerCard = ({
             >
               {pulling.get(item?.auctionPlayerId) ? "WAIT.." : "PULL"}
             </button>
+            <p className="font-medium text-xs text-right">
+              {item?.type === "Batter" ? "Batsmen" : item?.type} {item?.order}
+            </p>
           </div>
         )}
     </div>

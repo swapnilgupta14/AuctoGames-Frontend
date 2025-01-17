@@ -69,7 +69,7 @@ const Login = () => {
             email: user.email,
             username: user.username,
             token,
-            imageUrl : user.imageUrl,
+            imageUrl: user.imageUrl,
             role: user.role,
           })
         );
@@ -104,7 +104,7 @@ const Login = () => {
 
   const handleLogin = () => {
     if (validateForm()) {
-      const userDetails = { email, password };
+      const userDetails = { email: email.toLowerCase(), password };
       loginUser(userDetails);
     }
   };

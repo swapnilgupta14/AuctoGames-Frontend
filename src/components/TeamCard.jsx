@@ -4,7 +4,8 @@ import { Users, Medal, Wallet, Star } from "lucide-react";
 const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
   const navigate = useNavigate();
 
-  // Function to get ordinal suffix for rank
+  console.log(item);
+
   const getRankSuffix = (rank) => {
     if (rank === 1) return "st";
     if (rank === 2) return "nd";
@@ -12,27 +13,20 @@ const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
     return "th";
   };
 
-  // // Function to get rank color
-  // const getRankColor = (rank) => {
-  //   if (rank === 1) return "text-yellow-600";
-  //   if (rank === 2) return "text-gray-600";
-  //   if (rank === 3) return "text-orange-600";
-  //   return "text-gray-800";
-  // };
-
-  // // Function to get medal color
-  // const getMedalColor = (rank) => {
-  //   if (rank === 1) return "text-yellow-500";
-  //   if (rank === 2) return "text-gray-400";
-  //   if (rank === 3) return "text-orange-500";
-  //   return "text-gray-400";
-  // };
-
   const truncateText = (text = "", maxLength = 24) => {
     if (!text || typeof text !== "string") return "";
     return text.length > maxLength
       ? `${text.substring(0, maxLength)}...`
       : text;
+  };
+
+  const calculateMoneySpend = (item) => {
+    const total = item?.auctionPlayers?.reduce(
+      (acc, player) => acc + player?.currentBid,
+      0
+    );
+
+    return total;
   };
 
   return (
@@ -99,10 +93,10 @@ const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
         <div className="flex flex-col items-center text-center">
           <Wallet size={21} className="text-green-500 mb-1.5" />
           <span className="text-xs text-gray-600 font-medium tracking-tight">
-            Purse Left
+            {item.budgetLimit ? "Purse Left" : "Purse Used"}
           </span>
           <span className="text-sm text-gray-800 font-semibold">
-            ₹{item.budgetLimit ?? "N/A"}
+            ₹{item.budgetLimit ? "N/A" : calculateMoneySpend(item) + "Cr"}
           </span>
         </div>
 
@@ -112,7 +106,7 @@ const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
             Players
           </span>
           <span className="text-sm text-gray-800 font-semibold">
-            {item?.auctionPlayers?.length ?? "0"}/{totalPlayerCount ?? "0"}
+            {item?.auctionPlayers?.length ?? "0"}/11
           </span>
         </div>
       </div>
