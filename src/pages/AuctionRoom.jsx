@@ -524,7 +524,11 @@ const AuctionRoom = () => {
       // setReferenceTime(data?.time);
 
       delayRef.current.time = data?.time;
-      delayRef.current.delay = 21000;
+      if (delayRef.current.delay === 15) {
+        delayRef.current.delay = 16 * 1000;
+      } else {
+        delayRef.current.delay = 21000;
+      }
       fetchPlayerById(data);
 
       console.log("active player.......", data);
@@ -1023,8 +1027,8 @@ const AuctionRoom = () => {
 
   return (
     <div className="flex flex-col h-dvh lg:h-screen">
-        <Header heading={`Room - ${truncateText(auction?.title)}`}></Header>
-        {/* <ConnectionStatus /> */}
+      <Header heading={`Room - ${truncateText(auction?.title)}`}></Header>
+      {/* <ConnectionStatus /> */}
 
       {remainingPlayers > 0 && roomSize >= 2 ? (
         <div className="flex-1 w-full font-sans flex flex-col items-center justify-between relative">
