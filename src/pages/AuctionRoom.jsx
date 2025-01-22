@@ -524,7 +524,7 @@ const AuctionRoom = () => {
       // setReferenceTime(data?.time);
 
       delayRef.current.time = data?.time;
-      if (delayRef.current.delay === 15) {
+      if (data?.delay === 15) {
         delayRef.current.delay = 16 * 1000;
       } else {
         delayRef.current.delay = 21000;
