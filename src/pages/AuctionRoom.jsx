@@ -125,6 +125,7 @@ const AuctionRoom = () => {
   };
 
   const closePopup = () => {
+    setJump(2);
     setShowPopup(false);
   };
 
@@ -1256,7 +1257,6 @@ const AuctionRoom = () => {
                               value <= budget.remaining
                             ) {
                               handleJumpCount();
-                              setJump(2);
                               closePopup();
                             } else {
                               toast.error("Invalid jump amount!");
