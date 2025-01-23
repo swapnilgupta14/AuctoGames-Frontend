@@ -753,7 +753,7 @@ const AuctionRoom = () => {
       toast.error("Time is up! Cannot place bid now.");
       return;
     }
-    
+
     setIsDisabled(true);
     if (isUserHighestBidder()) {
       setIsDisabled(false);
@@ -1047,7 +1047,7 @@ const AuctionRoom = () => {
                         />
                         <div className="flex flex-col items-start">
                           <span className="font-bold text-sm">
-                            {teamMap[bid?.userId.toString()][0]}
+                            {teamMap[bid?.userId.toString()]?.[0]}
                           </span>
                         </div>
                       </td>
