@@ -72,7 +72,7 @@ const SuccessRegister = () => {
 
   return (
     <div className="w-full h-dvh flex flex-col justify-between pb-6 bg-gradient-to-b from-blue-50 to-white">
-      <div className="z-10">
+      <div className="z-40">
         <Header heading="Enter Auction" />
       </div>
 

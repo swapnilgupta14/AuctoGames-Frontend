@@ -771,6 +771,7 @@ const AuctionRoom = () => {
 
     if (type == "increment" && amount + currentBid > budget.remaining) {
       toast.error("Not enough money in purse");
+      setIsDisabled(false);
       return;
     }
 
@@ -1008,15 +1009,19 @@ const AuctionRoom = () => {
                 </p>
 
                 <p className="text-sm font-semibold">
-                  {latestHighestBidderRef.current
-                    ? "Highest Bidder: " +
-                      " " +
-                      (latestHighestBidderRef.current === userId
-                        ? "You"
-                        : participantMapRef.current[
-                            latestHighestBidderRef.current
-                          ] ?? latestHighestBidderRef.current)
-                    : "Base Price"}
+                  <span>
+                    {latestHighestBidderRef.current
+                      ? "Highest Bidder: "
+                      : "Base Price"}
+                  </span>
+                  <br />
+                  <span className="text-blue-700">
+                    {latestHighestBidderRef.current === userId
+                      ? "You"
+                      : participantMapRef.current[
+                          latestHighestBidderRef.current
+                        ] ?? latestHighestBidderRef.current}
+                  </span>
                 </p>
               </div>
             </div>
