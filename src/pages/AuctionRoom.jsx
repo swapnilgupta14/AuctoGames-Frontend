@@ -507,7 +507,6 @@ const AuctionRoom = () => {
         delayRef.current.delay = 21000;
       }
       fetchPlayerById(data);
-
       fetchAllPlayerInAuction();
     });
 
@@ -606,7 +605,7 @@ const AuctionRoom = () => {
           bidPromiseRef.current.resolve(data);
 
           delayRef.current.time = data?.timestamp;
-          delayRef.current.delay = data.delay - 1000;
+          delayRef.current.delay = data.delay - 500;
         } else {
           bidPromiseRef.current.reject(new Error("Invalid bid response"));
         }
@@ -614,7 +613,7 @@ const AuctionRoom = () => {
       } else {
         if (data.timestamp && data.delay) {
           delayRef.current.time = data?.timestamp;
-          delayRef.current.delay = data.delay - 1000;
+          delayRef.current.delay = data.delay - 500;
         }
         setIsDisabled(false);
         toast.success(`${data.amount}Cr Bid is placed`);
@@ -1027,7 +1026,6 @@ const AuctionRoom = () => {
                   <tr className="font-bold text-sm">
                     <th className="py-1 px-2"></th>
                     <th className="py-1 px-2">Bid</th>
-                    {/* <th className="py-2 px-2">Players</th> */}
                     <th className="py-1 px-2">User</th>
                   </tr>
                 </thead>
@@ -1258,6 +1256,7 @@ const AuctionRoom = () => {
                               value <= budget.remaining
                             ) {
                               handleJumpCount();
+                              setJump(2);
                               closePopup();
                             } else {
                               toast.error("Invalid jump amount!");
@@ -1564,14 +1563,6 @@ const AuctionRoom = () => {
             <button className="text-xs w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
               {timeLeft < 10 ? `00:0${timeLeft}` : `00:${timeLeft}`}
             </button>
-            {/* <button
-              className="w-10 h-10 bg-yellow-100 text-yellow-400 rounded-full flex items-center justify-center hover:bg-yellow-200 border-yellow-400 border text-xs"
-              onClick={() => {
-                SocketService.emitMarkPlayerUnsold(activePlayer?.id, auctionId);
-              }}
-            >
-              New
-            </button> */}
             <button
               className="w-10 h-10 relative bg-green-100 text-green-600 rounded-full flex items-center justify-center hover:bg-green-200 border-green-600 border text-xs"
               onClick={() => {
