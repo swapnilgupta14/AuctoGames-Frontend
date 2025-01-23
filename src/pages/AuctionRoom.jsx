@@ -769,6 +769,11 @@ const AuctionRoom = () => {
       return;
     }
 
+    if (type == "increment" && amount + currentBid > budget.remaining) {
+      toast.error("Not enough money in purse");
+      return;
+    }
+
     const promise = new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
         if (bidPromiseRef.current) {
