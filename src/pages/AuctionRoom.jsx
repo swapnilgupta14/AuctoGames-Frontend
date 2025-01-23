@@ -659,7 +659,6 @@ const AuctionRoom = () => {
     }
   };
 
-
   useEffect(() => {
     const initializeSocket = async () => {
       try {
@@ -750,12 +749,12 @@ const AuctionRoom = () => {
   };
 
   const handlePlaceBid = (amount, type) => {
-    setIsDisabled(true);
     if (timeLeft < 1) {
       toast.error("Time is up! Cannot place bid now.");
       return;
     }
-
+    
+    setIsDisabled(true);
     if (isUserHighestBidder()) {
       setIsDisabled(false);
       toast.error("You are already the highest bidder!");
