@@ -126,6 +126,7 @@ const AuctionRoom = () => {
 
   const closePopup = () => {
     setJump(2);
+    setValue(2);
     setShowPopup(false);
   };
 
