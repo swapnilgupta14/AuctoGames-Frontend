@@ -1,10 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import { Users, Medal, Wallet, Star } from "lucide-react";
+import { Users, Medal, Wallet, Star, AlertTriangle } from "lucide-react";
 
 const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
   const navigate = useNavigate();
-
-  console.log(item);
 
   const getRankSuffix = (rank) => {
     if (rank === 1) return "st";
@@ -29,9 +27,11 @@ const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
     return total;
   };
 
+  const isDisbarred = !item.isTeamCompositionValid;
+
   return (
-    <div className="w-full bg-white shadow-xl rounded-xl p-5 border border-gray-300 space-y-4">
-      <div className="flex justify-between items-start">
+    <div className="w-full bg-white shadow-xl rounded-xl border border-gray-300 space-y-4">
+      <div className="flex justify-between items-start p-5">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-gray-200">
             <img
@@ -74,9 +74,15 @@ const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
           <span className="text-xs text-gray-600 font-medium tracking-tight">
             Team Rank
           </span>
-          <span className={`text-sm font-semibold`}>
-            {rank}
-            <sup className="text-xs ml-0.5">{getRankSuffix(rank)}</sup>
+          <span
+            className={`text-sm font-semibold ${
+              isDisbarred ? "text-red-600" : ""
+            }`}
+          >
+            {isDisbarred ? "N/A" : rank}
+            {!isDisbarred && (
+              <sup className="text-xs ml-0.5">{getRankSuffix(rank)}</sup>
+            )}
           </span>
         </div>
 
@@ -85,8 +91,14 @@ const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
           <span className="text-xs text-gray-600 font-medium tracking-tight">
             Points
           </span>
-          <span className="text-sm text-gray-800 font-semibold">
-            {(item?.totalPoints || 0) + (item?.totalBonus || 0)}
+          <span
+            className={`text-sm font-semibold ${
+              isDisbarred ? "text-red-600" : "text-gray-800"
+            }`}
+          >
+            {isDisbarred
+              ? "N/A"
+              : (item?.totalPoints || 0) + (item?.totalBonus || 0)}
           </span>
         </div>
 
@@ -110,6 +122,13 @@ const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
           </span>
         </div>
       </div>
+
+      {isDisbarred && (
+        <div className="bg-red-100 text-red-800 p-2 rounded-b-xl flex items-center">
+          <AlertTriangle className="mr-2" size={20} />
+          <span className="text-sm font-medium">{item.validationMessage}</span>
+        </div>
+      )}
     </div>
   );
 };
