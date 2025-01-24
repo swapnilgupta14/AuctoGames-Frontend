@@ -736,10 +736,12 @@ const AuctionRoom = () => {
 
   const isUserHighestBidder = () => {
     if (latestHighestBidderRef.current === userId) {
+      setIsDisabled(true);
       return true;
     }
 
     if (activePlayer?.highestBidderId === userId) {
+      setIsDisabled(true);
       return true;
     }
 
