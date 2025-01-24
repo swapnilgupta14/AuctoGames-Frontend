@@ -69,7 +69,7 @@ const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
           onClick={() =>
             navigate(`/yourTeamPlayers/${auctionId}/${item?.owner?.id}`)
           }
-          className="text-red-600 hover:text-red-600 p-2 bg-red-100 hover:bg-red-200 rounded-full transition-all duration-200"
+          className="text-white hover:text-white p-2 bg-gray-700 hover:bg-gray-700 rounded-full transition-all duration-200"
         >
           <Users size={16} />
         </button>
