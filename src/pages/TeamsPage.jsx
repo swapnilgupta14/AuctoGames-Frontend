@@ -152,7 +152,7 @@ const TeamsPage = () => {
   const PrizeModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl p-6 w-11/12 max-w-md">
-        <h2 className="text-xl font-bold mb-4">Prize Distribution</h2>
+        <h2 className="text-xl font-bold mb-4">Winning Distribution</h2>
         <div className="space-y-3">
           {prizeDistribution?.firstPrize && (
             <div className="flex justify-between items-center">

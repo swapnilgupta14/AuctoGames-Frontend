@@ -678,3 +678,30 @@ export const getTeamByTeamId = async (teamId) => {
     throw error;
   }
 };
+
+export const updateProfile = async (formData) => {
+  try {
+    const { userId, phoneNumber, upiId, file } = formData;
+
+    const formDataToSend = new FormData();
+    formDataToSend.append("userId", userId);
+    if (phoneNumber) formDataToSend.append("mobileNumber", phoneNumber);
+    if (upiId) formDataToSend.append("upiId", upiId);
+    if (file) formDataToSend.append("file", file);
+
+    const response = await axiosInstanceAdmin.put(
+      `/wallet/payment-details`,
+      formDataToSend,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    return response?.data;
+  } catch (error) {
+    console.error("Error updating ", error);
+    throw error;
+  }
+};

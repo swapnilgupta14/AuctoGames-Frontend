@@ -36,6 +36,7 @@ import {
   // updateEndTime,
   // getTeamResultOfAction,
 } from "../api/fetch";
+import RulesModal from "../admin/components/RulesModal";
 
 const AuctionRoom = () => {
   const navigate = useNavigate();
@@ -407,8 +408,6 @@ const AuctionRoom = () => {
     return { valid: true, message: "Player selection is valid." };
   }
 
-  // ---------------------------------------------------------
-
   const fetchAllPlayerInAuction = useCallback(
     async (p_id = undefined) => {
       if (remainingPlayers < 1) return;
@@ -464,16 +463,6 @@ const AuctionRoom = () => {
       setValue(numericValue);
     }
   };
-
-  // const handleSetClick = () => {
-  //   if (value < 2 || value > 100) {
-  //     toast.error("Please enter a value between 2 and 100.");
-  //     return;
-  //   }
-  //   // setEditJump(false);
-  //   setJump(value);
-  //   toast.success(`Jump amount updated to ${value}Cr!`);
-  // };
 
   const handleJumpCount = () => {
     if (jump > currentBid && jump <= budget.remaining) {
@@ -537,7 +526,13 @@ const AuctionRoom = () => {
       setRemainingPlayers(data?.count);
     });
 
-    SocketService.onNewUserConnected("new user connected");
+    SocketService.onNewUserConnected(() => {
+      SocketService.emitGetRoomSize();
+      SocketService.emitGetPlayerCount();
+      if (auctionStarted.current === true && timeUntilStart === null) {
+        SocketService.emitGetActivePlayer();
+      }
+    });
 
     SocketService.onPlayerReAdded((data) => {
       toast.error(`${data?.message}`);
@@ -569,9 +564,13 @@ const AuctionRoom = () => {
       SocketService.emitGetPlayerCount();
     });
 
-    SocketService.onUserDisconnected((data) => {
-      console.log("user disconnected", data);
+    SocketService.onUserDisconnected(() => {
       prevPlayerId.current = null;
+      SocketService.emitGetRoomSize();
+      SocketService.emitGetPlayerCount();
+      if (auctionStarted.current === true && timeUntilStart === null) {
+        SocketService.emitGetActivePlayer();
+      }
     });
 
     SocketService.onGetChatHistory((data) => {
@@ -692,7 +691,7 @@ const AuctionRoom = () => {
     const checkAuctionStart = () => {
       if (!auctionData?.startTime) return;
 
-      const startTime = parseCustomDate(auctionData.startTime);
+      const startTime = parseCustomDate(auctionData?.startTime);
       const bufferTime = 5 * 60 * 1000;
       const now = new Date();
 
@@ -734,8 +733,6 @@ const AuctionRoom = () => {
       SocketService.disconnect();
     };
   }, [auctionId, token, auctionData?.startTime]);
-
-  // ---------------------------------------------------------------------
 
   const isUserHighestBidder = () => {
     if (latestHighestBidderRef.current === userId) {
@@ -875,6 +872,17 @@ const AuctionRoom = () => {
     }
   };
 
+  const [rulesModalOpen, setRulesModalOpen] = useState(false);
+
+  const handleOpenRulesModal = () => {
+    setRulesModalOpen(true);
+    console.log("Rules Modal Opened");
+  };
+
+  const closeRulesModal = () => {
+    setRulesModalOpen(false);
+  };
+
   useEffect(() => {
     if (
       auctionId &&
@@ -894,8 +902,6 @@ const AuctionRoom = () => {
   ]);
 
   if (auctionStarted.current !== true && timeUntilStart !== null) {
-    // Convert timeUntilStart to HH:MM:SS format
-    // console.log(timeUntilStart, "sshshhs");
     const hours = Math.floor(timeUntilStart / (1000 * 60 * 60));
     const minutes = Math.floor(
       (timeUntilStart % (1000 * 60 * 60)) / (1000 * 60)
@@ -908,7 +914,14 @@ const AuctionRoom = () => {
 
     return (
       <div className="flex flex-col h-dvh lg:h-screen">
-        <Header heading={`Room - ${truncateText(auction?.title)}`}></Header>
+        <Header
+          heading={`Room - ${truncateText(auction?.title)}`}
+          showRules={true}
+          handleOpenRulesModal={handleOpenRulesModal}
+        ></Header>
+
+        {rulesModalOpen && <RulesModal closeRulesModal={closeRulesModal} />}
+
         <div className="flex-1 flex flex-col items-center justify-center space-y-4 p-8">
           <h2 className="text-2xl font-semibold text-blue-900">
             Auction Lobby
@@ -957,7 +970,12 @@ const AuctionRoom = () => {
 
   return (
     <div className="flex flex-col h-dvh lg:h-screen">
-      <Header heading={`Room - ${truncateText(auction?.title)}`}></Header>
+      <Header
+        heading={`Room - ${truncateText(auction?.title)}`}
+        showRules={true}
+        handleOpenRulesModal={handleOpenRulesModal}
+      ></Header>{" "}
+      {rulesModalOpen && <RulesModal closeRulesModal={closeRulesModal} />}
       {remainingPlayers > 0 && roomSize >= 2 ? (
         <div className="flex-1 w-full font-sans flex flex-col items-center justify-between relative">
           <div className="flex flex-col justify-end items-center w-full">

@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import { fetchUserById, uploadProfilePhoto } from "../api/fetch";
+import { fetchUserById, uploadProfilePhoto, updateProfile } from "../api/fetch";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "../slices/userSlice";
 import toast from "react-hot-toast";
@@ -28,9 +28,15 @@ const MyProfile = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPaymentType, setSelectedPaymentType] = useState(null);
   const [showFullProfile, setShowFullProfile] = useState(false);
+  const [paymentInfo, setPaymentInfo] = useState(null);
+  const [paymentUpdateLoading, setPaymentUpdateLoading] = useState(false);
+  const [paymentFormData, setPaymentFormData] = useState({
+    upiId: "",
+    mobileNumber: "",
+  });
+  const [qrCodeFile, setQrCodeFile] = useState(null);
 
   const dispatch = useDispatch();
-
   const { userId } = useSelector((state) => state.user);
   let user = useSelector((state) => state.user);
   const username = localStorage.getItem("email") || "User";
@@ -39,7 +45,7 @@ const MyProfile = () => {
     if (!userId) return null;
     const res = await fetchUserById(userId);
     if (res) {
-      console.log(res.user);
+      setPaymentInfo(res?.user?.wallet?.paymentInfo);
       dispatch(
         setUser({
           userId: res.user.id,
@@ -58,7 +64,58 @@ const MyProfile = () => {
     getUser();
   }, []);
 
-  console.log(user);
+  const handlePaymentUpdate = async () => {
+    setPaymentUpdateLoading(true);
+    try {
+      const imageFile = selectedPaymentType === "qr" ? qrCodeFile : null;
+      const formData = {
+        userId,
+        phoneNumber:
+          selectedPaymentType === "phone"
+            ? paymentFormData.mobileNumber
+            : paymentInfo?.mobileNumber,
+        upiId:
+          selectedPaymentType === "upi"
+            ? paymentFormData.upiId
+            : paymentInfo?.upiId,
+        file: imageFile,
+      };
+
+      const res = await updateProfile(formData);
+      if (res) {
+        setPaymentUpdateLoading(false);
+
+        toast.success("Payment details updated successfully");
+        await getUser();
+        setShowPaymentModal(false);
+      }
+    } catch (error) {
+      console.error("Error updating payment details", error);
+      toast.error("Failed to update payment details");
+    } finally {
+      setUploadingQR(false);
+      setPaymentUpdateLoading(false);
+    }
+  };
+
+  const handleQRCodeUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setQrCodeFile(file);
+      setUploadingQR(true);
+    }
+    setUploadingQR(false);
+  };
+
+  const handlePaymentClick = (type) => {
+    setPaymentFormData({
+      upiId: paymentInfo?.upiId || "",
+      mobileNumber: paymentInfo?.mobileNumber || "",
+    });
+    setQrCodeFile(null);
+    setSelectedPaymentType(type);
+    setShowPaymentModal(true);
+  };
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -81,29 +138,6 @@ const MyProfile = () => {
     }
   };
 
-  const handleQRUpload = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setUploadingQR(true);
-      try {
-        // Add your QR upload logic here
-        // For example: await uploadQRCode(userId, file);
-        console.log("QR Upload:", file);
-        // Simulate API call delay
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      } catch (error) {
-        console.error("QR Upload failed:", error);
-      } finally {
-        setUploadingQR(false);
-      }
-    }
-  };
-
-  const handlePaymentClick = (type) => {
-    setSelectedPaymentType(type);
-    setShowPaymentModal(true);
-  };
-
   const handleLogout = () => {
     localStorage.removeItem("shopCoToken");
     localStorage.removeItem("userId");
@@ -112,18 +146,11 @@ const MyProfile = () => {
     navigate("/");
   };
 
-  const staticPaymentData = {
-    upiId: "user@upi",
-    phone: "+91 9876543210",
-    qrCode: "static-qr-code",
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header heading="My Profile" />
 
       <main className="container mx-auto px-4 py-6 max-w-xl">
-        {/* Profile Section */}
         <div className="p-3 mb-4">
           <div className="flex flex-col items-center">
             <div className="relative">
@@ -180,13 +207,13 @@ const MyProfile = () => {
               {
                 icon: Wallet,
                 title: "UPI ID",
-                subtitle: staticPaymentData.upiId,
+                subtitle: paymentInfo?.upiId,
                 type: "upi",
               },
               {
                 icon: Phone,
                 title: "Phone Number",
-                subtitle: staticPaymentData.phone,
+                subtitle: paymentInfo?.mobileNumber,
                 type: "phone",
               },
             ].map((item) => (
@@ -258,7 +285,6 @@ const MyProfile = () => {
           </div>
         )}
 
-        {/* Full Profile Picture Modal */}
         {showFullProfile && (
           <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
             <div className="relative w-full max-w-2xl mx-4">
@@ -277,7 +303,6 @@ const MyProfile = () => {
           </div>
         )}
 
-        {/* Payment Modal */}
         {showPaymentModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
             <div className="bg-white rounded-xl p-4 w-11/12 max-w-md mx-4">
@@ -290,7 +315,11 @@ const MyProfile = () => {
                     : "Phone Number"}
                 </h3>
                 <button
-                  onClick={() => setShowPaymentModal(false)}
+                  onClick={() => {
+                    setShowPaymentModal(false);
+                    setUploadingQR(false);
+                    setPaymentUpdateLoading(false);
+                  }}
                   className="p-1.5 hover:bg-gray-100 rounded-full"
                 >
                   <X className="w-5 h-5" />
@@ -301,16 +330,30 @@ const MyProfile = () => {
                 {selectedPaymentType === "qr" && (
                   <div className="space-y-4">
                     <div className="flex justify-center p-4 bg-gray-50 rounded-lg">
-                      <QrCode className="w-40 h-40 text-gray-800" />
+                      {qrCodeFile ? (
+                        <img
+                          src={URL.createObjectURL(qrCodeFile)}
+                          alt="New QR Code"
+                          className="w-36 h-36 object-cover"
+                        />
+                      ) : paymentInfo?.qrCode ? (
+                        <img
+                          src={paymentInfo.qrCode}
+                          alt="Existing QR Code"
+                          className="w-36 h-36 object-cover"
+                        />
+                      ) : (
+                        <p>No QR code found. Please upload a new one.</p>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <label className="flex-1">
                         <input
                           type="file"
                           accept="image/*"
-                          onChange={handleQRUpload}
+                          onChange={handleQRCodeUpload}
                           className="hidden"
-                          disabled={uploadingQR}
+                          disabled={paymentUpdateLoading}
                         />
                         <div className="w-full p-2.5 bg-blue-50 text-blue-600 rounded-lg text-center text-sm font-medium hover:bg-blue-100 cursor-pointer">
                           {uploadingQR ? (
@@ -321,10 +364,15 @@ const MyProfile = () => {
                         </div>
                       </label>
                       <button
+                        onClick={handlePaymentUpdate}
                         className="flex-1 p-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-                        disabled={uploadingQR}
+                        disabled={!qrCodeFile || paymentUpdateLoading}
                       >
-                        Update
+                        {paymentUpdateLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                        ) : (
+                          "Update"
+                        )}
                       </button>
                     </div>
                   </div>
@@ -334,12 +382,26 @@ const MyProfile = () => {
                   <>
                     <input
                       type="text"
-                      defaultValue={staticPaymentData.upiId}
+                      value={paymentFormData.upiId}
+                      onChange={(e) =>
+                        setPaymentFormData({
+                          ...paymentFormData,
+                          upiId: e.target.value,
+                        })
+                      }
                       className="w-full p-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Enter UPI ID"
                     />
-                    <button className="w-full p-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
-                      Update
+                    <button
+                      onClick={handlePaymentUpdate}
+                      className="w-full p-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                      disabled={!paymentFormData.upiId || paymentUpdateLoading}
+                    >
+                      {paymentUpdateLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                      ) : (
+                        "Update"
+                      )}
                     </button>
                   </>
                 )}
@@ -348,12 +410,28 @@ const MyProfile = () => {
                   <>
                     <input
                       type="tel"
-                      defaultValue={staticPaymentData.phone}
+                      value={paymentFormData.mobileNumber}
+                      onChange={(e) =>
+                        setPaymentFormData({
+                          ...paymentFormData,
+                          mobileNumber: e.target.value,
+                        })
+                      }
                       className="w-full p-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Enter phone number"
                     />
-                    <button className="w-full p-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
-                      Update
+                    <button
+                      onClick={handlePaymentUpdate}
+                      className="w-full p-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                      disabled={
+                        !paymentFormData.mobileNumber || paymentUpdateLoading
+                      }
+                    >
+                      {paymentUpdateLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                      ) : (
+                        "Update"
+                      )}
                     </button>
                   </>
                 )}

@@ -8,7 +8,15 @@ import rules from "../assets/rules.svg";
 import tnc from "../assets/t&c.svg";
 import leftArr from "../assets/leftArr.png";
 import user from "../assets/user (2).png";
-import { Wallet, ChevronRight, Download, LogOut, HomeIcon, AwardIcon } from "lucide-react";
+import {
+  Wallet,
+  ChevronRight,
+  Download,
+  LogOut,
+  HomeIcon,
+  AwardIcon,
+  Eye,
+} from "lucide-react";
 import { getWalletBalance } from "../api/fetch";
 
 const Header = ({
@@ -17,6 +25,8 @@ const Header = ({
   homeAllowed = true,
   showPrizeIcon = false,
   openAuctionDetailModal,
+  showRules = false,
+  handleOpenRulesModal,
 }) => {
   const navigate = useNavigate();
   const { userId, username } = useSelector((state) => state.user);
@@ -57,7 +67,6 @@ const Header = ({
 
   return (
     <div>
-      {/* Header */}
       <div className="w-full h-[65px] border border-black bg-[#1F41BB] flex justify-between items-center px-4 z-20">
         {backAllowed && (
           <div>
@@ -73,16 +82,28 @@ const Header = ({
           {heading}
         </div>
 
-        <div className="flex justify-center items-center gap-6">
+        <div className="flex justify-center items-center gap-4">
           {showPrizeIcon && (
             <div onClick={openAuctionDetailModal}>
               <AwardIcon size={24} className="text-white" />
             </div>
           )}
 
-          {homeAllowed && (
+          {showRules !== true && homeAllowed && (
             <div onClick={() => navigate("/home")}>
               <HomeIcon className="w-6 h-6 text-white" />
+            </div>
+          )}
+
+          {showRules && (
+            <div
+              onClick={handleOpenRulesModal}
+              className="cursor-pointer bg-white p-1 px-2 rounded-full flex justify-center items-center gap-1"
+            >
+              <span>
+                <Eye size={20} className="text-blue-700" />
+              </span>
+              <p className="text-blue-700 font-semibold">Rules</p>
             </div>
           )}
 
