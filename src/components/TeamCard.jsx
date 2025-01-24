@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
+  // console.log(item, "ITEM")
   const navigate = useNavigate();
 
   const getRankSuffix = (rank) => {

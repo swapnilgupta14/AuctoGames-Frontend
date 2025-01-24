@@ -440,7 +440,7 @@ const AuctionRoom = () => {
           }
         }
       } catch (error) {
-        console.log("error", error);
+        console.error("error", error);
       }
     },
     [auctionId, remainingPlayers]
@@ -645,7 +645,6 @@ const AuctionRoom = () => {
   };
 
   const setupSocketConnection = async (token, auctionId) => {
-    console.log("Setuping socket connection...");
     try {
       const response = await SocketService.connect(token, auctionId);
       console.log("Socket connection established:", response);
@@ -878,7 +877,6 @@ const AuctionRoom = () => {
 
   const handleOpenRulesModal = () => {
     setRulesModalOpen(true);
-    console.log("Rules Modal Opened");
   };
 
   const closeRulesModal = () => {

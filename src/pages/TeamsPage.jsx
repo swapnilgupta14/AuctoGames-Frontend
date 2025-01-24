@@ -99,11 +99,11 @@ const TeamsPage = () => {
             (team) => ({
               ...team,
               prize:
-                team.id === res.prizeDistribution?.firstPrizeTeam?.id
+                team.id === res.prizeDistribution?.firstPrizeTeamId
                   ? prize.firstPrize
-                  : team.id === res.prizeDistribution?.secondPrizeTeam?.id
+                  : team.id === res.prizeDistribution?.secondPrizeTeamId
                   ? prize.secondPrize
-                  : team.id === res.prizeDistribution?.thirdPrizeTeam?.id
+                  : team.id === res.prizeDistribution?.thirdPrizeTeamId
                   ? prize.thirdPrize
                   : 0,
             })
