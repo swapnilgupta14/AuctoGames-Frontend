@@ -386,13 +386,13 @@ const Home = () => {
             </div>
           </div>
         </div>
-      ) : (
-        <div className="mt-4 text-center text-gray-500">
-          No live auctions available.
-        </div>
-      )}
+      ) : null}
 
-      <div className="my-3 px-0 flex flex-col h-[calc(100vh-400px)]">
+      <div
+        className={`my-3 px-0 flex flex-col h-[calc(100vh-${
+          liveAuctions.length > 0 ? "400" : "100"
+        }px)]`}
+      >
         {" "}
         <div className="flex justify-between items-center mb-4 mx-3">
           <DateRangeDisplay
@@ -498,7 +498,7 @@ const Home = () => {
             </ul>
           </div>
         ) : (
-          <div className="text-gray-500 text-center bg-gray-100 rounded-xl py-8 px-8">
+          <div className="text-gray-500 text-center bg-gray-100 rounded-xl py-8 px-8 mx-3">
             No {selectedTab.toLowerCase()} auctions available within the
             selected date range.
           </div>

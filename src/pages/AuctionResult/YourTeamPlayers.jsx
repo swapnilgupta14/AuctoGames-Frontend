@@ -57,7 +57,7 @@ const PlayerCard = ({
         <div>
           <p className="font-medium text-md">{player?.player?.name || "N/A"}</p>
           <p className="text-red-700 font-semibold text-xs">
-            Sold for - {(player?.currentBid + "Cr")}
+            Sold for - {player?.currentBid + "Cr"}
           </p>
           <p className="text-blue-700 font-semibold text-xs">
             {player?.player?.stats?.type || "Player Type N/A"}
@@ -448,7 +448,7 @@ const YourTeamPlayers = () => {
   if (error) {
     return (
       <div className="flex flex-col h-dvh lg:h-screen">
-        <Header heading={`${truncateText(teamName)}`} />
+        <Header heading={`${truncateText(teamName)}`} backToMinusOne={true} />
 
         <div className="flex-1 flex items-center justify-center text-red-600 font-semibold">
           {error}
@@ -461,7 +461,7 @@ const YourTeamPlayers = () => {
 
   return (
     <div className="flex flex-col h-dvh lg:h-screen relative">
-      <Header heading={`${truncateText(teamName)}`} />
+      <Header heading={`${truncateText(teamName)}`} backToMinusOne={true} />
 
       <div
         ref={listContainerRef}

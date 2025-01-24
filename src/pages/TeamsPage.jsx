@@ -216,6 +216,7 @@ const TeamsPage = () => {
         heading={`${truncateText(auctionName)}`}
         showPrizeIcon={true}
         openAuctionDetailModal={openAuctionDetailModal}
+        backToMinusOne={true}
       />
 
       {showPrizeModal && <PrizeModal />}

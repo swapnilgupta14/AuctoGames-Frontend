@@ -27,6 +27,7 @@ const Header = ({
   openAuctionDetailModal,
   showRules = false,
   handleOpenRulesModal,
+  backToMinusOne = false,
 }) => {
   const navigate = useNavigate();
   const { userId, username } = useSelector((state) => state.user);
@@ -68,7 +69,7 @@ const Header = ({
   return (
     <div>
       <div className="w-full h-[65px] border border-black bg-[#1F41BB] flex justify-between items-center px-4 z-20">
-        {backAllowed && (
+        {!backToMinusOne && backAllowed && (
           <div>
             <img
               src={rightArr}
@@ -78,6 +79,18 @@ const Header = ({
             />
           </div>
         )}
+
+        {backToMinusOne && (
+          <div>
+            <img
+              src={rightArr}
+              alt="Back"
+              className="w-[14px] h-[16px]"
+              onClick={() => navigate(-1)}
+            />
+          </div>
+        )}
+
         <div className="flex-1 font-medium text-lg text-start text-white pl-5">
           {heading}
         </div>

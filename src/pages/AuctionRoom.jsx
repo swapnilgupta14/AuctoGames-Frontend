@@ -280,9 +280,7 @@ const AuctionRoom = () => {
         endTime.current = null;
       };
     }
-  }, [delayRef.current.time, delayRef.current.delay]);
-
-  const [isfetchingPlayer, setIsfetchingPlayer] = useState(false);
+  }, [delayRef.current.time, delayRef.current.delay, activePlayer]);
 
   const prevPlayerId = useRef(null);
   const fetchPlayerById = async (dataToGet) => {
@@ -303,7 +301,6 @@ const AuctionRoom = () => {
 
       setCurrentBid(0);
       setCurrentBids([]);
-      setIsfetchingPlayer(true);
 
       const fetchTeamComposition = async () => {
         try {
@@ -331,7 +328,7 @@ const AuctionRoom = () => {
       ]);
 
       if (playerDetails) {
-        setIsfetchingPlayer(false);
+        setIsDisabled(false);
 
         const newActivePlayer = {
           highestBidderId: playerDetails?.highestBidderId,
@@ -339,7 +336,11 @@ const AuctionRoom = () => {
           ...dataToGet,
           imageUrl: playerDetails?.imageUrl,
           bonusPoints: playerDetails?.points?.bonus,
+          currentBid: playerDetails?.currentBid,
         };
+
+        console.log("newActivePlayer", newActivePlayer);
+        console.log("playerDetails", playerDetails);
 
         if (playerDetails?.highestBidderId === null) {
           latestHighestBidderRef.current = null;
@@ -354,13 +355,10 @@ const AuctionRoom = () => {
         prevPlayerId.current = dataToGet.playerId;
       }
     } catch (error) {
-      setIsfetchingPlayer(false);
       console.error("Error fetching player details:", error);
       toast.error("Some Erorr Occured! Please refresh.");
     }
   };
-
-  // ---------------------------------------------------------------
 
   function validatePlayerTypeCount(playerTypeCount) {
     const ActivePlayerType = activePlayer?.stats?.type;
@@ -495,7 +493,7 @@ const AuctionRoom = () => {
       if (data?.delay === 15) {
         delayRef.current.delay = 16 * 1000;
       } else {
-        delayRef.current.delay = 21000;
+        delayRef.current.delay = 21 * 1000;
       }
       fetchPlayerById(data);
       fetchAllPlayerInAuction();
@@ -529,7 +527,7 @@ const AuctionRoom = () => {
     SocketService.onNewUserConnected(() => {
       SocketService.emitGetRoomSize();
       SocketService.emitGetPlayerCount();
-      if (auctionStarted.current === true && timeUntilStart === null) {
+      if (auctionStarted.current === true) {
         SocketService.emitGetActivePlayer();
       }
     });
@@ -915,7 +913,7 @@ const AuctionRoom = () => {
     return (
       <div className="flex flex-col h-dvh lg:h-screen">
         <Header
-          heading={`Room - ${truncateText(auction?.title)}`}
+          heading={`${truncateText(auction?.title)}`}
           showRules={true}
           handleOpenRulesModal={handleOpenRulesModal}
         ></Header>
@@ -971,7 +969,7 @@ const AuctionRoom = () => {
   return (
     <div className="flex flex-col h-dvh lg:h-screen">
       <Header
-        heading={`Room - ${truncateText(auction?.title)}`}
+        heading={`${truncateText(auction?.title)}`}
         showRules={true}
         handleOpenRulesModal={handleOpenRulesModal}
       ></Header>{" "}
@@ -1006,7 +1004,7 @@ const AuctionRoom = () => {
                   Points: {activePlayer?.bonusPoints ?? 0}
                 </p>
                 <p className="border-2 border-b-zinc-200 py-1 px-2 text-end">
-                  Base Price: {currentBid || "N/A"}
+                  Base Price: {activePlayer?.currentBid || "N/A"} {}
                 </p>
               </div>
             </div>
