@@ -33,7 +33,7 @@ const TeamsPage = () => {
       if (totalPlayers !== MAX_PLAYERS) {
         return {
           valid: false,
-          message: `Total players should be exactly ${MAX_PLAYERS}. Current count: ${totalPlayers}`,
+          message: `Team composition is Invalid.`,
         };
       }
       for (const [playerType, count] of Object.entries(teamComposition)) {
