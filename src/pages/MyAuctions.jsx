@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { 
+  CalendarIcon, 
+  TimerIcon, 
+  UsersIcon, 
+  RefreshCw, 
+  ArrowUpDown 
+} from "lucide-react";
 import Header from "../components/Header";
 import { getAuctionsOfUser } from "../api/fetch";
-import { useSelector } from "react-redux";
-import { CalendarIcon, TimerIcon, UsersIcon, RefreshCw } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 const AuctionCard = ({ auction }) => {
   const { userId } = useSelector((state) => state.user);
@@ -27,7 +33,7 @@ const AuctionCard = ({ auction }) => {
       <div className="grid grid-cols-3 gap-3">
         <div className="flex flex-col items-center text-center">
           <CalendarIcon size={18} className="text-blue-700 mb-1.5" />
-          <span className="text-xs text-blue-700 font-medium tracking-tight  mb-1">
+          <span className="text-xs text-blue-700 font-medium tracking-tight mb-1">
             Start
           </span>
           <span className="text-xs text-gray-800 font-semibold">
@@ -96,6 +102,8 @@ const MyAuctions = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [activeTab, setActiveTab] = useState("COMPLETED");
+  const [sortOption, setSortOption] = useState("newest");
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
 
   useEffect(() => {
     fetchAuctions(userId);
@@ -116,31 +124,94 @@ const MyAuctions = () => {
     }
   };
 
-  const filteredAuctions = auctionsData.filter(
-    (auction) => auction.status === activeTab
-  );
+  const parseDateTime = (dateTimeString) => {
+    // Parse DD/MM/YYYY, HH:MM:SS format
+    const [datePart, timePart] = dateTimeString.split(', ');
+    const [day, month, year] = datePart.split('/');
+    const [hours, minutes, seconds] = timePart.split(':');
+    return new Date(year, month - 1, day, hours, minutes, seconds);
+  };
+
+  const getSortedAuctions = (auctions) => {
+    const filteredAuctions = auctions.filter(
+      (auction) => auction.status === activeTab
+    );
+
+    return filteredAuctions.sort((a, b) => {
+      const timeKey = activeTab === "COMPLETED" ? "endTime" : "startTime";
+      
+      switch (sortOption) {
+        case "newest":
+          return parseDateTime(b[timeKey]) - parseDateTime(a[timeKey]);
+        case "oldest":
+          return parseDateTime(a[timeKey]) - parseDateTime(b[timeKey]);
+        default:
+          return 0;
+      }
+    });
+  };
 
   const tabs = ["LIVE", "COMPLETED", "SCHEDULED"];
+  const sortedAuctions = getSortedAuctions(auctionsData);
 
   return (
     <div className="h-dvh w-full flex flex-col bg-gray-100">
       <Header heading={"My Auctions"} />
 
       <div className="flex-1 flex flex-col min-h-0">
-        <div className="flex space-x-6 mb-6 px-4 pt-4 border-b border-gray-200">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-2 px-1 text-sm font-medium border-b-2 transition-all ${
-                activeTab === tab
-                  ? "border-b-2 border-blue-500 text-blue-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
+        <div className="flex justify-between items-center mb-6 px-4 pt-4 border-b border-gray-200">
+          <div className="flex space-x-6">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`pb-2 px-1 text-sm font-medium border-b-2 transition-all ${
+                  activeTab === tab
+                    ? "border-b-2 border-blue-500 text-blue-600"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+          
+          <div className="relative">
+            <button 
+              onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+              className="flex items-center space-x-1 text-gray-600 hover:text-gray-800 pb-2 px-1 text-sm font-medium border-b-2 border-transparent"
             >
-              {tab}
+              <span className="flex items-center gap-1">
+              <ArrowUpDown size={16} />
+              <span className="text-sm">Sort</span></span>
             </button>
-          ))}
+            {isSortDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                <div className="py-1" role="menu">
+                  <button
+                    onClick={() => {
+                      setSortOption("newest");
+                      setIsSortDropdownOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                    role="menuitem"
+                  >
+                    Newest First
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSortOption("oldest");
+                      setIsSortDropdownOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                    role="menuitem"
+                  >
+                    Oldest First
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex-1 overflow-hidden">
@@ -155,10 +226,10 @@ const MyAuctions = () => {
                   <RefreshCw className="animate-spin text-gray-500" size={36} />
                   <p>Loading...</p>
                 </div>
-              ) : filteredAuctions.length > 0 ? (
+              ) : sortedAuctions.length > 0 ? (
                 <div className="h-full overflow-y-auto px-4">
                   <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-6">
-                    {filteredAuctions.map((auction) => (
+                    {sortedAuctions.map((auction) => (
                       <AuctionCard key={auction.id} auction={auction} />
                     ))}
                   </div>

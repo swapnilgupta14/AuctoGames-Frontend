@@ -8,10 +8,16 @@ import rules from "../assets/rules.svg";
 import tnc from "../assets/t&c.svg";
 import leftArr from "../assets/leftArr.png";
 import user from "../assets/user (2).png";
-import { Wallet, ChevronRight, Download, LogOut, HomeIcon } from "lucide-react";
+import { Wallet, ChevronRight, Download, LogOut, HomeIcon, AwardIcon } from "lucide-react";
 import { getWalletBalance } from "../api/fetch";
 
-const Header = ({ heading, backAllowed = true, homeAllowed = true }) => {
+const Header = ({
+  heading,
+  backAllowed = true,
+  homeAllowed = true,
+  showPrizeIcon = false,
+  openAuctionDetailModal,
+}) => {
   const navigate = useNavigate();
   const { userId, username } = useSelector((state) => state.user);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -68,11 +74,18 @@ const Header = ({ heading, backAllowed = true, homeAllowed = true }) => {
         </div>
 
         <div className="flex justify-center items-center gap-6">
+          {showPrizeIcon && (
+            <div onClick={openAuctionDetailModal}>
+              <AwardIcon size={24} className="text-white" />
+            </div>
+          )}
+
           {homeAllowed && (
             <div onClick={() => navigate("/home")}>
               <HomeIcon className="w-6 h-6 text-white" />
             </div>
           )}
+
           {heading === "Results" && (
             <div className="flex justify-center">
               <Download size={22} className="text-white" />

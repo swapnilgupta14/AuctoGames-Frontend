@@ -1,5 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { Users, Medal, Wallet, Star, AlertTriangle } from "lucide-react";
+import {
+  Users,
+  Medal,
+  Wallet,
+  Star,
+  AlertTriangle,
+  IndianRupee,
+} from "lucide-react";
 
 const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
   const navigate = useNavigate();
@@ -31,7 +38,7 @@ const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
 
   return (
     <div className="w-full bg-white shadow-xl rounded-xl border border-gray-300 space-y-4">
-      <div className="flex justify-between items-start p-5">
+      <div className="flex justify-between items-start px-5 pt-4 pb-3 border-b">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-gray-200">
             <img
@@ -68,7 +75,7 @@ const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
         </button>
       </div>
 
-      <div className="grid grid-cols-4 gap-3 py-2">
+      <div className="grid grid-cols-4 gap-3 p-2">
         <div className="flex flex-col items-center text-center">
           <Medal size={21} className={` mb-1.5`} />
           <span className="text-xs text-gray-600 font-medium tracking-tight">
@@ -124,9 +131,17 @@ const TeamCard = ({ item, auctionId, userId, totalPlayerCount, rank }) => {
       </div>
 
       {isDisbarred && (
-        <div className="bg-red-100 text-red-800 p-2 rounded-b-xl flex items-center">
-          <AlertTriangle className="mr-2" size={20} />
+        <div className="bg-red-100 text-red-800 p-2 rounded-b-xl flex items-center justify-center">
+          <AlertTriangle className="mr-2" size={16} />
           <span className="text-sm font-medium">{item.validationMessage}</span>
+        </div>
+      )}
+
+      {!isDisbarred && item?.prize !== null && (
+        <div className="bg-green-100 text-green-800 p-2 rounded-b-xl flex items-center justify-center">
+          <span className="text-sm font-medium"> Winnings: </span>{" "}
+          <IndianRupee className="ml-2" size={16} />
+          <span className="text-sm font-medium">{item.prize}</span>
         </div>
       )}
     </div>
