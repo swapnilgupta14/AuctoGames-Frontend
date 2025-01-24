@@ -42,7 +42,7 @@ const TeamsPage = () => {
         if (rule && (count < rule.min || count > rule.max)) {
           return {
             valid: false,
-            message: `${playerType}: Count should be between ${rule.min} and ${rule.max}. Current count: ${count}`,
+            message: `Team composition is Invalid.`,
           };
         }
       }
