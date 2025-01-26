@@ -252,6 +252,28 @@ const Home = () => {
     return () => stopAutoSlide();
   }, [liveAuctions, startAutoSlide, stopAutoSlide]);
 
+  useEffect(() => {
+    const { startDate, endDate } = dateRange[0];
+    let filtered;
+
+    const parseDate = (dateString) => {
+      const [datePart, timePart] = dateString.split(", ");
+      const [day, month, year] = datePart.split("/").map(Number);
+      const [hours, minutes, seconds] = timePart.split(":").map(Number);
+      return new Date(year, month - 1, day, hours, minutes, seconds);
+    };
+
+    filtered = (
+      selectedTab === "SCHEDULED" ? scheduledAuctions : completedAuctions
+    ).filter((auction) => {
+      const auctionStartDate = parseDate(auction.startTime);
+      const auctionEndDate = parseDate(auction.endTime);
+      return auctionStartDate >= startDate && auctionEndDate <= endDate;
+    });
+
+    setFilteredAuctions(filtered);
+  }, [dateRange, scheduledAuctions, completedAuctions, selectedTab]);
+
   const truncateText = (text = "", maxLength = 20) => {
     if (!text || typeof text !== "string") return "";
     return text.length > maxLength
@@ -260,7 +282,7 @@ const Home = () => {
   };
 
   return (
-    <div className="h-dvh w-full overflow-hidden">
+    <div className="h-dvh w-full  overflow-hidden">
       <Header
         heading={
           <p className="flex gap-2 items-center justify-start -ml-4">
@@ -298,6 +320,7 @@ const Home = () => {
                 <div className="w-full h-full">
                   {auction?.imageUrl ? (
                     <img
+                      // loading="lazy"
                       src={auction.imageUrl}
                       alt={auction.title}
                       className="w-full h-full object-cover rounded-2xl"
@@ -364,12 +387,12 @@ const Home = () => {
         </div>
       ) : null}
 
-      {/* Fixed Scrollable Section */}
       <div
         className={`my-3 px-0 flex flex-col h-[calc(100vh-${
-          liveAuctions.length > 0 ? "400px" : "100px"
-        })]`}
+          liveAuctions.length > 0 ? "400" : "100"
+        }px)] overflow-hidden`}
       >
+        {" "}
         <div className="flex justify-between items-center mb-4 mx-3">
           <DateRangeDisplay
             startDate={dateRange[0].startDate}
@@ -407,6 +430,7 @@ const Home = () => {
         {isDatePickerOpen && (
           <div className="flex justify-center relative">
             <div className="w-[100%] bg-white rounded-lg shadow-md overflow-y-auto absolute top-0 flex items-center justify-center z-50">
+              {" "}
               <DateRangePicker
                 ranges={dateRange}
                 onChange={(ranges) => setDateRange([ranges.selection])}
@@ -427,8 +451,9 @@ const Home = () => {
         {isLoading ? (
           <AuctionListSkeleton />
         ) : filteredAuctionsMemoized.length > 0 ? (
-          <div className="flex-1 overflow-y-auto">
-            <ul className="space-y-3 mx-3">
+          <div className="flex-1 overflow-scroll">
+            {" "}
+            <ul className="space-y-3 mx-3 ">
               {filteredAuctionsMemoized.map((auction) => (
                 <li
                   key={auction.id}
@@ -440,14 +465,21 @@ const Home = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex gap-4 items-center">
                       {auction.imageUrl ? (
-                        <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100 group-hover:bg-blue-100/50 transition-colors">
+                        <div
+                          className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center
+                                 border border-blue-100 group-hover:bg-blue-100/50 transition-colors"
+                        >
                           <Image className="w-7 h-7 text-blue-600" />
                         </div>
                       ) : (
-                        <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100 group-hover:bg-blue-100/50 transition-colors">
+                        <div
+                          className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center
+                                  border border-blue-100 group-hover:bg-blue-100/50 transition-colors"
+                        >
                           <Image className="w-7 h-7 text-blue-600" />
                         </div>
                       )}
+
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-gray-900">
                           {truncateText(auction.title || auction.imageUrl)}
@@ -457,6 +489,7 @@ const Home = () => {
                         </span>
                       </div>
                     </div>
+
                     <ChevronRight className="w-5 h-5 text-[#3868D4]" />
                   </div>
                 </li>
@@ -465,8 +498,8 @@ const Home = () => {
           </div>
         ) : (
           <div className="text-gray-500 text-center bg-gray-100 rounded-xl py-8 px-8 mx-3">
-            No {selectedTab.toLowerCase()} auctions available within the selected
-            date range.
+            No {selectedTab.toLowerCase()} auctions available within the
+            selected date range.
           </div>
         )}
       </div>
