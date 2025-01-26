@@ -441,7 +441,7 @@ const AuctionRoom = () => {
         console.error("error", error);
       }
     },
-    [auctionId, remainingPlayers]
+    [auctionId, remainingPlayers, userId, budget.total]
   );
 
   useEffect(() => {
@@ -499,6 +499,15 @@ const AuctionRoom = () => {
       fetchAllPlayerInAuction();
     });
 
+    SocketService.onPlayerStatusChanged((data) => {
+      toast.success("One Player is Pulled Back!");
+      const p_id = data?.auctionPlayerId;
+      fetchAllPlayerInAuction(p_id);
+
+      SocketService.emitGetActivePlayer();
+      SocketService.emitGetPlayerCount();
+    });
+
     SocketService.onAskNewPlayer((data) => {
       if (data?.status === "SOLD") {
         SocketService.emitGetActivePlayer();
@@ -552,15 +561,14 @@ const AuctionRoom = () => {
       setCurrentBids(sliced);
     });
 
-    SocketService.onPlayerPulledBack((data) => {
-      toast.success("Player Pulled Back Successfully!");
-      const p_id = data?.auctionPlayerId;
-      fetchAllPlayerInAuction(p_id);
+    // SocketService.onPlayerPulledBack((data) => {
+    //   toast.success("Player Pulled Back Successfully!");
+    //   const p_id = data?.auctionPlayerId;
+    //   fetchAllPlayerInAuction(p_id);
 
-      SocketService.emitGetRoomSize();
-      SocketService.emitGetActivePlayer();
-      SocketService.emitGetPlayerCount();
-    });
+    //   SocketService.emitGetActivePlayer();
+    //   SocketService.emitGetPlayerCount();
+    // });
 
     SocketService.onUserDisconnected(() => {
       prevPlayerId.current = null;

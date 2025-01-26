@@ -176,6 +176,12 @@ class SocketService {
     });
   }
 
+  onPlayerStatusChanged(callback) {
+    this.on("playerStatusChanged", (data) => {
+      callback(data);
+    });
+  }
+
   sendChatMessage(text) {
     if (text && text.length > 1) {
       this.emit("sendChatMessage", {
