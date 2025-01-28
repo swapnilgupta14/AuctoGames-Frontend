@@ -282,7 +282,7 @@ const Home = () => {
   };
 
   return (
-    <div className="h-dvh w-full  overflow-hidden">
+    <div className="h-dvh w-full overflow-hidden ">
       <Header
         heading={
           <p className="flex gap-2 items-center justify-start -ml-4">
@@ -388,9 +388,11 @@ const Home = () => {
       ) : null}
 
       <div
-        className={`my-3 px-0 flex flex-col h-[calc(100vh-${
-          liveAuctions.length > 0 ? "400" : "100"
-        }px)] overflow-hidden`}
+        className={`my-3 px-0 flex flex-col ${
+          liveAuctions.length > 0
+            ? "h-[calc(100vh-400px)]"
+            : "h-[calc(100vh-100px)]"
+        } overflow-hidden`}
       >
         {" "}
         <div className="flex justify-between items-center mb-4 mx-3">
@@ -453,7 +455,7 @@ const Home = () => {
         ) : filteredAuctionsMemoized.length > 0 ? (
           <div className="flex-1 overflow-scroll">
             {" "}
-            <ul className="space-y-3 mx-3 ">
+            <ul className="space-y-3 mx-3 overflow-y-auto">
               {filteredAuctionsMemoized.map((auction) => (
                 <li
                   key={auction.id}
