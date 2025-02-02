@@ -230,7 +230,6 @@ const Header = ({
               </div>
             </div>
           </button>
-          <p className="px-4 border-b-2"></p>
 
           <button
             onClick={() => navigate("/privacy-policy")}
@@ -261,6 +260,9 @@ const Header = ({
               </div>
             </div>
           </button>
+
+          <p className="px-4 border-b-2"></p>
+
 
           <div className="bg-white rounded-lg p-2 mx-1 shadow-sm border border-gray-100">
             <div
