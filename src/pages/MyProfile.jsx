@@ -11,6 +11,7 @@ import {
   Upload,
   Eye,
   Loader2,
+  IdCard,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
@@ -215,6 +216,18 @@ const MyProfile = () => {
                 title: "Phone Number",
                 subtitle: paymentInfo?.mobileNumber,
                 type: "phone",
+              },
+              {
+                icon: IdCard,
+                title: "Aadhaar Number",
+                subtitle: paymentInfo?.aadhaar,
+                type: "aadhaar",
+              },
+              {
+                icon: IdCard,
+                title: "PAN Number",
+                subtitle: paymentInfo?.pan,
+                type: "pan",
               },
             ].map((item) => (
               <button

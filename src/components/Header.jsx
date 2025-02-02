@@ -16,6 +16,7 @@ import {
   HomeIcon,
   AwardIcon,
   Eye,
+  MenuIcon,
 } from "lucide-react";
 import { getWalletBalance } from "../api/fetch";
 
@@ -30,7 +31,7 @@ const Header = ({
   backToMinusOne = false,
 }) => {
   const navigate = useNavigate();
-  const { userId, username } = useSelector((state) => state.user);
+  const { userId, username, imageUrl } = useSelector((state) => state.user);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [balance, setBalance] = useState(0);
 
@@ -125,20 +126,18 @@ const Header = ({
               <Download size={22} className="text-white" />
             </div>
           )}
-          {/* <div>
-            <img src={bellIcon} alt="Notifications" />
-          </div> */}
 
-          <div
-            className="border border-white w-[30px] h-[30px] rounded-full flex justify-center items-center text-white font-medium text-[16px] cursor-pointer"
-            onClick={toggleSidebar}
-          >
-            <div>{username.split(" ")[0].charAt(0).toUpperCase()}</div>
-          </div>
+          {!isSidebarOpen && (
+            <div
+              className="w-[30px] h-[30px] rounded-full flex justify-center items-center text-white font-medium text-[16px] cursor-pointer"
+              onClick={toggleSidebar}
+            >
+              <MenuIcon className="w-6 h-6" />
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Modal Overlay */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -146,7 +145,6 @@ const Header = ({
         ></div>
       )}
 
-      {/* Sidebar */}
       <div
         className={`fixed top-0 left-0 h-dvh overflow-y-auto bg-white shadow-lg z-50 flex flex-col justify-between transition-transform duration-300 text-black ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-[100%]"
@@ -154,9 +152,9 @@ const Header = ({
         style={{ width: "300px" }}
       >
         <div className="flex flex-col gap-4 px-0">
-          <div className="border-b border-gray-300 px-3 py-4 bg-[rgb(31,65,187)] flex items-center gap-5 justify-around">
-            <div className="w-[50px] h-[50px] rounded-full border border-white justify-center items-center flex bg-white">
-              <img src={user} alt="" className="w-[30px] h-[30px]" />
+          <div className="px-3 py-4 bg-[rgb(31,65,187)] flex items-center gap-5 justify-around">
+            <div className="w-[50px] h-[50px] overflow-hidden rounded-full justify-center items-center flex bg-white">
+              <img src={imageUrl} alt="" />
             </div>
             <div className="text-white">
               <div className="text-lg font-semibold">

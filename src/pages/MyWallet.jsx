@@ -6,7 +6,16 @@ import {
   fetchTransactionHistory,
 } from "../api/fetch";
 import { useSelector } from "react-redux";
-import { PlusCircle, MinusCircle, RefreshCw, X, Loader2 } from "lucide-react";
+import { truncateText } from "../utils/truncateText";
+import {
+  PlusCircle,
+  MinusCircle,
+  RefreshCw,
+  X,
+  CircleCheck,
+  CircleAlert,
+  ArrowRight,
+} from "lucide-react";
 import Header from "../components/Header";
 import toast from "react-hot-toast";
 
@@ -86,6 +95,240 @@ const TransactionCardList = ({
   );
 };
 
+const WalletCard = ({
+  balance,
+  rechargeAmount,
+  setRechargeAmount,
+  withdrawAmount,
+  setWithdrawAmount,
+  validateAndOpenRechargeModal,
+  validateAndOpenWithdrawModal,
+  paymentInfo,
+  viewPaymentInfo,
+  setViewPaymentInfo,
+  navigate,
+  getAvailableMethod,
+  getMissingMethods,
+}) => (
+  <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-3 rounded-xl shadow-md">
+    {!viewPaymentInfo ? (
+      <>
+        <div className="mb-4 ">
+          <div className="flex justify-between items-center border-b border-blue-200 p-2">
+            <h2 className="text-xl font-semibold text-blue-800">My Wallet</h2>
+            <div className="text-xl font-semibold text-green-600">
+              ₹{balance.toLocaleString()}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-2 overflow-hidden">
+          <div className="bg-white bg-opacity-50 p-2 rounded-lg">
+            <h3 className="font-medium flex items-center text-sm mb-2">
+              <PlusCircle className="mr-2 h-4 w-4 text-green-600" /> Add Money
+            </h3>
+            <div className="flex gap-2 ">
+              <input
+                type="number"
+                placeholder="Enter amount"
+                value={rechargeAmount}
+                onChange={(e) => setRechargeAmount(e.target.value)}
+                className="w-[82%] px-3 py-1.5 border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                min="1"
+              />
+              <button
+                onClick={validateAndOpenRechargeModal}
+                className="bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 text-sm font-medium whitespace-nowrap"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white bg-opacity-50 p-2 rounded-lg">
+            <h3 className="font-medium flex items-center text-sm mb-2">
+              <MinusCircle className="mr-2 h-4 w-4 text-red-600" /> Withdraw
+              Money
+            </h3>
+            <div className="flex gap-2 max-w-full">
+              <input
+                type="number"
+                placeholder="Enter amount"
+                value={withdrawAmount}
+                onChange={(e) => setWithdrawAmount(e.target.value)}
+                className="w-[70%] px-3 py-1.5 border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                min="1"
+              />
+              <button
+                onClick={validateAndOpenWithdrawModal}
+                className="bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700 text-sm font-medium min-w-fit"
+              >
+                Withdraw
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 space-y-2">
+          {getMissingMethods().length > 0 && (
+            <div className="flex items-start p-2 bg-yellow-50 border border-yellow-200 rounded-md text-sm">
+              <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 mr-2 flex-shrink-0" />
+              <div className="text-yellow-800">
+                Missing: {getMissingMethods().join(", ")}.
+                <button
+                  onClick={() => navigate("/profile")}
+                  className="text-blue-600 hover:underline ml-1"
+                >
+                  Update profile
+                </button>
+              </div>
+            </div>
+          )}
+
+          {getAvailableMethod() && (
+            <div
+              className="flex items-start p-2 bg-blue-50 border border-blue-200 rounded-md text-sm justify-between"
+              onClick={() => setViewPaymentInfo(true)}
+            >
+              <div className="text-blue-800 flex">
+                <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
+                Using {getAvailableMethod()} for transactions.
+              </div>
+              <div>
+                <ArrowRight className="w-5 h-5 text-blue-700" />
+              </div>
+            </div>
+          )}
+        </div>
+      </>
+    ) : (
+      <div className="space-y-3">
+        <div className="flex items-center justify-start border-b border-blue-200 pb-3">
+          <button
+            onClick={() => setViewPaymentInfo(false)}
+            className="flex items-center text-blue-700 hover:text-blue-800 text-sm"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+          </button>
+          <h2 className="text-lg font-semibold text-blue-800">
+            Payment Information
+          </h2>
+          <div className="w-8" />
+        </div>
+
+        {paymentInfo && getMissingMethods().length === 3 ? (
+          <div className="flex items-start p-2 bg-red-50 border border-red-200 rounded-md text-sm">
+            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 mr-2 flex-shrink-0" />
+            <div className="text-red-800">
+              No payment methods configured.
+              <button
+                onClick={() => navigate("/profile")}
+                className="text-blue-700 hover:underline ml-1"
+              >
+                Update profile
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-1">
+            <div className="bg-white bg-opacity-50 p-4 rounded-lg">
+              <div className="flex md:flex-row gap-2">
+                {paymentInfo?.qrCode && (
+                  <div className="flex-shrink-0">
+                    <img
+                      src={paymentInfo.qrCode}
+                      alt="QR Code"
+                      className="h-32 w-32 border rounded-lg shadow-sm"
+                    />
+                  </div>
+                )}
+
+                <div className="flex-1 flex flex-col justify-start space-y-2">
+                  {paymentInfo?.upiId && (
+                    <div className="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
+                      <div className="flex items-center justify-between gap-2 w-full">
+                        <span className="text-sm text-black">
+                          {paymentInfo.upiId
+                            ? truncateText(paymentInfo.upiId)
+                            : "UPI ID"}
+                        </span>
+                        {paymentInfo.upiId ? (
+                          <CircleCheck className="h-5 w-5 text-green-600" />
+                        ) : (
+                          <div className="flex items-center text-red-600">
+                            <CircleAlert className="h-5 w-5" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {paymentInfo?.mobileNumber && (
+                    <div className="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
+                      <div className="flex items-center justify-between gap-2 w-full">
+                        <span className="text-sm text-black">
+                          {paymentInfo.mobileNumber
+                            ? truncateText(paymentInfo.mobileNumber)
+                            : "Mobile Number"}
+                        </span>
+                        {paymentInfo.mobileNumber ? (
+                          <CircleCheck className="h-5 w-5 text-green-600" />
+                        ) : (
+                          <div className="flex items-center text-red-600">
+                            <CircleAlert className="h-5 w-5" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 w-full">
+                    <div className="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
+                      <span className="text-sm mr-2">Aadhaar</span>
+                      {paymentInfo.aadhaarNumber ? (
+                        <CircleCheck className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <div className="flex items-center text-red-600">
+                          <CircleAlert className="h-5 w-5" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
+                      <span className="text-sm mr-2">PAN</span>
+                      {paymentInfo.pan ? (
+                        <CircleCheck className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <div className="flex items-center text-red-600">
+                          <CircleAlert className="h-5 w-5" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {!paymentInfo?.upiId && !paymentInfo?.mobileNumber && (
+                    <div className="text-md text-gray-500 italic">
+                      No additional payment methods configured
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={() => navigate("/profile")}
+          className="w-full flex items-center justify-center gap-1 text-sm text-blue-700 hover:text-blue-800 bg-white bg-opacity-50 py-2 rounded-md mt-3"
+        >
+          Update Information in Profile{" "}
+          <ExternalLink className="h-4 w-4 ml-2" />
+        </button>
+      </div>
+    )}
+  </div>
+);
+
 const MyWallet = () => {
   const { userId } = useSelector((state) => state.user);
   const [balance, setBalance] = useState(0);
@@ -118,204 +361,6 @@ const MyWallet = () => {
     if (!paymentInfo?.mobileNumber) missing.push("Mobile Number");
     return missing;
   };
-
-  const WalletCard = () => (
-    <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl shadow-md">
-      {!viewPaymentInfo ? (
-        <>
-          {/* Main Wallet View */}
-          <div className="mb-4">
-            <div className="flex justify-between items-center border-b border-blue-200 pb-3">
-              <h2 className="text-xl font-semibold text-blue-800">My Wallet</h2>
-              <div className="text-xl font-semibold text-green-600">
-                ₹{balance.toLocaleString()}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-3">
-            <div className="bg-white bg-opacity-50 p-3 rounded-lg">
-              <h3 className="font-medium flex items-center text-sm mb-2">
-                <PlusCircle className="mr-2 h-4 w-4 text-green-600" /> Add Money
-              </h3>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  placeholder="Enter amount"
-                  value={rechargeAmount}
-                  onChange={(e) => setRechargeAmount(e.target.value)}
-                  className="flex-1 px-3 py-1.5 border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  min="1"
-                />
-                <button
-                  onClick={validateAndOpenRechargeModal}
-                  className="bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 text-sm font-medium whitespace-nowrap"
-                >
-                  Add
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-white bg-opacity-50 p-3 rounded-lg">
-              <h3 className="font-medium flex items-center text-sm mb-2">
-                <MinusCircle className="mr-2 h-4 w-4 text-red-600" /> Withdraw
-                Money
-              </h3>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  placeholder="Enter amount"
-                  value={withdrawAmount}
-                  onChange={(e) => setWithdrawAmount(e.target.value)}
-                  className="flex-1 px-3 py-1.5 border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  min="1"
-                />
-                <button
-                  onClick={validateAndOpenWithdrawModal}
-                  className="bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700 text-sm font-medium"
-                >
-                  Withdraw
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-3 space-y-2">
-            {getMissingMethods().length > 0 && (
-              <div className="flex items-start p-2 bg-yellow-50 border border-yellow-200 rounded-md text-sm">
-                <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 mr-2 flex-shrink-0" />
-                <div className="text-yellow-800">
-                  Missing: {getMissingMethods().join(", ")}.
-                  <button
-                    onClick={() => navigate("/profile")}
-                    className="text-blue-600 hover:underline ml-1"
-                  >
-                    Update profile
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {getAvailableMethod() && (
-              <div className="flex items-start p-2 bg-blue-50 border border-blue-200 rounded-md text-sm">
-                <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
-                <div
-                  className="text-blue-800"
-                  onClick={() => setViewPaymentInfo(true)}
-                >
-                  Using {getAvailableMethod()} for transactions. View
-                </div>
-              </div>
-            )}
-          </div>
-        </>
-      ) : (
-        <div className="space-y-3">
-          <div className="flex items-center justify-start border-b border-blue-200 pb-3">
-            <button
-              onClick={() => setViewPaymentInfo(false)}
-              className="flex items-center text-blue-700 hover:text-blue-800 text-sm"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-            </button>
-            <h2 className="text-xl font-semibold text-blue-800">
-              Payment Information
-            </h2>
-            <div className="w-8" />
-          </div>
-
-          {paymentInfo && getMissingMethods().length === 3 ? (
-            <div className="flex items-start p-2 bg-red-50 border border-red-200 rounded-md text-sm">
-              <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 mr-2 flex-shrink-0" />
-              <div className="text-red-800">
-                No payment methods configured.
-                <button
-                  onClick={() => navigate("/profile")}
-                  className="text-blue-700 hover:underline ml-1"
-                >
-                  Update profile
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="bg-white bg-opacity-50 p-4 rounded-lg">
-                <div className="flex gap-6">
-                  {/* Left side - QR Code */}
-                  {paymentInfo?.qrCode && (
-                    <div className="flex-shrink-0">
-                      <img
-                        src={paymentInfo.qrCode}
-                        alt="QR Code"
-                        className="h-32 w-32 border rounded-lg shadow-sm"
-                      />
-                      <div className="mt-2 text-center">
-                        <span className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded">
-                          Primary Method
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex-1 flex flex-col justify-start space-y-4">
-                    {paymentInfo?.upiId && (
-                      <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-gray-700">
-                            UPI ID
-                          </span>
-                          <span className="text-sm text-gray-600">
-                            {paymentInfo.upiId}
-                          </span>
-                        </div>
-                        {!paymentInfo?.qrCode && (
-                          <span className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded-md">
-                            Primary Method
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {paymentInfo?.mobileNumber && (
-                      <div className="flex items-center justify- bg-gray-50 p-3 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-gray-700">
-                            Mobile
-                          </span>
-                          <span className="text-md text-gray-600">
-                            {paymentInfo.mobileNumber}
-                          </span>
-                        </div>
-                        {!paymentInfo?.qrCode && !paymentInfo?.upiId && (
-                          <span className="text-md text-green-600 bg-green-50 px-2 py-1 rounded-md">
-                            Primary Method
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Show message if no UPI or Mobile */}
-                    {!paymentInfo?.upiId && !paymentInfo?.mobileNumber && (
-                      <div className="text-md text-gray-500 italic">
-                        No additional payment methods configured
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <button
-            onClick={() => navigate("/profile")}
-            className="w-full flex items-center justify-center gap-1 text-sm text-blue-600 hover:text-blue-700 bg-white bg-opacity-50 py-2 rounded-md mt-3"
-          >
-            Update Payment Information <ExternalLink className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      )}
-    </div>
-  );
 
   useEffect(() => {
     const fetchWalletData = async () => {
@@ -514,7 +559,21 @@ const MyWallet = () => {
       <Header heading={"My Wallet"}></Header>
 
       <div className="container mx-auto p-4 space-y-6 relative flex-1 w-full flex flex-col">
-        <WalletCard />
+        <WalletCard
+          getAvailableMethod={getAvailableMethod}
+          getMissingMethods={getMissingMethods}
+          viewPaymentInfo={viewPaymentInfo}
+          setViewPaymentInfo={setViewPaymentInfo}
+          rechargeAmount={rechargeAmount}
+          setRechargeAmount={setRechargeAmount}
+          withdrawAmount={withdrawAmount}
+          setWithdrawAmount={setWithdrawAmount}
+          balance={balance}
+          paymentInfo={paymentInfo}
+          navigate={navigate}
+          validateAndOpenRechargeModal={validateAndOpenRechargeModal}
+          validateAndOpenWithdrawModal={validateAndOpenWithdrawModal}
+        />
 
         <div className="flex-1 bg-white p-2 rounded-xl shadow-md flex flex-col max-h-[26rem]">
           <div className="flex justify-between items-center mb-4">
