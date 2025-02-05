@@ -3,6 +3,7 @@ import Header from "../components/Header";
 import PlayerCard from "../components/PlayerCard";
 import SocketService from "../socket/socketService";
 import TeamsTab from "../components/teamTab";
+import { syncTime } from "../api/fetch";
 
 import {
   Calendar,
@@ -45,6 +46,19 @@ const AuctionRoom = () => {
   const delayRef = useRef({ time: null, delay: null });
   const latestHighestBidderRef = useRef(null);
   const { auction } = location.state;
+
+  const serverTimeRef = useRef();
+
+  const syncTimeWithServer = async (clientTime) => {
+    const res = await syncTime(clientTime);
+    if (res) {
+      const timestamp = res?.timestamp;
+      const clientTime = res?.clientTime;
+      serverTimeRef.current = timestamp - clientTime;
+      console.log("Server time offset:", serverTimeRef.current);
+      return timestamp - clientTime;
+    }
+  };
 
   const truncateText = (text = "", maxLength = 24) => {
     if (!text || typeof text !== "string") return "";
@@ -110,6 +124,7 @@ const AuctionRoom = () => {
         "Wicket Keeper": 0,
       };
     } catch (error) {
+      console.log("Error fetching team composition", error);
       return {
         "All Rounder": 0,
         Batsman: 0,
@@ -142,12 +157,6 @@ const AuctionRoom = () => {
 
   useEffect(() => {
     if (auctionData?.participants) {
-      // const shouldUpdate = auctionData.participants.some(
-      //   (participant) =>
-      //     participantMapRef.current[participant.id] !== participant.username
-      // );
-
-      // if (shouldUpdate) {
       participantMapRef.current = auctionData.participants.reduce(
         (acc, participant) => {
           acc[participant.id] = participant.username;
@@ -155,7 +164,6 @@ const AuctionRoom = () => {
         },
         {}
       );
-      // }
     }
   }, [auctionData]);
 
@@ -235,13 +243,25 @@ const AuctionRoom = () => {
   const intervalRef = useRef(null);
   const endTime = useRef(null);
 
+  const callTimeAsync = async (time) => {
+    await syncTimeWithServer(time);
+  };
+
   const startTimer = () => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
 
+    console.log("HII_!");
+
     intervalRef.current = setInterval(() => {
-      const currentTime = new Date().getTime();
+      let currentTime = new Date().getTime();
+      console.log(currentTime, "CURRENT_TIME 1");
+      callTimeAsync(currentTime);
+      const syncOffset = serverTimeRef.current;
+      currentTime += syncOffset;
+      console.log(currentTime, "CURRENT_TIME 2");
+
       if (!endTime.current) {
         clearInterval(intervalRef.current);
         return;
@@ -698,8 +718,15 @@ const AuctionRoom = () => {
 
       const startTime = parseCustomDate(auctionData?.startTime);
       const bufferTime = 5 * 60 * 1000;
-      const now = new Date();
+      let now = new Date();
 
+      console.log("NOW_!", now);
+      syncTimeWithServer(now.getTime()).then((serverTime) => {
+        console.log(now.getTime(), now.getTime() + serverTime, "NOW_____((");
+        now = new Date(now.getTime() + serverTime);
+      });
+
+      console.log("NOW_@!", now);
       if (now >= new Date(startTime.getTime() + bufferTime)) {
         auctionStarted.current = true;
         SocketService.emitGetActivePlayer();

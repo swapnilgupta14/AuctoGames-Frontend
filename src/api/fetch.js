@@ -705,3 +705,21 @@ export const updateProfile = async (formData) => {
     throw error;
   }
 };
+
+export const syncTime = async (clientTime) => {
+  try {
+    const res = await fetch(
+      `https://cricket.skmishra.me/api/time-sync?clientTime=${clientTime}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    ).then((res) => res.json());
+    return res;
+  } catch (error) {
+    console.error("Error syncing time", error);
+    throw error;
+  }
+};
