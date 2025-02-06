@@ -34,7 +34,7 @@ const StaticDetails = ({ staticType, pageTitle }) => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-3 justify-center items-center h-screen">
+      <div className="flex flex-col gap-3 justify-center items-center">
         <RefreshCw className="animate-spin text-gray-500" size={36} />
         <p>Loading...</p>
       </div>
