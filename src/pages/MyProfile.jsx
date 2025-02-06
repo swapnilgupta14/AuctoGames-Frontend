@@ -202,7 +202,7 @@ const MyProfile = () => {
               <Camera className="w-3 h-3" />
             </button>
           </div>
-          <div className="self-start p-4 bg-white rounded-lg">
+          <div className="self-start p-1 bg-white rounded-lg">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-medium text-gray-900 mb-1">
@@ -213,7 +213,7 @@ const MyProfile = () => {
                 </p>
 
                 {isVerified ? (
-                  <div className="inline-flex items-center px-3 py-1 bg-green-50 text-green-700 rounded-full">
+                  <div className="inline-flex items-center px-2 py-1 bg-green-50 text-green-700 rounded-full">
                     <Check className="mr-2" size={16} />
                     <span className="text-sm font-medium">Verified</span>
                   </div>
