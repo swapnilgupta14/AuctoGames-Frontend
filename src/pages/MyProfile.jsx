@@ -121,8 +121,8 @@ const MyProfile = () => {
     setPaymentFormData({
       upiId: paymentInfo?.upiId || "",
       mobileNumber: paymentInfo?.mobileNumber || "",
-      aadhaar: paymentInfo?.aadhaar || "",
-      pan: paymentInfo?.pan || "",
+      aadhaar: paymentInfo?.aadharCard || "",
+      pan: paymentInfo?.panCardCard || "",
     });
     setQrCodeFile(null);
     setAadhaarFile(null);
@@ -161,8 +161,8 @@ const MyProfile = () => {
   };
 
   const isVerified =
-    paymentInfo?.aadhaar &&
-    paymentInfo?.pan &&
+    paymentInfo?.aadharCard &&
+    paymentInfo?.panCard &&
     paymentInfo?.upiId &&
     paymentInfo?.mobileNumber &&
     paymentInfo?.qrCode;
@@ -205,7 +205,7 @@ const MyProfile = () => {
           <div className="self-start p-4 bg-white rounded-lg">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-1">
+                <h2 className="text-lg font-medium text-gray-900 mb-1">
                   {user.username || "Username"}
                 </h2>
                 <p className="text-gray-600 text-sm mb-2">
@@ -256,7 +256,7 @@ const MyProfile = () => {
         <div className="bg-white rounded-xl shadow-md p-3.5 mb-3">
           <h3 className="text-md font-semibold mb-3 text-gray-900 flex items-center">
             KYC Documents
-            {(!paymentInfo?.aadhaar || !paymentInfo?.pan) && (
+            {(!paymentInfo?.aadharCard || !paymentInfo?.panCard) && (
               <AlertCircle className="ml-2 w-5 h-5 text-red-500" />
             )}
           </h3>
@@ -265,13 +265,13 @@ const MyProfile = () => {
               {
                 icon: IdCard,
                 title: "Aadhaar Card",
-                subtitle: paymentInfo?.aadhaar,
+                subtitle: paymentInfo?.aadharCard ? "Uploaded" : "Not uploaded",
                 type: "aadhaar",
               },
               {
                 icon: IdCard,
                 title: "PAN Card",
-                subtitle: paymentInfo?.pan,
+                subtitle: paymentInfo?.panCard ? "Uploaded" : "Not uploaded",
                 type: "pan",
               },
             ].map((item) => (
@@ -288,7 +288,9 @@ const MyProfile = () => {
                     <h4 className="font-medium text-gray-900">{item.title}</h4>
                     <p
                       className={`text-sm ${
-                        !item.subtitle ? "text-red-500" : "text-gray-500"
+                        item.subtitle === "Not uploaded"
+                          ? "text-red-500"
+                          : "text-gray-500"
                       }`}
                     >
                       {item.subtitle || "Not uploaded"}
@@ -382,7 +384,7 @@ const MyProfile = () => {
                 </button>
                 <label className="block w-full p-3.5 text-left hover:bg-gray-50 rounded-xl flex items-center gap-3 text-gray-700 cursor-pointer">
                   <Upload className="w-5 h-5 text-gray-600" />
-                  <span className="font-medium">Upload New Picture</span>
+                  <span className="font-medium">Upload</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -563,9 +565,9 @@ const MyProfile = () => {
                             alt="New Aadhaar Card"
                             className="w-full max-h-48 object-contain"
                           />
-                        ) : paymentInfo?.aadhaarFile ? (
+                        ) : paymentInfo?.aadharCard ? (
                           <img
-                            src={paymentInfo.aadhaarFile}
+                            src={paymentInfo.aadharCard}
                             alt="Existing Aadhaar Card"
                             className="w-full max-h-48 object-contain"
                           />
@@ -580,9 +582,9 @@ const MyProfile = () => {
                           alt="New PAN Card"
                           className="w-full max-h-48 object-contain"
                         />
-                      ) : paymentInfo?.panFile ? (
+                      ) : paymentInfo?.panCard ? (
                         <img
-                          src={paymentInfo.panFile}
+                          src={paymentInfo.panCard}
                           alt="Existing PAN Card"
                           className="w-full max-h-48 object-contain"
                         />
@@ -602,7 +604,7 @@ const MyProfile = () => {
                           disabled={paymentUpdateLoading}
                         />
                         <div className="w-full p-2.5 bg-blue-50 text-blue-600 rounded-lg text-center text-sm font-medium hover:bg-blue-100 cursor-pointer">
-                          Upload New{" "}
+                          Upload{" "}
                           {selectedPaymentType === "aadhaar"
                             ? "Aadhaar"
                             : "PAN"}
