@@ -13,6 +13,8 @@ import {
   Loader2,
   IdCard,
   AlertCircle,
+  Check,
+  AlertTriangle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
@@ -45,7 +47,6 @@ const MyProfile = () => {
   const dispatch = useDispatch();
   const { userId } = useSelector((state) => state.user);
   let user = useSelector((state) => state.user);
-  const username = localStorage.getItem("email") || "User";
 
   const getUser = async () => {
     if (!userId) return null;
@@ -106,11 +107,11 @@ const MyProfile = () => {
   const handleFileUpload = (e, type) => {
     const file = e.target.files[0];
     if (file) {
-      if (type === 'qr') {
+      if (type === "qr") {
         setQrCodeFile(file);
-      } else if (type === 'aadhaar') {
+      } else if (type === "aadhaar") {
         setAadhaarFile(file);
-      } else if (type === 'pan') {
+      } else if (type === "pan") {
         setPanFile(file);
       }
     }
@@ -159,12 +160,19 @@ const MyProfile = () => {
     navigate("/");
   };
 
+  const isVerified =
+    paymentInfo?.aadhaar &&
+    paymentInfo?.pan &&
+    paymentInfo?.upiId &&
+    paymentInfo?.mobileNumber &&
+    paymentInfo?.qrCode;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header heading="My Profile" />
 
       <main className="container mx-auto px-4 py-5 max-w-xl">
-        <div className="p-3 mb-3 flex items-center bg-white rounded-xl shadow-md">
+        <div className="p-1 mb-3 px-4 flex items-center bg-white rounded-xl shadow-md">
           <div className="relative mr-4">
             <button
               onClick={() => setShowProfileOptions(true)}
@@ -194,22 +202,40 @@ const MyProfile = () => {
               <Camera className="w-3 h-3" />
             </button>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">
-              {user.username || username}
-            </h2>
-            <p className="text-gray-500 text-sm">{user.email}</p>
+          <div className="self-start p-4 bg-white rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-1">
+                  {user.username || "Username"}
+                </h2>
+                <p className="text-gray-600 text-sm mb-2">
+                  {user.email || "email@example.com"}
+                </p>
+
+                {isVerified ? (
+                  <div className="inline-flex items-center px-3 py-1 bg-green-50 text-green-700 rounded-full">
+                    <Check className="mr-2" size={16} />
+                    <span className="text-sm font-medium">Verified</span>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full">
+                    <AlertTriangle className="mr-2" size={16} />
+                    <span className="text-sm font-medium">Not Verified</span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-md p-3 mb-3">
-          <h3 className="text-lg font-semibold mb-3 text-gray-900">
+          <h3 className="text-md font-semibold mb-3 text-gray-900">
             Phone Number
           </h3>
           <div className="space-y-2">
             <button
               onClick={() => handlePaymentClick("phone")}
-              className="w-full flex items-center justify-between p-3.5 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100"
+              className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100"
             >
               <div className="flex items-center gap-4">
                 <div className="p-2 bg-blue-50 rounded-lg">
@@ -228,7 +254,7 @@ const MyProfile = () => {
         </div>
 
         <div className="bg-white rounded-xl shadow-md p-3.5 mb-3">
-          <h3 className="text-lg font-semibold mb-3 text-gray-900 flex items-center">
+          <h3 className="text-md font-semibold mb-3 text-gray-900 flex items-center">
             KYC Documents
             {(!paymentInfo?.aadhaar || !paymentInfo?.pan) && (
               <AlertCircle className="ml-2 w-5 h-5 text-red-500" />
@@ -252,7 +278,7 @@ const MyProfile = () => {
               <button
                 key={item.type}
                 onClick={() => handlePaymentClick(item.type)}
-                className="w-full flex items-center justify-between p-3.5 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100"
+                className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100"
               >
                 <div className="flex items-center gap-4">
                   <div className="p-2 bg-blue-50 rounded-lg">
@@ -260,7 +286,11 @@ const MyProfile = () => {
                   </div>
                   <div className="text-left">
                     <h4 className="font-medium text-gray-900">{item.title}</h4>
-                    <p className={`text-sm ${!item.subtitle ? 'text-red-500' : 'text-gray-500'}`}>
+                    <p
+                      className={`text-sm ${
+                        !item.subtitle ? "text-red-500" : "text-gray-500"
+                      }`}
+                    >
                       {item.subtitle || "Not uploaded"}
                     </p>
                   </div>
@@ -272,7 +302,7 @@ const MyProfile = () => {
         </div>
 
         <div className="bg-white rounded-xl shadow-md p-3.5 mb-3">
-          <h3 className="text-lg font-semibold mb-3 text-gray-900">
+          <h3 className="text-md font-semibold mb-3 text-gray-900">
             Payment Methods
           </h3>
           <div className="space-y-2">
@@ -293,7 +323,7 @@ const MyProfile = () => {
               <button
                 key={item.type}
                 onClick={() => handlePaymentClick(item.type)}
-                className="w-full flex items-center justify-between p-3.5 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100"
+                className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100"
               >
                 <div className="flex items-center gap-4">
                   <div className="p-2 bg-blue-50 rounded-lg">
@@ -301,7 +331,11 @@ const MyProfile = () => {
                   </div>
                   <div className="text-left">
                     <h4 className="font-medium text-gray-900">{item.title}</h4>
-                    <p className={`text-sm ${!item.subtitle ? 'text-red-500' : 'text-gray-500'}`}>
+                    <p
+                      className={`text-sm ${
+                        !item.subtitle ? "text-red-500" : "text-gray-500"
+                      }`}
+                    >
                       {item.subtitle || "Not added"}
                     </p>
                   </div>
@@ -433,7 +467,7 @@ const MyProfile = () => {
                         <input
                           type="file"
                           accept="image/*"
-                          onChange={(e) => handleFileUpload(e, 'qr')}
+                          onChange={(e) => handleFileUpload(e, "qr")}
                           className="hidden"
                           disabled={paymentUpdateLoading}
                         />
@@ -518,7 +552,8 @@ const MyProfile = () => {
                   </>
                 )}
 
-                {(selectedPaymentType === "aadhaar" || selectedPaymentType === "pan") && (
+                {(selectedPaymentType === "aadhaar" ||
+                  selectedPaymentType === "pan") && (
                   <div className="space-y-4">
                     <div className="flex justify-center p-3.5 bg-gray-50 rounded-lg">
                       {selectedPaymentType === "aadhaar" ? (
@@ -535,24 +570,24 @@ const MyProfile = () => {
                             className="w-full max-h-48 object-contain"
                           />
                         ) : (
-                          <p>No Aadhaar card uploaded. Please upload a new one.</p>
+                          <p>
+                            No Aadhaar card uploaded. Please upload a new one.
+                          </p>
                         )
+                      ) : panFile ? (
+                        <img
+                          src={URL.createObjectURL(panFile)}
+                          alt="New PAN Card"
+                          className="w-full max-h-48 object-contain"
+                        />
+                      ) : paymentInfo?.panFile ? (
+                        <img
+                          src={paymentInfo.panFile}
+                          alt="Existing PAN Card"
+                          className="w-full max-h-48 object-contain"
+                        />
                       ) : (
-                        panFile ? (
-                          <img
-                            src={URL.createObjectURL(panFile)}
-                            alt="New PAN Card"
-                            className="w-full max-h-48 object-contain"
-                          />
-                        ) : paymentInfo?.panFile ? (
-                          <img
-                            src={paymentInfo.panFile}
-                            alt="Existing PAN Card"
-                            className="w-full max-h-48 object-contain"
-                          />
-                        ) : (
-                          <p>No PAN card uploaded. Please upload a new one.</p>
-                        )
+                        <p>No PAN card uploaded. Please upload a new one.</p>
                       )}
                     </div>
                     <div className="flex gap-2">
@@ -560,20 +595,26 @@ const MyProfile = () => {
                         <input
                           type="file"
                           accept="image/*"
-                          onChange={(e) => handleFileUpload(e, selectedPaymentType)}
+                          onChange={(e) =>
+                            handleFileUpload(e, selectedPaymentType)
+                          }
                           className="hidden"
                           disabled={paymentUpdateLoading}
                         />
                         <div className="w-full p-2.5 bg-blue-50 text-blue-600 rounded-lg text-center text-sm font-medium hover:bg-blue-100 cursor-pointer">
-                          Upload New {selectedPaymentType === "aadhaar" ? "Aadhaar" : "PAN"}
+                          Upload New{" "}
+                          {selectedPaymentType === "aadhaar"
+                            ? "Aadhaar"
+                            : "PAN"}
                         </div>
                       </label>
                       <button
                         onClick={handlePaymentUpdate}
                         className="flex-1 p-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
                         disabled={
-                          (selectedPaymentType === "aadhaar" ? !aadhaarFile : !panFile) ||
-                          paymentUpdateLoading
+                          (selectedPaymentType === "aadhaar"
+                            ? !aadhaarFile
+                            : !panFile) || paymentUpdateLoading
                         }
                       >
                         {paymentUpdateLoading ? (
