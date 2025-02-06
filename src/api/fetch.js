@@ -681,13 +681,16 @@ export const getTeamByTeamId = async (teamId) => {
 
 export const updateProfile = async (formData) => {
   try {
-    const { userId, phoneNumber, upiId, file } = formData;
+    const { userId, phoneNumber, upiId, file, aadhaarFile, panFile } = formData;
 
     const formDataToSend = new FormData();
     formDataToSend.append("userId", userId);
+
     if (phoneNumber) formDataToSend.append("mobileNumber", phoneNumber);
     if (upiId) formDataToSend.append("upiId", upiId);
-    if (file) formDataToSend.append("file", file);
+    if (file) formDataToSend.append("qrCode", file);
+    if (aadhaarFile) formDataToSend.append("aadharCard", aadhaarFile);
+    if (panFile) formDataToSend.append("panCard", panFile);
 
     const response = await axiosInstanceAdmin.put(
       `/wallet/payment-details`,
@@ -701,7 +704,7 @@ export const updateProfile = async (formData) => {
 
     return response?.data;
   } catch (error) {
-    console.error("Error updating ", error);
+    console.error("Error updating profile", error);
     throw error;
   }
 };
