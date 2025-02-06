@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import {
   ArrowUpLeftFromCircleIcon,
   ArrowUpRightFromCircleIcon,
+  FileDown,
   Image,
   LucideHammer,
   RefreshCw,
@@ -36,6 +37,19 @@ const AuctionDetail = () => {
       console.error("Failed to fetch wallet data", error);
       return null;
     }
+  };
+
+  const handleDownloadInstructions = () => {
+    const pdfUrl =
+      "https://asset.cloudinary.com/ddj9gigrb/5f4b579aa54c401bf29192929783a490";
+
+    // Create an anchor element and trigger download
+    const link = document.createElement("a");
+    link.href = pdfUrl;
+    link.setAttribute("download", "How-to-Play-Instructions.pdf");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const validateUser = async (auctionId, userId) => {
@@ -285,11 +299,11 @@ const AuctionDetail = () => {
             />
           ) : (
             <div
-            className="w-full h-full rounded-xl bg-gray-200 flex items-center justify-center
+              className="w-full h-full rounded-xl bg-gray-200 flex items-center justify-center
                         border border-blue-100 group-hover:bg-blue-100/50 transition-colors"
-          >
-            <Image className="w-12 h-12 text-blue-600" />
-          </div>
+            >
+              <Image className="w-12 h-12 text-blue-600" />
+            </div>
           )}
         </div>
 
@@ -339,6 +353,13 @@ const AuctionDetail = () => {
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white">
+        <button
+          onClick={handleDownloadInstructions}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 my-2 bg-gray-50 border-gray-400 border text-gray-800 rounded-lg font-medium text-[16px] transition-colors"
+        >
+          <FileDown className="w-5 h-5" />
+          How to Play
+        </button>
         {validationResult?.status === "success" ||
         validationResult?.status === "APPROVED" ? (
           validationResult?.team !== null ? (
