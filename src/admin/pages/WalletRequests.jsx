@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ClockIcon, ArrowDownIcon, ArrowUpIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, XIcon, ImageIcon } from "lucide-react";
 import {
   getAllPendingWithdrawlRequests,
   approveWithdrawlRequest,
@@ -27,51 +27,72 @@ const Loader = () => (
   </div>
 );
 
+const ImagePopup = ({ src, alt, onClose }) => {
+  if (!src) return null;
+
+  return (
+    <div
+      className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-[500px] h-[600px]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute -top-8 right-0 text-white hover:text-gray-300"
+        >
+          <XIcon className="w-6 h-6" />
+        </button>
+        <img
+          src={src}
+          alt={alt}
+          className="w-full h-full object-contain rounded-lg shadow-xl"
+        />
+      </div>
+    </div>
+  );
+};
+
 const WalletRequests = () => {
   const [withdrawlRequests, setWithdrawlRequests] = useState([]);
   const [rechargeRequests, setRechargeRequests] = useState([]);
-
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isApproving, setIsApproving] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
-  const fetchWithrawlRequests = async () => {
+  const fetchRequests = async (fetchFunction, setRequests) => {
     try {
-      const res = await getAllPendingWithdrawlRequests();
+      const res = await fetchFunction();
       if (res?.status === 200) {
-        setWithdrawlRequests(res?.data?.walletRequests);
+        setRequests(res?.data?.walletRequests);
       } else {
-        setError("Error fetching the Withdrawal requests");
+        setError(`Error fetching ${fetchFunction.name} requests`);
       }
     } catch (err) {
-      setError("Error fetching the Withdrawal requests");
+      setError(`Error fetching ${fetchFunction.name} requests`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchRechargeRequests = async () => {
-    try {
-      const res = await getAllPendingRechargeRequests();
-      if (res?.status === 200) {
-        setRechargeRequests(res?.data?.walletRequests);
-      } else {
-        setError("Error fetching the Recharge requests");
-      }
-    } catch (err) {
-      setError("Error fetching the Recharge requests");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    fetchRequests(getAllPendingWithdrawlRequests, setWithdrawlRequests);
+    fetchRequests(getAllPendingRechargeRequests, setRechargeRequests);
+  }, []);
 
   const approverequest = async (transactionId) => {
     setIsApproving(true);
     try {
       const request = await approveWithdrawlRequest(transactionId);
       if (request?.status === 200) {
-        await fetchRechargeRequests();
-        await fetchWithrawlRequests();
+        await fetchRequests(getAllPendingRechargeRequests, setRechargeRequests);
+        await fetchRequests(
+          getAllPendingWithdrawlRequests,
+          setWithdrawlRequests
+        );
       } else {
         setError("Sorry! Request cannot be approved");
       }
@@ -82,13 +103,30 @@ const WalletRequests = () => {
     }
   };
 
-  useEffect(() => {
-    fetchWithrawlRequests();
-    fetchRechargeRequests();
-  }, []);
+  const PaymentInfoButton = ({ label, value, type = "text", onImageClick }) => {
+    if (!value) {
+      return (
+        <div className="flex items-center text-red-500 text-xs bg-red-50 rounded-md px-2 py-1">
+          <XIcon className="w-4 h-4 mr-1" />
+          {label}
+        </div>
+      );
+    }
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString();
+    return type === "text" ? (
+      <div className="flex items-center bg-gray-100 rounded px-2 py-1 text-xs">
+        <span className="font-medium mr-2">{label}:</span>
+        {value}
+      </div>
+    ) : (
+      <button
+        onClick={onImageClick}
+        className="flex items-center bg-blue-50 text-blue-600 rounded px-2 py-1 text-xs hover:bg-blue-100 transition"
+      >
+        <ImageIcon className="w-4 h-4 mr-1" />
+        View {label}
+      </button>
+    );
   };
 
   const RequestCard = ({ requests, title, type, onApprove }) => (
@@ -113,58 +151,85 @@ const WalletRequests = () => {
           No {type.toLowerCase()} requests
         </div>
       ) : (
-        <div className="h-full">
-          <div className=" overflow-y-auto">
-            <ul className="divide-y">
-              {requests.map((request) => (
+        <div className="h-full overflow-y-auto">
+          <ul className="divide-y">
+            {requests.map((request) => {
+              const paymentInfo = request.wallet?.paymentInfo || {};
+              return (
                 <li
                   key={request.id}
                   className="p-4 hover:bg-gray-200 transition-colors"
                 >
-                  <div className="flex flex-row justify-between items-center gap-4">
-                    <div className="flex-1 text-sm">
-                      <span className="font-medium text-gray-800">
-                        {request.wallet.user.username}
-                      </span>
-                      <p>
-                        Amount:{" "}
-                        <span
-                          className={`font-medium ${
-                            type === "Withdrawal"
-                              ? "text-red-800"
-                              : "text-green-700"
-                          }`}
-                        >
-                          ₹
-                          {type === "Withdrawal"
-                            ? Math.abs(request.amount)
-                            : request.amount}
+                  <div className="flex flex-col gap-3">
+                    <div className="flex flex-row justify-between items-center gap-4">
+                      <div className="flex-1 text-sm">
+                        <span className="font-medium text-gray-800">
+                          {request.wallet.user.username}
                         </span>
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {formatDate(request.createdAt)}
-                      </p>
+                        <p>
+                          Amount:{" "}
+                          <span
+                            className={`font-medium ${
+                              type === "Withdrawal"
+                                ? "text-red-800"
+                                : "text-green-700"
+                            }`}
+                          >
+                            ₹{Math.abs(request.amount)}
+                          </span>
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => onApprove(request.id)}
+                          disabled={isApproving}
+                          className="px-3 py-1 bg-green-500 text-white rounded-md text-xs hover:bg-green-600 disabled:opacity-50"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          disabled={isApproving}
+                          className="px-3 py-1 bg-red-500 text-white rounded-md text-xs hover:bg-red-600 disabled:opacity-50"
+                        >
+                          Decline
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-2">
-                      <button
-                        onClick={() => onApprove(request.id)}
-                        disabled={isApproving}
-                        className="px-3 py-1 bg-green-500 text-white rounded-md text-xs hover:bg-green-600 disabled:opacity-50"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        disabled={isApproving}
-                        className="px-3 py-1 bg-red-500 text-white rounded-md text-xs hover:bg-red-600 disabled:opacity-50"
-                      >
-                        Decline
-                      </button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <PaymentInfoButton
+                        label="UPI ID"
+                        value={paymentInfo.upiId}
+                      />
+                      <PaymentInfoButton
+                        label="Mobile"
+                        value={paymentInfo.mobileNumber}
+                      />
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {["qrCode", "panCard", "aadharCard"].map((doc) => (
+                        <PaymentInfoButton
+                          key={doc}
+                          label={doc
+                            .replace(/([A-Z])/g, " $1")
+                            .replace(/^./, (str) => str.toUpperCase())}
+                          type="image"
+                          value={paymentInfo[doc]}
+                          onImageClick={() =>
+                            setSelectedImage({
+                              src: paymentInfo[doc],
+                              alt: doc
+                                .replace(/([A-Z])/g, " $1")
+                                .replace(/^./, (str) => str.toUpperCase()),
+                            })
+                          }
+                        />
+                      ))}
                     </div>
                   </div>
                 </li>
-              ))}
-            </ul>
-          </div>
+              );
+            })}
+          </ul>
         </div>
       )}
     </div>
@@ -194,6 +259,14 @@ const WalletRequests = () => {
           </div>
         )}
       </div>
+
+      {selectedImage && (
+        <ImagePopup
+          src={selectedImage.src}
+          alt={selectedImage.alt}
+          onClose={() => setSelectedImage(null)}
+        />
+      )}
     </div>
   );
 };
