@@ -30,6 +30,8 @@ const Admin = lazy(() => import("./admin"));
 
 import PWAPrompt from "./components/PWAPrompt";
 import Kyc from "./pages/Kyc";
+import { getWalletBalance } from "./api/fetch";
+import { useSelector } from "react-redux";
 
 const PAGE_TITLES = {
   "/home": "Home",
@@ -109,8 +111,22 @@ function App() {
     return () => clearTimeout(bounceTimer);
   }, [location]);
 
+  const fetchWalletData = async (userId) => {
+    try {
+      const balanceRes = await getWalletBalance(userId);
+      if (balanceRes?.paymentInfo?.mobileNumber) {
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Failed to fetch wallet data", error);
+    }
+  };
+
+  const { userId } = useSelector((state) => state.user);
+
   useEffect(() => {
-    const checkSessionTimeout = () => {
+    const checkSessionTimeout = async () => {
       const pathName = location.pathname;
 
       if (pathName.startsWith("/admin")) return;
@@ -118,6 +134,11 @@ function App() {
         if (["/login", "/signup", "/"].includes(pathName)) {
           const token = localStorage.getItem("shopCoToken");
           if (token) {
+            const kycOrNot = await fetchWalletData(userId);
+            if (kycOrNot) {
+              navigate("/kyc");
+              return;
+            }
             navigate("/home");
             return;
           }
