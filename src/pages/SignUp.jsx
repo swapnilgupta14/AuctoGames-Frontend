@@ -108,6 +108,10 @@ const SignUp = () => {
 
     setErrorMessage("");
     const userDetails = { username, email, password };
+    if (password.length < 6) {
+      toast.error("Password should be atleast 6 characters long.");
+      return;
+    }
     registerUser(userDetails);
     console.log("User Details:", userDetails);
   };
