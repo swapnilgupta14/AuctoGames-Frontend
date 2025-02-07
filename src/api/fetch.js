@@ -726,3 +726,44 @@ export const syncTime = async (clientTime) => {
     throw error;
   }
 };
+
+// OTP
+
+export const generateOTP = async (userId, mobileNumber) => {
+  try {
+    const response = await axiosInstance.post("/otp/generate", {
+      userId,
+      mobileNumber,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error sending OTP", error);
+    throw error;
+  }
+};
+
+export const verifyOTP = async (userId, otp) => {
+  try {
+    const response = await axiosInstance.post("/otp/verify", {
+      userId,
+      otp,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error verifying OTP", error);
+    throw error;
+  }
+};
+
+export const resendOTP = async (userId, mobileNumber) => {
+  try {
+    const response = await axiosInstance.post("/otp/resend", {
+      userId,
+      mobileNumber,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error resending OTP", error);
+    throw error;
+  }
+};

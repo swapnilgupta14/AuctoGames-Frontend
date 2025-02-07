@@ -255,10 +255,12 @@ const MyProfile = () => {
 
         <div className="bg-white rounded-xl shadow-md p-3.5 mb-3">
           <h3 className="text-md font-semibold mb-3 text-gray-900 flex items-center">
-            KYC Documents
-            {(!paymentInfo?.aadharCard || !paymentInfo?.panCard) && (
-              <AlertCircle className="ml-2 w-5 h-5 text-red-500" />
-            )}
+            <p className="flex items-center justify-between gap-2 ">
+              KYC Documents
+              {(!paymentInfo?.aadharCard || !paymentInfo?.panCard) && (
+                <AlertCircle className="ml-2 w-5 h-5 text-red-500" />
+              )}
+            </p>
           </h3>
           <div className="space-y-2">
             {[
@@ -304,15 +306,20 @@ const MyProfile = () => {
         </div>
 
         <div className="bg-white rounded-xl shadow-md p-3.5 mb-3">
-          <h3 className="text-md font-semibold mb-3 text-gray-900">
+          <p className="flex items-center justify-between gap-2 font-semibold w-fit">
             Payment Methods
-          </h3>
+            {(!paymentInfo?.qrCode || !paymentInfo?.upiId) && (
+              <AlertCircle className="ml-2 w-5 h-5 text-red-500" />
+            )}
+          </p>
           <div className="space-y-2">
             {[
               {
                 icon: QrCode,
                 title: "QR Code",
-                subtitle: "Manage payment QR",
+                subtitle: paymentInfo?.qrCode
+                  ? "Manage payment QR"
+                  : "Not Added",
                 type: "qr",
               },
               {
@@ -335,7 +342,9 @@ const MyProfile = () => {
                     <h4 className="font-medium text-gray-900">{item.title}</h4>
                     <p
                       className={`text-sm ${
-                        !item.subtitle ? "text-red-500" : "text-gray-500"
+                        !item.subtitle || item?.subtitle === "Not Added"
+                          ? "text-red-500"
+                          : "text-gray-500"
                       }`}
                     >
                       {item.subtitle || "Not added"}

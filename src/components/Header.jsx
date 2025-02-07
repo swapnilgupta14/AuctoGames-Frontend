@@ -7,7 +7,6 @@ import privacy from "../assets/privacy.svg";
 import rules from "../assets/rules.svg";
 import tnc from "../assets/t&c.svg";
 import leftArr from "../assets/leftArr.png";
-import user from "../assets/user (2).png";
 import {
   Wallet,
   ChevronRight,
@@ -17,6 +16,7 @@ import {
   AwardIcon,
   Eye,
   MenuIcon,
+  User,
 } from "lucide-react";
 import { getWalletBalance } from "../api/fetch";
 
@@ -29,6 +29,7 @@ const Header = ({
   showRules = false,
   handleOpenRulesModal,
   backToMinusOne = false,
+  sidebar = true,
 }) => {
   const navigate = useNavigate();
   const { userId, username, imageUrl } = useSelector((state) => state.user);
@@ -127,7 +128,7 @@ const Header = ({
             </div>
           )}
 
-          {!isSidebarOpen && (
+          {sidebar && !isSidebarOpen && (
             <div
               className="w-[30px] h-[30px] rounded-full flex justify-center items-center text-white font-medium text-[16px] cursor-pointer"
               onClick={toggleSidebar}
@@ -152,15 +153,28 @@ const Header = ({
         style={{ width: "300px" }}
       >
         <div className="flex flex-col gap-4 px-0">
-          <div className="px-3 py-4 bg-[rgb(31,65,187)] flex items-center gap-5 justify-around">
-            <div className="w-[50px] h-[50px] overflow-hidden rounded-full justify-center items-center flex bg-white">
-              <img src={imageUrl} alt="" />
-            </div>
-            <div className="text-white">
-              <div className="text-lg font-semibold">
-                {username.split(" ")[0]}
+          <div className="px-3 py-4 bg-[rgb(31,65,187)] flex items-center gap-2 justify-around">
+            <div className="flex items-center gap-2">
+              <div className="w-[50px] h-[50px] overflow-hidden rounded-full justify-center items-center flex bg-white">
+                {imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                    <User className="w-8 h-8 text-gray-400" />
+                  </div>
+                )}
               </div>
-              <div className="text-sm ">Profile ID: {username}</div>
+
+              <div className="text-white">
+                <div className="text-lg font-semibold">
+                  {username.split(" ")[0]}
+                </div>
+                <div className="text-sm ">Profile ID: {username}</div>
+              </div>
             </div>
             <div className="p-4 flex justify-end text-white">
               <button className="font-bold text-lg" onClick={toggleSidebar}>
@@ -263,7 +277,6 @@ const Header = ({
 
           <p className="px-4 border-b-2"></p>
 
-
           <div className="bg-white rounded-lg p-2 mx-1 shadow-sm border border-gray-100">
             <div
               className="flex justify-between items-center mb-4"
@@ -280,7 +293,7 @@ const Header = ({
               <span className="text-green-700 font-medium">Total Balance</span>
               <div className="bg-green-100 px-2 py-1 rounded-full">
                 <span className="text-green-800 font-bold">
-                  ₹{memoizedBalance}
+                  ₹{memoizedBalance.toFixed(2)}
                 </span>
               </div>
             </div>

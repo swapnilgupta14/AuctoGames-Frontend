@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowDownIcon, ArrowUpIcon, XIcon, ImageIcon } from "lucide-react";
 import {
   getAllPendingWithdrawlRequests,
@@ -72,7 +72,7 @@ const WalletRequests = () => {
         setError(`Error fetching ${fetchFunction.name} requests`);
       }
     } catch (err) {
-      setError(`Error fetching ${fetchFunction.name} requests`);
+      setError(`Error fetching ${fetchFunction.name} requests`, err);
     } finally {
       setIsLoading(false);
     }
@@ -97,7 +97,7 @@ const WalletRequests = () => {
         setError("Sorry! Request cannot be approved");
       }
     } catch (err) {
-      setError("Sorry! Request cannot be approved");
+      setError("Sorry! Request cannot be approved", err);
     } finally {
       setIsApproving(false);
     }

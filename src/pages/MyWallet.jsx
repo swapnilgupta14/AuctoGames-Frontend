@@ -185,7 +185,7 @@ const WalletCard = ({
             </div>
           )}
 
-          {getAvailableMethod() && (
+          {getAvailableMethod() && getMissingMethods().length === 3 && (
             <div
               className="flex items-start p-2 bg-blue-50 border border-blue-200 rounded-md text-sm justify-between"
               onClick={() => setViewPaymentInfo(true)}
@@ -404,6 +404,25 @@ const MyWallet = () => {
       toast.error("Invalid, recharge amount");
       return;
     }
+
+    if (parseFloat(rechargeAmount) > 10000) {
+      toast.error("Maximum recharge amount is ₹10,000");
+      return;
+    }
+
+    if (parseFloat(rechargeAmount) < 1) {
+      toast.error("Minimum recharge amount is ₹1");
+      return;
+    }
+
+    if (!paymentInfo?.upiId && !paymentInfo?.mobileNumber) {
+      toast.error("Please update your payment information in profile");
+      return;
+    } else if (!paymentInfo?.aadhaarNumber || !paymentInfo?.pan) {
+      toast.error("Please update your KYC information in profile");
+      return;
+    }
+
     setShowRechargeModal(true);
   };
 

@@ -6,7 +6,6 @@ import {
   ArrowUpRightFromCircleIcon,
   FileDown,
   Image,
-  LucideHammer,
   RefreshCw,
   WatchIcon,
   X,
@@ -20,7 +19,7 @@ const AuctionDetail = () => {
   const [isValidating, setIsValidating] = useState(true);
   const [validationResult, setValidationResult] = useState(null);
   const [showPopup, setShowPopup] = useState(true);
-  const [balance, setBalance] = useState(null);
+  // const [balance, setBalance] = useState(null);
   const [registrationData, setRegistrationData] = useState(null);
 
   const userId = useSelector((state) => state.user.userId);
@@ -31,7 +30,7 @@ const AuctionDetail = () => {
   const fetchWalletData = async (userId) => {
     try {
       const balanceRes = await getWalletBalance(userId);
-      setBalance(balanceRes.balance);
+      // setBalance(balanceRes.balance);
       return balanceRes.balance;
     } catch (error) {
       console.error("Failed to fetch wallet data", error);

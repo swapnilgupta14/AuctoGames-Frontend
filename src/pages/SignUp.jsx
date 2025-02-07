@@ -1,13 +1,13 @@
-import React, { useState } from "react";
-import rightArr from "../assets/Vector.svg";
+import { useState } from "react";
 import heroImg from "../assets/image 1.png";
-import googleImage from "../assets/Vector (4).svg";
 import dsgnElem from "../assets/IPL_Auction_SIGN_UP__2_-removebg-preview 1.svg";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import view from "../assets/show.png";
 import hide from "../assets/hide.png";
 import { ArrowLeft } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { setUser } from "../slices/userSlice";
 
 const SignUp = () => {
   const [username, setUsername] = useState("");
@@ -18,7 +18,9 @@ const SignUp = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   async function registerUser(data) {
     setLoading(true);
@@ -48,10 +50,33 @@ const SignUp = () => {
       }
 
       if (finalRes.status === 201) {
-        console.log(finalRes);
-        localStorage.setItem("userId", finalRes.user.userId);
-        toast.success("Submitted successfully");
-        return navigate("/login");
+        console.log(finalRes, "finalRes");
+        localStorage.setItem("userId", finalRes?.user?.userId);
+
+        const user = finalRes?.user;
+        const token = finalRes?.login?.token;
+
+        localStorage.setItem("shopCoToken", token);
+        localStorage.setItem("userId", finalRes?.user?.id);
+        localStorage.setItem("email", finalRes?.user?.email);
+
+        const sessionExpiryTime =
+          Date.now() + finalRes?.login?.session_timeout * 60 * 1000;
+        localStorage.setItem("SessionExpiryTime", sessionExpiryTime.toString());
+
+        dispatch(
+          setUser({
+            userId: finalRes.user.id,
+            email: user.email,
+            username: user.username,
+            token,
+            imageUrl: user.imageUrl,
+            role: user.role,
+          })
+        );
+
+        toast.success("Signed Up successfully");
+        return navigate("/Kyc");
       } else {
         toast.error("Some error occurred");
       }
@@ -89,7 +114,6 @@ const SignUp = () => {
 
   return (
     <div className="min-h-dvh overflow-clip max-h-dvh bg-gradient-to-b from-white to-blue-50">
-      {/* Header - Updated to match Login style */}
       <div className="w-full h-16 flex items-center px-4 shadow-sm bg-white">
         <div
           className="cursor-pointer p-2 hover:bg-gray-100 rounded-full transition-all"
@@ -102,7 +126,6 @@ const SignUp = () => {
         </div>
       </div>
 
-      {/* Hero Section - Updated to match Login style */}
       <div className="relative w-full h-[30vh] overflow-hidden">
         <img
           src={heroImg}
@@ -116,7 +139,6 @@ const SignUp = () => {
         </div>
       </div>
 
-      {/* Form Section - Updated to match Login style */}
       <div className="flex flex-col items-center px-5 -mt-28 relative z-10">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 space-y-6">
           <div className="space-y-4">

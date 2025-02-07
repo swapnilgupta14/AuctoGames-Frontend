@@ -1,8 +1,6 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import rightArr from "../assets/Vector.svg";
 import heroImg from "../assets/image 1.png";
-import googleImage from "../assets/Vector (4).svg";
 import dsgnElem from "../assets/IPL_Auction_SIGN_UP-removebg-preview 1 (1).svg";
 import toast from "react-hot-toast";
 import view from "../assets/show.png";
@@ -10,6 +8,7 @@ import hide from "../assets/hide.png";
 import { setUser } from "../slices/userSlice";
 import { useDispatch } from "react-redux";
 import { ArrowLeft } from "lucide-react";
+import { getWalletBalance } from "../api/fetch";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -53,7 +52,7 @@ const Login = () => {
       }
 
       if (finalRes.status === 201) {
-        const { user, token, imageUrl, role } = finalRes;
+        const { user, token } = finalRes;
         localStorage.setItem("shopCoToken", finalRes.token);
         localStorage.setItem("userId", finalRes.user.id);
         localStorage.setItem("email", finalRes.user.email);
@@ -62,7 +61,6 @@ const Login = () => {
           Date.now() + finalRes?.session_timeout * 60 * 1000;
         localStorage.setItem("SessionExpiryTime", sessionExpiryTime.toString());
 
-        console.log(finalRes);
         dispatch(
           setUser({
             userId: finalRes.user.id,
@@ -73,8 +71,14 @@ const Login = () => {
             role: user.role,
           })
         );
+
         toast.success("loggedIn successfully");
         setLoading(false);
+
+        const kycDoneOrNot = await fetchWalletData(user.id);
+        if (kycDoneOrNot) {
+          return navigate("/kyc");
+        }
         return navigate("/home");
       } else {
         toast.error("Some error occurred");
@@ -106,6 +110,18 @@ const Login = () => {
     if (validateForm()) {
       const userDetails = { email: email.toLowerCase(), password };
       loginUser(userDetails);
+    }
+  };
+
+  const fetchWalletData = async (userId) => {
+    try {
+      const balanceRes = await getWalletBalance(userId);
+      if (balanceRes?.paymentInfo?.mobileNumber) {
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Failed to fetch wallet data", error);
     }
   };
 

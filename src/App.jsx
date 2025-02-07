@@ -29,6 +29,7 @@ import TeamsPage from "./pages/TeamsPage";
 const Admin = lazy(() => import("./admin"));
 
 import PWAPrompt from "./components/PWAPrompt";
+import Kyc from "./pages/KYC";
 
 const PAGE_TITLES = {
   "/home": "Home",
@@ -160,6 +161,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/kyc" element={<Kyc />} />
         <Route path="/fpp" element={<ForgotPassPage />} />
         <Route path="/resetpass/:email/:token" element={<ResetPassword />} />
         <Route path="/" element={<Splash />} />
