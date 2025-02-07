@@ -135,7 +135,7 @@ function App() {
           const token = localStorage.getItem("shopCoToken");
           if (token) {
             const kycOrNot = await fetchWalletData(userId);
-            if (kycOrNot) {
+            if (kycOrNot === false) {
               navigate("/kyc");
               return;
             }
