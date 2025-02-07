@@ -71,6 +71,22 @@ const MyProfile = () => {
     getUser();
   }, []);
 
+  useEffect(() => {
+    const stack = window.history.state?.entries ?? [];
+
+    if (stack.length > 0) {
+      const updatedStack = stack.filter((entry) => entry !== "/kyc");
+
+      if (updatedStack.length < stack.length) {
+        window.history.replaceState(
+          { ...window.history.state, entries: updatedStack },
+          ""
+        );
+        navigate("/home", { replace: true });
+      }
+    }
+  }, [navigate]);
+
   const handlePaymentUpdate = async () => {
     setPaymentUpdateLoading(true);
     try {
