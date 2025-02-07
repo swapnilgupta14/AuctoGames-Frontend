@@ -138,15 +138,6 @@ const Kyc = () => {
     };
   }, [isVerified]);
 
-  useEffect(() => {
-    const unlisten = navigate((location, action) => {
-      if (!isVerified) {
-        return false;
-      }
-    });
-    return () => unlisten();
-  }, [isVerified, navigate]);
-
   return (
     <div className="h-dvh w-full overflow-hidden">
       <Header

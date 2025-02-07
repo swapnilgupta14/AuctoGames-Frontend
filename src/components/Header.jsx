@@ -39,6 +39,10 @@ const Header = ({
   const fetchWalletData = useCallback(async (userId) => {
     try {
       const balanceRes = await getWalletBalance(userId);
+      if(!balanceRes?.paymentInfo || !balanceRes?.paymentInfo?.mobileNumber) {
+        navigate("/kyc");
+        return;ß
+      }
       setBalance(balanceRes.balance);
     } catch (error) {
       console.error("Failed to fetch wallet data", error);
