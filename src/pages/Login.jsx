@@ -76,7 +76,7 @@ const Login = () => {
         setLoading(false);
 
         const kycDoneOrNot = await fetchWalletData(user.id);
-        if (kycDoneOrNot) {
+        if (kycDoneOrNot === false) {
           return navigate("/kyc");
         }
         return navigate("/home");
