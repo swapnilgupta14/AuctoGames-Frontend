@@ -72,19 +72,18 @@ const MyProfile = () => {
   }, []);
 
   useEffect(() => {
-    const stack = window.history.state?.entries ?? [];
+    window.history.pushState(null, "", window.location.pathname);
 
-    if (stack.length > 0) {
-      const updatedStack = stack.filter((entry) => entry !== "/kyc");
+    const handleBackButton = (event) => {
+      event.preventDefault();
+      navigate("/home", { replace: true });
+    };
 
-      if (updatedStack.length < stack.length) {
-        window.history.replaceState(
-          { ...window.history.state, entries: updatedStack },
-          ""
-        );
-        navigate("/home", { replace: true });
-      }
-    }
+    window.addEventListener("popstate", handleBackButton);
+
+    return () => {
+      window.removeEventListener("popstate", handleBackButton);
+    };
   }, [navigate]);
 
   const handlePaymentUpdate = async () => {
