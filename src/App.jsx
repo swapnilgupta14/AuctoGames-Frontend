@@ -29,7 +29,7 @@ import TeamsPage from "./pages/TeamsPage";
 const Admin = lazy(() => import("./admin"));
 
 import PWAPrompt from "./components/PWAPrompt";
-import Kyc from "./pages/KYC";
+import Kyc from "./pages/Kyc";
 
 const PAGE_TITLES = {
   "/home": "Home",
