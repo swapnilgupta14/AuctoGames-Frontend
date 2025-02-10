@@ -249,7 +249,7 @@ const MyProfile = () => {
           </h3>
           <div className="space-y-2">
             <button
-              onClick={() => handlePaymentClick("phone")}
+              // onClick={() => handlePaymentClick("phone")}
               className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100"
             >
               <div className="flex items-center gap-4">
@@ -263,7 +263,7 @@ const MyProfile = () => {
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
+              {/* <ChevronRight className="w-5 h-5 text-gray-400" /> */}
             </button>
           </div>
         </div>

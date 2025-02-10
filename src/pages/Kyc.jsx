@@ -2,13 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { generateOTP, verifyOTP, resendOTP } from "../api/fetch";
 import Header from "../components/Header";
 import { useSelector } from "react-redux";
-import {
-  CheckCircle2,
-  Phone,
-  ShieldCheck,
-  Loader2,
-  InfoIcon,
-} from "lucide-react";
+import { CheckCircle2, Phone, ShieldCheck, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -274,9 +268,9 @@ const Kyc = () => {
             </h3>
             <ul className="text-sm text-blue-800 space-y-2">
               {[
-                "After phone verification, you'll need to upload your PAN & Aadhaar cards.",
-                "KYC verification is mandatory for participating in auctions.",
-                "Without KYC, you cannot add or withdraw money from your wallet.",
+                "After phone verification, you will be directed to profile page where you'll need to upload your PAN, Aadhaar card and Payment Details",
+                "Aaadhar, PAN and Payment Method are mandatory for withdrawing money from the platform.",
+                "You can still participate in contests without completing KYC, by adding money and winnings will be credited to your wallet.",
               ].map((text, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <div className="w-2 h-2 rounded-full bg-blue-600 mt-1 flex-shrink-0"></div>

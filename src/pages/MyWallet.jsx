@@ -370,7 +370,6 @@ const MyWallet = () => {
         const balanceRes = await getWalletBalance(userId);
         setBalance(balanceRes.balance);
         setPaymentInfo(balanceRes.paymentInfo);
-        console.log(paymentInfo);
 
         const historyRes = await fetchTransactionHistory(userId);
         setTransactions(historyRes?.data?.transactions || []);
@@ -415,13 +414,13 @@ const MyWallet = () => {
       return;
     }
 
-    if (!paymentInfo?.upiId && !paymentInfo?.mobileNumber) {
-      toast.error("Please update your payment information in profile");
-      return;
-    } else if (!paymentInfo?.aadhaarNumber || !paymentInfo?.pan) {
-      toast.error("Please update your KYC information in profile");
-      return;
-    }
+    // if (!paymentInfo?.upiId && !paymentInfo?.mobileNumber) {
+    //   toast.error("Please update your payment information in profile");
+    //   return;
+    // } else if (!paymentInfo?.aadhaarNumber || !paymentInfo?.pan) {
+    //   toast.error("Please update your Aadhaar & PAN in profile");
+    //   return;
+    // }
 
     setShowRechargeModal(true);
   };
@@ -435,6 +434,15 @@ const MyWallet = () => {
       toast.error("Insufficient balance");
       return;
     }
+
+    if (!paymentInfo?.upiId && !paymentInfo?.mobileNumber) {
+      toast.error("Please update your payment information in profile before withdrawing");
+      return;
+    } else if (!paymentInfo?.aadhaarNumber || !paymentInfo?.pan) {
+      toast.error("Please update your Aadhaar & PAN in profile before withdrawing");
+      return;
+    }
+
     setShowWithdrawModal(true);
   };
 
