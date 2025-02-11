@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Header from "../components/Header";
 import toast from "react-hot-toast";
+import Kyc from "../pages/Kyc";
 
 import { AlertCircle, ArrowLeft, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -285,7 +286,7 @@ const WalletCard = ({
                   <div className="flex gap-2 w-full">
                     <div className="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
                       <span className="text-sm mr-2">Aadhaar</span>
-                      {paymentInfo.aadhaarNumber ? (
+                      {paymentInfo.aadharCard ? (
                         <CircleCheck className="h-5 w-5 text-green-600" />
                       ) : (
                         <div className="flex items-center text-red-600">
@@ -296,7 +297,7 @@ const WalletCard = ({
 
                     <div className="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
                       <span className="text-sm mr-2">PAN</span>
-                      {paymentInfo.pan ? (
+                      {paymentInfo.panCard ? (
                         <CircleCheck className="h-5 w-5 text-green-600" />
                       ) : (
                         <div className="flex items-center text-red-600">
@@ -428,12 +429,13 @@ const MyWallet = () => {
       return;
     }
 
-    if (!paymentInfo?.upiId && !paymentInfo?.mobileNumber) {
+    if (!paymentInfo?.upiId && !paymentInfo?.mobileNumber && !paymentInfo?.qrCode) {
       toast.error(
         "Please update your payment information in profile before withdrawing"
       );
       return;
-    } else if (!paymentInfo?.aadhaarNumber || !paymentInfo?.pan) {
+    } else if (!paymentInfo?.aadharCard || !paymentInfo?.panCard) {
+      console.log(paymentInfo)
       toast.error(
         "Please update your Aadhaar & PAN in profile before withdrawing"
       );
@@ -578,48 +580,65 @@ const MyWallet = () => {
     </>
   );
 
-  const WithdrawModal = ({ paymentInfo }) => (
-    <>
+  const WithdrawModal = ({ paymentInfo }) => {
+    const [isKycVerified, setIsKycVerified] = useState(false);
+
+    const handleKycSuccess = () => {
+      setIsKycVerified(true);
+    };
+
+    return (
+      <>
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
         onClick={() => setShowWithdrawModal(false)}
       />
+      
+      <div className="fixed bottom-0 left-0 right-0 z-50 transform transition-transform duration-300 ease-out bg-white rounded-t-xl shadow-xl">
+        {!paymentInfo?.mobileNumber && !isKycVerified ? (
+          <div className="h-[80vh] overflow-y-auto">
+            <Kyc onVerificationSuccess={handleKycSuccess} />
+          </div>
+        ) : (
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-red-800">
+                Confirm Withdrawal
+              </h2>
+              <button
+                onClick={() => setShowWithdrawModal(false)}
+                className="text-gray-500 hover:text-gray-800"
+              >
+                <X size={24} />
+              </button>
+            </div>
 
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-96 max-w-[90%] bg-white rounded-xl shadow-xl p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-red-800">
-            Confirm Withdrawal
-          </h2>
-          <button
-            onClick={() => setShowWithdrawModal(false)}
-            className="text-gray-500 hover:text-gray-800"
-          >
-            <X />
-          </button>
-        </div>
+            <div className="mb-6 text-center">
+              <p className="text-gray-600 mb-2">Amount to be withdrawn</p>
+              <p className="text-3xl font-bold text-red-600">₹{withdrawAmount}</p>
+            </div>
 
-        <p className="mb-4 text-gray-600">
-          Are you sure you want to withdraw ₹{withdrawAmount} from your wallet?
-        </p>
-
-        <div className="flex space-x-4">
-          <button
-            onClick={() => setShowWithdrawModal(false)}
-            className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleWithdrawal}
-            disabled={isLoading}
-            className="flex-1 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-          >
-            {isLoading ? "Processing..." : "Confirm"}
-          </button>
-        </div>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => setShowWithdrawModal(false)}
+                className="flex-1 py-3 border border-gray-300 rounded-lg hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleWithdrawal}
+                disabled={isLoading}
+                className="flex-1 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                {isLoading ? "Processing..." : "Send Request"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
-  );
+    );
+  };
 
   return (
     <div className="flex flex-col h-dvh w-full">

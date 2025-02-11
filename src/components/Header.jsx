@@ -170,7 +170,7 @@ const Header = ({
         }`}
         style={{ width: "300px" }}
       >
-        <div className="flex flex-col gap-4 px-0 text-sm">
+        <div className="flex flex-col gap-4 px-0 text-md">
           <div className="px-1 py-4 bg-blue-700 flex items-center gap-2 justify-around">
             <div className="flex items-center gap-2">
               <div className="w-[50px] h-[50px] overflow-hidden rounded-full justify-center items-center flex bg-white">
@@ -369,12 +369,12 @@ const Header = ({
 
           <button
             onClick={handleLogout}
-            className="w-full max-w-xs flex items-center justify-center py-3 px-6 text-red-600 bg-red-50 rounded-lg
+            className="w-full max-w-xs flex items-center justify-center py-1 px-5 text-red-600 bg-red-50 rounded-lg
           hover:bg-red-100 active:bg-red-200 transition-colors duration-200
           font-medium shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
           >
             <span>Logout</span>
-            <LogOut className="ml-2 w-5 h-5" />
+            <LogOut className="ml-2 w-4 h-4" />
           </button>
         </div>
       </div>
