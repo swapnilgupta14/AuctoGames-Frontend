@@ -134,11 +134,11 @@ function App() {
         if (["/login", "/signup", "/"].includes(pathName)) {
           const token = localStorage.getItem("shopCoToken");
           if (token) {
-            const kycOrNot = await fetchWalletData(userId);
-            if (kycOrNot === false) {
-              navigate("/kyc");
-              return;
-            }
+            // const kycOrNot = await fetchWalletData(userId);
+            // if (kycOrNot === false) {
+            //   navigate("/kyc");
+            //   return;
+            // }
             navigate("/home");
             return;
           }

@@ -75,10 +75,10 @@ const Login = () => {
         toast.success("loggedIn successfully");
         setLoading(false);
 
-        const kycDoneOrNot = await fetchWalletData(user.id);
-        if (kycDoneOrNot === false) {
-          return navigate("/kyc");
-        }
+        // const kycDoneOrNot = await fetchWalletData(user.id);
+        // if (kycDoneOrNot === false) {
+        //   return navigate("/kyc");
+        // }
         return navigate("/home");
       } else {
         toast.error("Some error occurred");

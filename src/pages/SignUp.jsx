@@ -76,7 +76,7 @@ const SignUp = () => {
         );
 
         toast.success("Signed Up successfully");
-        return navigate("/Kyc");
+        // return navigate("/Kyc");
       } else {
         toast.error("Some error occurred");
       }

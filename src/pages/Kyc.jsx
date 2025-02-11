@@ -257,30 +257,6 @@ const Kyc = () => {
           </div>
         </div>
       </div>
-      <div className="bg-blue-50 rounded-2xl p-5 fixed bottom-0 left-0 transform w-full shadow-lg border border-blue-200">
-        <div className="flex items-start gap-4">
-          {/* <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-      <InfoIcon className="w-6 h-6 text-blue-600" />
-    </div> */}
-          <div className="space-y-3">
-            <h3 className="font-semibold text-blue-900 text-lg">
-              Important Instructions
-            </h3>
-            <ul className="text-sm text-blue-800 space-y-2">
-              {[
-                "After phone verification, you will be directed to profile page where you'll need to upload your PAN, Aadhaar card and Payment Details",
-                "Aaadhar, PAN and Payment Method are mandatory for withdrawing money from the platform.",
-                "You can still participate in contests without completing KYC, by adding money and winnings will be credited to your wallet.",
-              ].map((text, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-600 mt-1 flex-shrink-0"></div>
-                  {text}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
