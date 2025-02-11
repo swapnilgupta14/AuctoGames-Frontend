@@ -686,6 +686,8 @@ const MyWallet = () => {
         </div>
         {showRechargeModal && (
           <RechargeModal
+            utrNumber={utrNumber}
+            setUtrNumber={setUtrNumber}
             showRechargeModal={showRechargeModal}
             setShowRechargeModal={setShowRechargeModal}
             rechargeAmount={rechargeAmount}

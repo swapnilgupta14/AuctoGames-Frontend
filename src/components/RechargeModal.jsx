@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { X } from "lucide-react";
 
 const RechargeModal = ({
@@ -7,9 +6,9 @@ const RechargeModal = ({
   rechargeAmount,
   handleRecharge,
   isLoading,
+  setUtrNumber,
+  utrNumber,
 }) => {
-  const [utrNumber, setUtrNumber] = useState("");
-
   const onSubmit = () => {
     handleRecharge(utrNumber);
   };
