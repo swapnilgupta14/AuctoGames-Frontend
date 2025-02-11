@@ -73,13 +73,11 @@ const Header = ({
   }, [userId, fetchWalletData]);
 
   const whatsappNumber = "7011596733";
-  const emailAddress = "contact@example.com"; // Replace with your actual email
+  const emailAddress = "auctogames@gmail.com";
 
   const handleWhatsAppClick = (e) => {
     e.preventDefault();
-    // Try mobile app first, then web WhatsApp
     window.location.href = `whatsapp://send?phone=91${whatsappNumber}`;
-    // Fallback for desktop or if app isn't installed
     setTimeout(() => {
       window.location.href = `https://wa.me/91${whatsappNumber}`;
     }, 500);
