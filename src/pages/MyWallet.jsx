@@ -338,6 +338,7 @@ const MyWallet = () => {
   const [transactions, setTransactions] = useState([]);
   const [rechargeAmount, setRechargeAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [utrNumber, setUtrNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isTransactionLoading, setIsTransactionLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -414,14 +415,6 @@ const MyWallet = () => {
       return;
     }
 
-    // if (!paymentInfo?.upiId && !paymentInfo?.mobileNumber) {
-    //   toast.error("Please update your payment information in profile");
-    //   return;
-    // } else if (!paymentInfo?.aadhaarNumber || !paymentInfo?.pan) {
-    //   toast.error("Please update your Aadhaar & PAN in profile");
-    //   return;
-    // }
-
     setShowRechargeModal(true);
   };
 
@@ -436,10 +429,14 @@ const MyWallet = () => {
     }
 
     if (!paymentInfo?.upiId && !paymentInfo?.mobileNumber) {
-      toast.error("Please update your payment information in profile before withdrawing");
+      toast.error(
+        "Please update your payment information in profile before withdrawing"
+      );
       return;
     } else if (!paymentInfo?.aadhaarNumber || !paymentInfo?.pan) {
-      toast.error("Please update your Aadhaar & PAN in profile before withdrawing");
+      toast.error(
+        "Please update your Aadhaar & PAN in profile before withdrawing"
+      );
       return;
     }
 
@@ -449,8 +446,25 @@ const MyWallet = () => {
   const handleRecharge = async () => {
     setError(null);
     setIsLoading(true);
+
+    if (!utrNumber.trim()) {
+      toast.error("Please enter UTR/Reference number");
+      setIsLoading(false);
+      return;
+    }
+
+    if (parseFloat(rechargeAmount) > 10000) {
+      toast.error("Maximum recharge amount is ₹10,000");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const res = await postRechargeRequest(userId, parseFloat(rechargeAmount));
+      const res = await postRechargeRequest(
+        userId,
+        parseFloat(rechargeAmount),
+        utrNumber
+      );
       if (res) {
         setRechargeAmount("");
         setShowRechargeModal(false);
@@ -498,47 +512,73 @@ const MyWallet = () => {
   const RechargeModal = () => (
     <>
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        className="fixed -inset-5 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
         onClick={() => setShowRechargeModal(false)}
       />
 
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-96 max-w-[90%] bg-white rounded-xl shadow-xl p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-green-800">
-            Confirm Recharge
-          </h2>
-          <button
-            onClick={() => setShowRechargeModal(false)}
-            className="text-gray-500 hover:text-gray-800"
-          >
-            <X />
-          </button>
-        </div>
+      <div className="fixed bottom-0 left-0 right-0 z-50 transform transition-transform duration-300 ease-out bg-white rounded-t-xl shadow-xl">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-green-800">
+              Confirm Recharge
+            </h2>
+            <button
+              onClick={() => setShowRechargeModal(false)}
+              className="text-gray-500 hover:text-gray-800"
+            >
+              <X size={24} />
+            </button>
+          </div>
 
-        <p className="mb-4 text-gray-600">
-          Are you sure you want to add ₹{rechargeAmount} to your wallet?
-        </p>
+          <div className="mb-6 flex justify-center">
+            <img
+              src="/AuctoQRCode.jpg"
+              alt="Payment QR Code"
+              className="rounded-lg border border-gray-200"
+            />
+          </div>
 
-        <div className="flex space-x-4">
-          <button
-            onClick={() => setShowRechargeModal(false)}
-            className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleRecharge}
-            disabled={isLoading}
-            className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-          >
-            {isLoading ? "Processing..." : "Confirm"}
-          </button>
+          <div className="mb-6 text-center">
+            <p className="text-gray-600 mb-2">Amount to be added</p>
+            <p className="text-3xl font-bold text-green-600">
+              ₹{rechargeAmount}
+            </p>
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              UTR Number/Ref Number
+            </label>
+            <input
+              type="text"
+              value={utrNumber}
+              onChange={(e) => setUtrNumber(e.target.value)}
+              placeholder="Enter UTR/Reference number"
+              className="w-full border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-gray-500 border border-2"
+            />
+          </div>
+
+          <div className="flex space-x-4">
+            <button
+              onClick={() => setShowRechargeModal(false)}
+              className="flex-1 py-3 border border-gray-300 rounded-lg hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => handleRecharge(utrNumber)}
+              disabled={isLoading || !utrNumber.trim()}
+              className="flex-1 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+            >
+              {isLoading ? "Processing..." : "Send Request"}
+            </button>
+          </div>
         </div>
       </div>
     </>
   );
 
-  const WithdrawModal = () => (
+  const WithdrawModal = ({ paymentInfo }) => (
     <>
       <div
         className="fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -613,17 +653,15 @@ const MyWallet = () => {
             </button>
           </div>
 
-          {/* <div className="flex-1"> */}
           <TransactionCardList
             isTransactionLoading={isTransactionLoading}
             transactions={transactions}
             formatDate={formatDate}
           />
-          {/* </div> */}
         </div>
 
-        {showRechargeModal && <RechargeModal />}
-        {showWithdrawModal && <WithdrawModal />}
+        {showRechargeModal && <RechargeModal paymentInfo={paymentInfo} />}
+        {showWithdrawModal && <WithdrawModal paymentInfo={paymentInfo} />}
       </div>
     </div>
   );

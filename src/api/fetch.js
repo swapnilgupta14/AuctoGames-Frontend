@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import { axiosInstance } from "./axiosInstance";
 import { axiosInstanceAdmin } from "./axiosInstance";
 
@@ -182,13 +183,15 @@ export const getWalletBalance = async (userId) => {
   }
 };
 
-export const postRechargeRequest = async (userId, amount) => {
+export const postRechargeRequest = async (userId, amount, utrNumber) => {
   try {
     const response = await axiosInstance.post("/wallet/recharge-request", {
       userId: userId,
       amount: amount,
+      UTRNumber: utrNumber,
     });
     if (response?.status === 201) {
+      toast.success("Recharge request submitted successfully");
       return response?.data;
     }
   } catch (error) {
@@ -212,6 +215,7 @@ export const postWithdrwalRequest = async (userId, amount) => {
       amount: amount,
     });
     if (response?.status === 201) {
+      toast.success("Withdrawal request submitted successfully");
       return response.data;
     }
   } catch (error) {

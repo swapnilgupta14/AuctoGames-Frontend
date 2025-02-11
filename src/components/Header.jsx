@@ -8,7 +8,7 @@ import rules from "../assets/rules.svg";
 import tnc from "../assets/t&c.svg";
 import leftArr from "../assets/leftArr.png";
 
-import {truncateText} from "../utils/truncateText";
+import { truncateText } from "../utils/truncateText";
 
 import {
   Wallet,
