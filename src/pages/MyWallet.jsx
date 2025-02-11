@@ -22,6 +22,7 @@ import Kyc from "../pages/Kyc";
 
 import { AlertCircle, ArrowLeft, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import RechargeModal from "../components/RechargeModal";
 
 const TransactionCardList = ({
   isTransactionLoading,
@@ -429,13 +430,17 @@ const MyWallet = () => {
       return;
     }
 
-    if (!paymentInfo?.upiId && !paymentInfo?.mobileNumber && !paymentInfo?.qrCode) {
+    if (
+      !paymentInfo?.upiId &&
+      !paymentInfo?.mobileNumber &&
+      !paymentInfo?.qrCode
+    ) {
       toast.error(
         "Please update your payment information in profile before withdrawing"
       );
       return;
     } else if (!paymentInfo?.aadharCard || !paymentInfo?.panCard) {
-      console.log(paymentInfo)
+      console.log(paymentInfo);
       toast.error(
         "Please update your Aadhaar & PAN in profile before withdrawing"
       );
@@ -511,74 +516,74 @@ const MyWallet = () => {
     });
   };
 
-  const RechargeModal = () => (
-    <>
-      <div
-        className="fixed -inset-5 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
-        onClick={() => setShowRechargeModal(false)}
-      />
+  // const RechargeModal = () => (
+  //   <>
+  //     <div
+  //       className="fixed -inset-5 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
+  //       onClick={() => setShowRechargeModal(false)}
+  //     />
 
-      <div className="fixed bottom-0 left-0 right-0 z-50 transform transition-transform duration-300 ease-out bg-white rounded-t-xl shadow-xl">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-green-800">
-              Confirm Recharge
-            </h2>
-            <button
-              onClick={() => setShowRechargeModal(false)}
-              className="text-gray-500 hover:text-gray-800"
-            >
-              <X size={24} />
-            </button>
-          </div>
+  //     <div className="fixed bottom-0 left-0 right-0 z-50 transform transition-transform duration-300 ease-out bg-white rounded-t-xl shadow-xl">
+  //       <div className="p-6">
+  //         <div className="flex justify-between items-center mb-6">
+  //           <h2 className="text-xl font-semibold text-green-800">
+  //             Confirm Recharge
+  //           </h2>
+  //           <button
+  //             onClick={() => setShowRechargeModal(false)}
+  //             className="text-gray-500 hover:text-gray-800"
+  //           >
+  //             <X size={24} />
+  //           </button>
+  //         </div>
 
-          <div className="mb-6 flex justify-center">
-            <img
-              src="/AuctoQRCode.jpg"
-              alt="Payment QR Code"
-              className="rounded-lg border border-gray-200"
-            />
-          </div>
+  //         <div className="mb-6 flex justify-center">
+  //           <img
+  //             src="/AuctoQRCode.jpg"
+  //             alt="Payment QR Code"
+  //             className="rounded-lg border border-gray-200"
+  //           />
+  //         </div>
 
-          <div className="mb-6 text-center">
-            <p className="text-gray-600 mb-2">Amount to be added</p>
-            <p className="text-3xl font-bold text-green-600">
-              ₹{rechargeAmount}
-            </p>
-          </div>
+  //         <div className="mb-6 text-center">
+  //           <p className="text-gray-600 mb-2">Amount to be added</p>
+  //           <p className="text-3xl font-bold text-green-600">
+  //             ₹{rechargeAmount}
+  //           </p>
+  //         </div>
 
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              UTR Number/Ref Number
-            </label>
-            <input
-              type="text"
-              value={utrNumber}
-              onChange={(e) => setUtrNumber(e.target.value)}
-              placeholder="Enter UTR/Reference number"
-              className="w-full border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-gray-500 border border-2"
-            />
-          </div>
+  //         <div className="mb-6">
+  //           <label className="block text-sm font-medium text-gray-700 mb-2">
+  //             UTR Number/Ref Number
+  //           </label>
+  //           <input
+  //             type="text"
+  //             value={utrNumber}
+  //             onChange={(e) => setUtrNumber(e.target.value)}
+  //             placeholder="Enter UTR/Reference number"
+  //             className="w-full border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-gray-500 border border-2"
+  //           />
+  //         </div>
 
-          <div className="flex space-x-4">
-            <button
-              onClick={() => setShowRechargeModal(false)}
-              className="flex-1 py-3 border border-gray-300 rounded-lg hover:bg-gray-100"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => handleRecharge(utrNumber)}
-              disabled={isLoading || !utrNumber.trim()}
-              className="flex-1 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-            >
-              {isLoading ? "Processing..." : "Send Request"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
-  );
+  //         <div className="flex space-x-4">
+  //           <button
+  //             onClick={() => setShowRechargeModal(false)}
+  //             className="flex-1 py-3 border border-gray-300 rounded-lg hover:bg-gray-100"
+  //           >
+  //             Cancel
+  //           </button>
+  //           <button
+  //             onClick={() => handleRecharge(utrNumber)}
+  //             disabled={isLoading || !utrNumber.trim()}
+  //             className="flex-1 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+  //           >
+  //             {isLoading ? "Processing..." : "Send Request"}
+  //           </button>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   </>
+  // );
 
   const WithdrawModal = ({ paymentInfo }) => {
     const [isKycVerified, setIsKycVerified] = useState(false);
@@ -589,54 +594,56 @@ const MyWallet = () => {
 
     return (
       <>
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
-        onClick={() => setShowWithdrawModal(false)}
-      />
-      
-      <div className="fixed bottom-0 left-0 right-0 z-50 transform transition-transform duration-300 ease-out bg-white rounded-t-xl shadow-xl">
-        {!paymentInfo?.mobileNumber && !isKycVerified ? (
-          <div className="h-[80vh] overflow-y-auto">
-            <Kyc onVerificationSuccess={handleKycSuccess} />
-          </div>
-        ) : (
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-red-800">
-                Confirm Withdrawal
-              </h2>
-              <button
-                onClick={() => setShowWithdrawModal(false)}
-                className="text-gray-500 hover:text-gray-800"
-              >
-                <X size={24} />
-              </button>
-            </div>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
+          onClick={() => setShowWithdrawModal(false)}
+        />
 
-            <div className="mb-6 text-center">
-              <p className="text-gray-600 mb-2">Amount to be withdrawn</p>
-              <p className="text-3xl font-bold text-red-600">₹{withdrawAmount}</p>
+        <div className="fixed bottom-0 left-0 right-0 z-50 transform transition-transform duration-300 ease-out bg-white rounded-t-xl shadow-xl">
+          {!paymentInfo?.mobileNumber && !isKycVerified ? (
+            <div className="h-[80vh] overflow-y-auto">
+              <Kyc onVerificationSuccess={handleKycSuccess} />
             </div>
+          ) : (
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-red-800">
+                  Confirm Withdrawal
+                </h2>
+                <button
+                  onClick={() => setShowWithdrawModal(false)}
+                  className="text-gray-500 hover:text-gray-800"
+                >
+                  <X size={24} />
+                </button>
+              </div>
 
-            <div className="flex space-x-4">
-              <button
-                onClick={() => setShowWithdrawModal(false)}
-                className="flex-1 py-3 border border-gray-300 rounded-lg hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleWithdrawal}
-                disabled={isLoading}
-                className="flex-1 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-              >
-                {isLoading ? "Processing..." : "Send Request"}
-              </button>
+              <div className="mb-6 text-center">
+                <p className="text-gray-600 mb-2">Amount to be withdrawn</p>
+                <p className="text-3xl font-bold text-red-600">
+                  ₹{withdrawAmount}
+                </p>
+              </div>
+
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => setShowWithdrawModal(false)}
+                  className="flex-1 py-3 border border-gray-300 rounded-lg hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleWithdrawal}
+                  disabled={isLoading}
+                  className="flex-1 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                >
+                  {isLoading ? "Processing..." : "Send Request"}
+                </button>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-    </>
+          )}
+        </div>
+      </>
     );
   };
 
@@ -660,7 +667,6 @@ const MyWallet = () => {
           validateAndOpenRechargeModal={validateAndOpenRechargeModal}
           validateAndOpenWithdrawModal={validateAndOpenWithdrawModal}
         />
-
         <div className="flex-1 bg-white p-2 rounded-xl shadow-md flex flex-col max-h-[26rem]">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-medium">Transaction History</h3>
@@ -678,8 +684,15 @@ const MyWallet = () => {
             formatDate={formatDate}
           />
         </div>
-
-        {showRechargeModal && <RechargeModal paymentInfo={paymentInfo} />}
+        {showRechargeModal && (
+          <RechargeModal
+            showRechargeModal={showRechargeModal}
+            setShowRechargeModal={setShowRechargeModal}
+            rechargeAmount={rechargeAmount}
+            handleRecharge={handleRecharge}
+            isLoading={isLoading}
+          />
+        )}{" "}
         {showWithdrawModal && <WithdrawModal paymentInfo={paymentInfo} />}
       </div>
     </div>
