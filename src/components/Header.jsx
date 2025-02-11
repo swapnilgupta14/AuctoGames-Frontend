@@ -39,10 +39,10 @@ const Header = ({
   const fetchWalletData = useCallback(async (userId) => {
     try {
       const balanceRes = await getWalletBalance(userId);
-      if(!balanceRes?.paymentInfo || !balanceRes?.paymentInfo?.mobileNumber) {
-        navigate("/kyc");
-        return;ß
-      }
+      // if(!balanceRes?.paymentInfo || !balanceRes?.paymentInfo?.mobileNumber) {
+      //   navigate("/kyc");
+      //   return;
+      // }
       setBalance(balanceRes.balance);
     } catch (error) {
       console.error("Failed to fetch wallet data", error);
@@ -71,6 +71,19 @@ const Header = ({
       fetchWalletData(userId);
     }
   }, [userId, fetchWalletData]);
+
+  const whatsappNumber = "7011596733";
+  const emailAddress = "contact@example.com"; // Replace with your actual email
+
+  const handleWhatsAppClick = (e) => {
+    e.preventDefault();
+    // Try mobile app first, then web WhatsApp
+    window.location.href = `whatsapp://send?phone=91${whatsappNumber}`;
+    // Fallback for desktop or if app isn't installed
+    setTimeout(() => {
+      window.location.href = `https://wa.me/91${whatsappNumber}`;
+    }, 500);
+  };
 
   return (
     <div>
@@ -326,14 +339,41 @@ const Header = ({
             </div>
           </div>
         </div>
+        <div className="flex items-center justify-center w-full p-4 flex-col gap-3 bg-white rounded-lg shadow-sm">
+          <div className="flex flex-col items-center gap-4 w-full">
+            <div className="flex gap-2 items-center">
+              <a
+                href="#contact"
+                className="text-gray-600 transition-colors font-medium text-sm"
+              >
+                Contact Us
+              </a>
+              <span className="text-gray-300">|</span>
+              <a
+                href={`whatsapp://send?phone=91${whatsappNumber}`}
+                onClick={handleWhatsAppClick}
+                className="text-blue-600 hover:text-blue-800 transition-colors font-medium text-sm"
+              >
+                WhatsApp
+              </a>
+              <span className="text-gray-300">|</span>
+              <a
+                href={`mailto:${emailAddress}`}
+                className="text-blue-600 hover:text-blue-800 transition-colors font-medium flex items-center gap-2 text-sm"
+              >
+                E-mail
+              </a>
+            </div>
+          </div>
 
-        <div className="flex items-center justify-center py-3 w-full">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center py-2 text-red-600 hover:bg-red-50 active:bg-red-100 rounded-md px-4 transition-colors group"
+            className="w-full max-w-xs flex items-center justify-center py-3 px-6 text-red-600 bg-red-50 rounded-lg
+          hover:bg-red-100 active:bg-red-200 transition-colors duration-200
+          font-medium shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
           >
-            Logout
-            <LogOut className="ml-2 w-5 h-5 text-red-500 group-hover:text-red-600 transition-colors" />
+            <span>Logout</span>
+            <LogOut className="ml-2 w-5 h-5" />
           </button>
         </div>
       </div>
