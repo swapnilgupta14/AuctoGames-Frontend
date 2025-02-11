@@ -7,6 +7,9 @@ import privacy from "../assets/privacy.svg";
 import rules from "../assets/rules.svg";
 import tnc from "../assets/t&c.svg";
 import leftArr from "../assets/leftArr.png";
+
+import {truncateText} from "../utils/truncateText";
+
 import {
   Wallet,
   ChevronRight,
@@ -167,8 +170,8 @@ const Header = ({
         }`}
         style={{ width: "300px" }}
       >
-        <div className="flex flex-col gap-4 px-0">
-          <div className="px-3 py-4 bg-[rgb(31,65,187)] flex items-center gap-2 justify-around">
+        <div className="flex flex-col gap-4 px-0 text-sm">
+          <div className="px-1 py-4 bg-blue-700 flex items-center gap-2 justify-around">
             <div className="flex items-center gap-2">
               <div className="w-[50px] h-[50px] overflow-hidden rounded-full justify-center items-center flex bg-white">
                 {imageUrl ? (
@@ -188,7 +191,7 @@ const Header = ({
                 <div className="text-lg font-semibold">
                   {username.split(" ")[0]}
                 </div>
-                <div className="text-sm ">Profile ID: {username}</div>
+                <div className="text-sm ">{truncateText(username)}</div>
               </div>
             </div>
             <div className="p-4 flex justify-end text-white">
@@ -299,7 +302,7 @@ const Header = ({
             >
               <div className="flex items-center space-x-5">
                 <Wallet className="text-blue-950 w-6 h-6 ml-1" />
-                <h3 className="text-md">My Wallet</h3>
+                <h3 className="text-sm">My Wallet</h3>
               </div>
               <ChevronRight className="text-gray-500 w-5 h-5" />
             </div>
