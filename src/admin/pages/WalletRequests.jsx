@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ArrowDownIcon, ArrowUpIcon, XIcon, ImageIcon, AlertCircle } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, XIcon, ImageIcon, AlertCircle, Download } from "lucide-react";
+import * as XLSX from 'xlsx';
 import {
   getAllPendingWithdrawlRequests,
   approveWithdrawlRequest,
@@ -65,7 +66,55 @@ const PaymentInfoButton = ({ label, value, type = "text", onImageClick }) => {
   );
 };
 
-const RequestCard = ({ requests, title, type, onApprove, isApproving, isLoading, onImageSelect }) => (
+const prepareDataForExcel = (requests) => {
+  return requests.map((request) => ({
+    id: request.id,
+    amount: request.amount,
+    type: request.type,
+    status: request.status,
+    createdAt: new Date(request.createdAt).toLocaleString(),
+    approvedOrDeniedAt: request.approvedOrDeniedAt
+      ? new Date(request.approvedOrDeniedAt).toLocaleString()
+      : "",
+    description: request.description,
+    UTRNumber: request.UTRNumber || "",
+    walletId: request.walletId,
+    upiId: request.upiId || "",
+    username: request.wallet.user.username,
+    email: request.wallet.user.email,
+    mobileNumber: request.wallet.paymentInfo?.mobileNumber || "",
+  }));
+};
+
+const downloadExcel = (data, fileName) => {
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Requests");
+
+  // Generate file buffer
+  const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+
+  // Create blob and download
+  const blob = new Blob([excelBuffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${fileName}.xlsx`;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+const RequestCard = ({
+  requests,
+  title,
+  type,
+  onApprove,
+  isApproving,
+  isLoading,
+  onImageSelect,
+}) => (
   <div className="flex flex-col bg-white rounded-xl border border-gray-200 overflow-hidden h-full">
     <div className="flex-shrink-0 px-6 py-4 border-b bg-white">
       <div className="flex items-center justify-between">
@@ -80,12 +129,25 @@ const RequestCard = ({ requests, title, type, onApprove, isApproving, isLoading,
             {requests.length}
           </span>
         </h2>
+        <button
+          onClick={() =>
+            downloadExcel(
+              prepareDataForExcel(requests),
+              `${type.toLowerCase()}_requests`
+            )
+          }
+          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+          disabled={requests.length === 0}
+        >
+          <Download className="w-4 h-4" />
+          Download Excel
+        </button>
       </div>
     </div>
 
     <div className="flex-1 overflow-y-auto">
       {isLoading && <Loader />}
-      
+
       {!isLoading && requests.length === 0 ? (
         <div className="h-full flex flex-col items-center justify-center p-8 text-gray-500">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -102,7 +164,10 @@ const RequestCard = ({ requests, title, type, onApprove, isApproving, isLoading,
           {requests.map((request) => {
             const paymentInfo = request.wallet?.paymentInfo || {};
             return (
-              <div key={request.id} className="p-4 hover:bg-gray-50 transition-colors">
+              <div
+                key={request.id}
+                className="p-4 hover:bg-gray-50 transition-colors"
+              >
                 <div className="space-y-4">
                   <div className="flex items-start justify-between gap-4">
                     <div>
@@ -111,9 +176,13 @@ const RequestCard = ({ requests, title, type, onApprove, isApproving, isLoading,
                       </h3>
                       <p className="text-sm text-gray-600 mt-1">
                         Amount:{" "}
-                        <span className={`font-medium ${
-                          type === "Withdrawal" ? "text-red-600" : "text-green-600"
-                        }`}>
+                        <span
+                          className={`font-medium ${
+                            type === "Withdrawal"
+                              ? "text-red-600"
+                              : "text-green-600"
+                          }`}
+                        >
                           ₹{Math.abs(request.amount).toLocaleString()}
                         </span>
                       </p>
@@ -191,6 +260,8 @@ const WalletRequests = () => {
   const [isApproving, setIsApproving] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
+  console.log(withdrawlRequests, rechargeRequests);
+
   const fetchRequests = async (fetchFunction, setRequests) => {
     try {
       const res = await fetchFunction();
@@ -217,7 +288,10 @@ const WalletRequests = () => {
       const request = await approveWithdrawlRequest(transactionId);
       if (request?.status === 200) {
         await fetchRequests(getAllPendingRechargeRequests, setRechargeRequests);
-        await fetchRequests(getAllPendingWithdrawlRequests, setWithdrawlRequests);
+        await fetchRequests(
+          getAllPendingWithdrawlRequests,
+          setWithdrawlRequests
+        );
       } else {
         setError("Sorry! Request cannot be approved");
       }
@@ -231,7 +305,10 @@ const WalletRequests = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ height: 'calc(100vh - 40px)' }}>
+        <div
+          className="grid grid-cols-1 md:grid-cols-2 gap-2"
+          style={{ height: "calc(100vh - 40px)" }}
+        >
           <RequestCard
             requests={rechargeRequests}
             title="Recharge Requests"
@@ -240,7 +317,6 @@ const WalletRequests = () => {
             isApproving={isApproving}
             isLoading={isLoading}
             onImageSelect={setSelectedImage}
-
           />
           <RequestCard
             requests={withdrawlRequests}
@@ -250,7 +326,6 @@ const WalletRequests = () => {
             isApproving={isApproving}
             isLoading={isLoading}
             onImageSelect={setSelectedImage}
-
           />
         </div>
 
