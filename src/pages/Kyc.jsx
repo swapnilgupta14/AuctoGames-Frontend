@@ -26,7 +26,7 @@ const Kyc = ({ onVerificationSuccess }) => {
   }, [timer, isOtpSent]);
 
   const handlePhoneChange = (e) => {
-    const value = e.target.value.replace(/\D/g, "");
+    const value = e.target?.value?.replace(/\D/g, "");
     if (value.length <= 10) setPhone(value);
   };
 

@@ -147,7 +147,9 @@ const UserDetails = ({ user, onClose }) => {
             <p className="text-gray-500 text-sm mb-3">Documents</p>
             {user?.wallet?.paymentInfo ? (
               <div className="flex gap-4 flex-wrap">
-                {["qrCode", "panCard", "aadharCard"].map((doc) => (
+                {["panCard", "aadharCard"].map((doc) => (
+
+                // {["qrCode", "panCard", "aadharCard"].map((doc) => (
                   <div key={doc} className="flex flex-col gap-1">
                     {user.wallet.paymentInfo[doc] ? (
                       <button
@@ -156,11 +158,11 @@ const UserDetails = ({ user, onClose }) => {
                         }
                         className="px-3 py-2 bg-gray-100 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors"
                       >
-                        View {doc.replace(/([A-Z])/g, " $1").trim()}
+                        View {doc?.replace(/([A-Z])/g, " $1").trim()}
                       </button>
                     ) : (
                       <PaymentInfoMissing
-                        fieldName={doc.replace(/([A-Z])/g, " $1").trim()}
+                        fieldName={doc?.replace(/([A-Z])/g, " $1").trim()}
                       />
                     )}
                   </div>
@@ -271,7 +273,7 @@ const UserDetails = ({ user, onClose }) => {
                       <div className="flex justify-between items-center">
                         <div>
                           <h4 className="font-medium">
-                            {transaction.type.replace(/_/g, " ")}
+                            {transaction.type?.replace(/_/g, " ")}
                           </h4>
                           <p className="text-sm text-gray-600">
                           {transaction.amount}₹

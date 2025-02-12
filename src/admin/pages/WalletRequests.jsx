@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowDownIcon, ArrowUpIcon, XIcon, ImageIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, XIcon, ImageIcon, AlertCircle } from "lucide-react";
 import {
   getAllPendingWithdrawlRequests,
   approveWithdrawlRequest,
@@ -7,23 +7,8 @@ import {
 } from "../../api/fetch";
 
 const Loader = () => (
-  <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-10">
-    <div className="animate-spin">
-      <svg
-        className="w-10 h-10 text-blue-500"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-        ></path>
-      </svg>
-    </div>
+  <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-10">
+    <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
   </div>
 );
 
@@ -31,29 +16,172 @@ const ImagePopup = ({ src, alt, onClose }) => {
   if (!src) return null;
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div
-        className="relative w-[500px] h-[600px]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute -top-8 right-0 text-white hover:text-gray-300"
-        >
-          <XIcon className="w-6 h-6" />
-        </button>
-        <img
-          src={src}
-          alt={alt}
-          className="w-full h-full object-contain rounded-lg shadow-xl"
-        />
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="relative max-w-3xl w-full bg-white rounded-xl shadow-2xl">
+        <div className="p-4 border-b flex justify-between items-center">
+          <h3 className="text-lg font-medium">{alt}</h3>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <XIcon className="w-6 h-6" />
+          </button>
+        </div>
+        <div className="p-4">
+          <img
+            src={src}
+            alt={alt}
+            className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
+          />
+        </div>
       </div>
     </div>
   );
 };
+
+const PaymentInfoButton = ({ label, value, type = "text", onImageClick }) => {
+  if (!value) {
+    return (
+      <div className="flex items-center text-red-600 text-xs bg-red-50 rounded-lg px-3 py-2 border border-red-100">
+        <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
+        No {label}
+      </div>
+    );
+  }
+
+  return type === "text" ? (
+    <div className="flex items-center bg-gray-50 rounded-lg px-3 py-2 text-xs border border-gray-200">
+      <span className="font-medium text-gray-700 mr-2">{label}:</span>
+      <span className="text-gray-900">{value}</span>
+    </div>
+  ) : (
+    <button
+      onClick={onImageClick}
+      className="flex items-center bg-blue-50 text-xs text-blue-600 rounded-lg px-3 py-2 hover:bg-blue-100 transition-colors w-full border border-blue-100"
+    >
+      <ImageIcon className="w-4 h-4 mr-2 flex-shrink-0" />
+      View {label}
+    </button>
+  );
+};
+
+const RequestCard = ({ requests, title, type, onApprove, isApproving, isLoading, onImageSelect }) => (
+  <div className="flex flex-col bg-white rounded-xl border border-gray-200 overflow-hidden h-full">
+    <div className="flex-shrink-0 px-6 py-4 border-b bg-white">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          {type === "Withdrawal" ? (
+            <ArrowDownIcon className="w-6 h-6 text-red-500" />
+          ) : (
+            <ArrowUpIcon className="w-6 h-6 text-green-500" />
+          )}
+          {title}
+          <span className="ml-2 text-sm bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-full">
+            {requests.length}
+          </span>
+        </h2>
+      </div>
+    </div>
+
+    <div className="flex-1 overflow-y-auto">
+      {isLoading && <Loader />}
+      
+      {!isLoading && requests.length === 0 ? (
+        <div className="h-full flex flex-col items-center justify-center p-8 text-gray-500">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            {type === "Withdrawal" ? (
+              <ArrowDownIcon className="w-8 h-8 text-gray-400" />
+            ) : (
+              <ArrowUpIcon className="w-8 h-8 text-gray-400" />
+            )}
+          </div>
+          <p>No {type.toLowerCase()} requests pending</p>
+        </div>
+      ) : (
+        <div className="divide-y divide-gray-200">
+          {requests.map((request) => {
+            const paymentInfo = request.wallet?.paymentInfo || {};
+            return (
+              <div key={request.id} className="p-4 hover:bg-gray-50 transition-colors">
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="font-medium text-gray-900">
+                        {request.wallet.user.username}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Amount:{" "}
+                        <span className={`font-medium ${
+                          type === "Withdrawal" ? "text-red-600" : "text-green-600"
+                        }`}>
+                          ₹{Math.abs(request.amount).toLocaleString()}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => onApprove(request.id)}
+                        disabled={isApproving}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors min-w-[100px]"
+                      >
+                        {isApproving ? "Processing..." : "Approve"}
+                      </button>
+                      <button
+                        disabled={isApproving}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 transition-colors min-w-[100px]"
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {type === "Recharge" ? (
+                      <PaymentInfoButton
+                        label="UTR Number"
+                        value={request?.UTRNumber}
+                      />
+                    ) : (
+                      <PaymentInfoButton
+                        label="UPI ID"
+                        value={paymentInfo?.upiId}
+                      />
+                    )}
+                    <PaymentInfoButton
+                      label="Mobile"
+                      value={paymentInfo?.mobileNumber}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {["panCard", "aadharCard"].map((doc) => (
+                      <PaymentInfoButton
+                        key={doc}
+                        label={doc
+                          ?.replace(/([A-Z])/g, " $1")
+                          ?.replace(/^./, (str) => str.toUpperCase())}
+                        type="image"
+                        value={paymentInfo[doc]}
+                        onImageClick={() =>
+                          onImageSelect({
+                            src: paymentInfo[doc],
+                            alt: doc
+                              ?.replace(/([A-Z])/g, " $1")
+                              ?.replace(/^./, (str) => str.toUpperCase()),
+                          })
+                        }
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  </div>
+);
 
 const WalletRequests = () => {
   const [withdrawlRequests, setWithdrawlRequests] = useState([]);
@@ -72,7 +200,7 @@ const WalletRequests = () => {
         setError(`Error fetching ${fetchFunction.name} requests`);
       }
     } catch (err) {
-      setError(`Error fetching ${fetchFunction.name} requests`, err);
+      setError(`Error fetching ${fetchFunction.name} requests: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -89,172 +217,46 @@ const WalletRequests = () => {
       const request = await approveWithdrawlRequest(transactionId);
       if (request?.status === 200) {
         await fetchRequests(getAllPendingRechargeRequests, setRechargeRequests);
-        await fetchRequests(
-          getAllPendingWithdrawlRequests,
-          setWithdrawlRequests
-        );
+        await fetchRequests(getAllPendingWithdrawlRequests, setWithdrawlRequests);
       } else {
         setError("Sorry! Request cannot be approved");
       }
     } catch (err) {
-      setError("Sorry! Request cannot be approved", err);
+      setError(`Sorry! Request cannot be approved: ${err.message}`);
     } finally {
       setIsApproving(false);
     }
   };
 
-  const PaymentInfoButton = ({ label, value, type = "text", onImageClick }) => {
-    if (!value) {
-      return (
-        <div className="flex items-center text-red-500 text-xs bg-red-50 rounded-md px-2 py-1">
-          <XIcon className="w-4 h-4 mr-1" />
-          {label}
-        </div>
-      );
-    }
-
-    return type === "text" ? (
-      <div className="flex items-center bg-gray-100 rounded px-2 py-1 text-xs">
-        <span className="font-medium mr-2">{label}:</span>
-        {value}
-      </div>
-    ) : (
-      <button
-        onClick={onImageClick}
-        className="flex items-center bg-blue-50 text-blue-600 rounded px-2 py-1 text-xs hover:bg-blue-100 transition"
-      >
-        <ImageIcon className="w-4 h-4 mr-1" />
-        View {label}
-      </button>
-    );
-  };
-
-  const RequestCard = ({ requests, title, type, onApprove }) => (
-    <div className="border rounded-lg shadow-md flex flex-col relative">
-      {isLoading && <Loader />}
-      <div className="px-4 py-3 border-b flex justify-between items-center bg-gray-50">
-        <h2 className="text-lg tracking-tight text-gray-900 font-semibold flex items-center">
-          {type === "Withdrawal" ? (
-            <ArrowDownIcon className="w-5 h-5 mr-2 text-red-500" />
-          ) : (
-            <ArrowUpIcon className="w-5 h-5 mr-2 text-green-500" />
-          )}
-          {title}
-          <span className="ml-2 bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">
-            {requests.length}
-          </span>
-        </h2>
-      </div>
-
-      {requests.length === 0 ? (
-        <div className="flex-grow flex items-center justify-center text-gray-500 py-4">
-          No {type.toLowerCase()} requests
-        </div>
-      ) : (
-        <div className="h-full overflow-y-auto">
-          <ul className="divide-y">
-            {requests.map((request) => {
-              const paymentInfo = request.wallet?.paymentInfo || {};
-              return (
-                <li
-                  key={request.id}
-                  className="p-4 hover:bg-gray-200 transition-colors"
-                >
-                  <div className="flex flex-col gap-3">
-                    <div className="flex flex-row justify-between items-center gap-4">
-                      <div className="flex-1 text-sm">
-                        <span className="font-medium text-gray-800">
-                          {request.wallet.user.username}
-                        </span>
-                        <p>
-                          Amount:{" "}
-                          <span
-                            className={`font-medium ${
-                              type === "Withdrawal"
-                                ? "text-red-800"
-                                : "text-green-700"
-                            }`}
-                          >
-                            ₹{Math.abs(request.amount)}
-                          </span>
-                        </p>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <button
-                          onClick={() => onApprove(request.id)}
-                          disabled={isApproving}
-                          className="px-3 py-1 bg-green-500 text-white rounded-md text-xs hover:bg-green-600 disabled:opacity-50"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          disabled={isApproving}
-                          className="px-3 py-1 bg-red-500 text-white rounded-md text-xs hover:bg-red-600 disabled:opacity-50"
-                        >
-                          Decline
-                        </button>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <PaymentInfoButton
-                        label="UPI ID"
-                        value={paymentInfo.upiId}
-                      />
-                      <PaymentInfoButton
-                        label="Mobile"
-                        value={paymentInfo.mobileNumber}
-                      />
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      {["qrCode", "panCard", "aadharCard"].map((doc) => (
-                        <PaymentInfoButton
-                          key={doc}
-                          label={doc
-                            .replace(/([A-Z])/g, " $1")
-                            .replace(/^./, (str) => str.toUpperCase())}
-                          type="image"
-                          value={paymentInfo[doc]}
-                          onImageClick={() =>
-                            setSelectedImage({
-                              src: paymentInfo[doc],
-                              alt: doc
-                                .replace(/([A-Z])/g, " $1")
-                                .replace(/^./, (str) => str.toUpperCase()),
-                            })
-                          }
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-
   return (
-    <div className="h-screen flex flex-col">
-      <div className="flex-grow container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 h-full">
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2" style={{ height: 'calc(100vh - 40px)' }}>
           <RequestCard
             requests={rechargeRequests}
             title="Recharge Requests"
             type="Recharge"
             onApprove={approverequest}
+            isApproving={isApproving}
+            isLoading={isLoading}
+            onImageSelect={setSelectedImage}
+
           />
           <RequestCard
             requests={withdrawlRequests}
             title="Withdrawal Requests"
             type="Withdrawal"
             onApprove={approverequest}
+            isApproving={isApproving}
+            isLoading={isLoading}
+            onImageSelect={setSelectedImage}
+
           />
         </div>
 
         {error && (
-          <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          <div className="mt-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg flex items-center">
+            <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0" />
             {error}
           </div>
         )}

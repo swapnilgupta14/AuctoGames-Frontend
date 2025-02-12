@@ -473,8 +473,8 @@ const AuctionRoom = () => {
   const handleInputChange = (e) => {
     const input = e.target.value;
     const numericValue = input
-      .replace(/[^0-9.]/g, "")
-      .replace(/(\..*?)\..*/g, "$1");
+      ?.replace(/[^0-9.]/g, "")
+      ?.replace(/(\..*?)\..*/g, "$1");
     if (numericValue.startsWith(".")) {
       setValue("0" + numericValue);
     } else {

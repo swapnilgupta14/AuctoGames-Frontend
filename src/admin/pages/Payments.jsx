@@ -6,8 +6,6 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   RefreshCw,
-  CheckCircle,
-  XCircle,
 } from "lucide-react";
 
 const TransactionBadge = ({ type }) => {
@@ -30,7 +28,7 @@ const TransactionBadge = ({ type }) => {
       }`}
     >
       {icons[type] || null}
-      {type.replace("_", " ")}
+      {type?.replace("_", " ")}
     </span>
   );
 };
@@ -57,6 +55,9 @@ const Payments = () => {
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+
+  console.log(transactions)
 
   const fetchAllTransactions = async () => {
     try {

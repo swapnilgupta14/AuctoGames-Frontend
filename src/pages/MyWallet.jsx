@@ -55,21 +55,23 @@ const TransactionCardList = ({
           key={transaction.id}
           className="bg-white border border-gray-100 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow duration-200 flex justify-between items-center"
         >
-          <div className="flex-1">
+          <div className="flex-1 gap-1">
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm text-gray-600">
                 {formatDate(transaction.createdAt)}
               </span>
-              <span
-                className={`text-sm font-semibold px-2 py-1 rounded 
+              {transaction?.type !== "REGISTRATION_FEE" && (
+                <span
+                  className={`text-sm font-semibold px-2 py-1 rounded 
                   ${
                     transaction.status === "APPROVED"
                       ? "bg-green-100 text-green-800"
                       : "bg-yellow-100 text-yellow-800"
                   }`}
-              >
-                {transaction.status}
-              </span>
+                >
+                  {transaction.status}
+                </span>
+              )}
             </div>
             <div className="flex justify-between items-center">
               <span
@@ -89,6 +91,15 @@ const TransactionCardList = ({
               >
                 ₹{Math.abs(transaction.amount).toLocaleString()}
               </span>
+            </div>
+            <div className="pt-2 text-xs">
+              {transaction?.UTRNumber && (
+                <span
+                  className={`text-sm font-normal rounded bg-gray-200 px-3 py-1`}
+                >
+                  UTR Number: {transaction.UTRNumber}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -176,7 +187,7 @@ const WalletCard = ({
             <div className="flex items-start p-2 bg-yellow-50 border border-yellow-200 rounded-md text-sm">
               <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 mr-2 flex-shrink-0" />
               <div className="text-yellow-800">
-                Missing Payment Info.
+                Missing Importatnt Info.
                 <button
                   onClick={() => navigate("/profile")}
                   className="text-blue-600 hover:underline ml-1"
@@ -235,7 +246,7 @@ const WalletCard = ({
           <div className="space-y-1">
             <div className="bg-white bg-opacity-50 p-4 rounded-lg">
               <div className="flex md:flex-row gap-2">
-                {paymentInfo?.qrCode && (
+                {/* {paymentInfo?.qrCode && (
                   <div className="flex-shrink-0">
                     <img
                       src={paymentInfo.qrCode}
@@ -243,7 +254,7 @@ const WalletCard = ({
                       className="h-32 w-32 border rounded-lg shadow-sm"
                     />
                   </div>
-                )}
+                )} */}
 
                 <div className="flex-1 flex flex-col justify-start space-y-2">
                   {paymentInfo?.upiId && (
@@ -345,13 +356,15 @@ const MyWallet = () => {
   const [isTransactionLoading, setIsTransactionLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  console.log(transactions);
+
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
   const navigate = useNavigate();
 
   const getAvailableMethod = () => {
-    if (paymentInfo?.qrCode) return "QR Code";
+    // if (paymentInfo?.qrCode) return "QR Code";
     if (paymentInfo?.upiId) return "UPI ID";
     if (paymentInfo?.mobileNumber) return "Mobile Number";
     return null;
@@ -359,7 +372,7 @@ const MyWallet = () => {
 
   const getMissingMethods = () => {
     const missing = [];
-    if (!paymentInfo?.qrCode) missing.push("QR Code");
+    // if (!paymentInfo?.qrCode) missing.push("QR Code");
     if (!paymentInfo?.upiId) missing.push("UPI ID");
     if (!paymentInfo?.mobileNumber) missing.push("Mobile Number");
     return missing;
@@ -401,6 +414,8 @@ const MyWallet = () => {
     }
   };
 
+  console.log(transactions);
+
   const validateAndOpenRechargeModal = () => {
     if (!rechargeAmount || parseFloat(rechargeAmount) < 1) {
       toast.error("Invalid, recharge amount");
@@ -432,8 +447,8 @@ const MyWallet = () => {
 
     if (
       !paymentInfo?.upiId &&
-      !paymentInfo?.mobileNumber &&
-      !paymentInfo?.qrCode
+      !paymentInfo?.mobileNumber
+      // !paymentInfo?.qrCode
     ) {
       toast.error(
         "Please update your payment information in profile before withdrawing"

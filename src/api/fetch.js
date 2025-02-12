@@ -692,7 +692,7 @@ export const updateProfile = async (formData) => {
 
     if (phoneNumber) formDataToSend.append("mobileNumber", phoneNumber);
     if (upiId) formDataToSend.append("upiId", upiId);
-    if (file) formDataToSend.append("qrCode", file);
+    // if (file) formDataToSend.append("qrCode", file);
     if (aadhaarFile) formDataToSend.append("aadharCard", aadhaarFile);
     if (panFile) formDataToSend.append("panCard", panFile);
 

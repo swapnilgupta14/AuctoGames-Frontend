@@ -4,7 +4,7 @@ import {
   LogOut,
   Camera,
   X,
-  QrCode,
+  // QrCode,
   Phone,
   Wallet,
   ChevronRight,
@@ -99,7 +99,7 @@ const MyProfile = () => {
           selectedPaymentType === "upi"
             ? paymentFormData.upiId
             : paymentInfo?.upiId,
-        file: selectedPaymentType === "qr" ? qrCodeFile : null,
+        // file: selectedPaymentType === "qr" ? qrCodeFile : null,
         aadhaarFile: selectedPaymentType === "aadhaar" ? aadhaarFile : null,
         panFile: selectedPaymentType === "pan" ? panFile : null,
       };
@@ -179,8 +179,8 @@ const MyProfile = () => {
     paymentInfo?.aadharCard &&
     paymentInfo?.panCard &&
     paymentInfo?.upiId &&
-    paymentInfo?.mobileNumber &&
-    paymentInfo?.qrCode;
+    paymentInfo?.mobileNumber;
+  // paymentInfo?.qrCode;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -228,14 +228,14 @@ const MyProfile = () => {
                 </p>
 
                 {isVerified ? (
-                  <div className="inline-flex items-center px-2 py-1 bg-green-50 text-green-700 rounded-full">
+                  <div className="inline-flex items-center px-2 py-0.5 bg-green-50 border border-green-700 text-green-700 rounded-full">
                     <Check className="mr-2" size={16} />
-                    <span className="text-sm font-medium">Verified</span>
+                    <span className="text-sm font-medium">Completed</span>
                   </div>
                 ) : (
-                  <div className="inline-flex items-center px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full">
+                  <div className="inline-flex items-center px-3 py-0.5 bg-yellow-50 border border-yellow-700 text-yellow-700 rounded-full">
                     <AlertTriangle className="mr-2" size={16} />
-                    <span className="text-sm font-medium">Not Verified</span>
+                    <span className="text-sm font-medium">Not Completed</span>
                   </div>
                 )}
               </div>
@@ -323,20 +323,20 @@ const MyProfile = () => {
         <div className="bg-white rounded-xl shadow-md p-3.5 mb-3">
           <p className="flex items-center justify-between gap-2 font-semibold w-fit">
             Payment Methods
-            {(!paymentInfo?.qrCode || !paymentInfo?.upiId) && (
+            {!paymentInfo?.upiId && (
               <AlertCircle className="ml-2 w-5 h-5 text-red-500" />
             )}
           </p>
           <div className="space-y-2">
             {[
-              {
-                icon: QrCode,
-                title: "QR Code",
-                subtitle: paymentInfo?.qrCode
-                  ? "Manage payment QR"
-                  : "Not Added",
-                type: "qr",
-              },
+              // {
+              //   icon: QrCode,
+              //   title: "QR Code",
+              //   subtitle: paymentInfo?.qrCode
+              //     ? "Manage payment QR"
+              //     : "Not Added",
+              //   type: "qr",
+              // },
               {
                 icon: Wallet,
                 title: "UPI ID",
@@ -471,7 +471,7 @@ const MyProfile = () => {
               <div className="space-y-4">
                 {selectedPaymentType === "qr" && (
                   <div className="space-y-4">
-                    <div className="flex justify-center p-3.5 bg-gray-50 rounded-lg">
+                    {/* <div className="flex justify-center p-3.5 bg-gray-50 rounded-lg">
                       {qrCodeFile ? (
                         <img
                           src={URL.createObjectURL(qrCodeFile)}
@@ -487,8 +487,8 @@ const MyProfile = () => {
                       ) : (
                         <p>No QR code found. Please upload a new one.</p>
                       )}
-                    </div>
-                    <div className="flex gap-2">
+                    </div> */}
+                    {/* <div className="flex gap-2">
                       <label className="flex-1">
                         <input
                           type="file"
@@ -516,7 +516,7 @@ const MyProfile = () => {
                           "Update"
                         )}
                       </button>
-                    </div>
+                    </div> */}
                   </div>
                 )}
 
