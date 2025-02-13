@@ -42,7 +42,7 @@ const StaticDetails = ({ staticType, pageTitle }) => {
   }
 
   return (
-    <div className="h-screen mx-auto p-6 bg-white rounded-lg overflow-y-auto">
+    <div className="mx-auto p-6 bg-white rounded-lg overflow-y-auto">
       <h1 className="text-xl font-semibold text-gray-800 mb-4">{pageTitle}</h1>
 
       {error && (

@@ -30,7 +30,7 @@ const Play = () => {
       <div className="flex-grow">
         <StaticDetails staticType="HOW_TO_PLAY" pageTitle="How to Play" />
       </div>
-      <div className="p-4">
+      <div className="fixed bottom-0 left-0 w-full">
         <button
           onClick={handleDownloadInstructions}
           className="fixed bottom-0 left-0 w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-700 hover:bg-blue-700 text-white rounded-lg font-medium text-[16px] transition-colors"
