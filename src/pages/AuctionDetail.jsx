@@ -43,21 +43,26 @@ const AuctionDetail = () => {
       "https://asset.cloudinary.com/ddj9gigrb/5f4b579aa54c401bf29192929783a490";
 
     try {
-      const response = await fetch(pdfUrl);
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
+        const response = await fetch(pdfUrl);
+        const blob = await response.blob();
 
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.setAttribute("download", "How-to-Play-Instructions.pdf");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(blobUrl);
+        // Ensure the correct MIME type
+        const pdfBlob = new Blob([blob], { type: "application/pdf" });
+        const blobUrl = URL.createObjectURL(pdfBlob);
+
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = "How-to-Play-Instructions.pdf"; // Ensuring correct extension
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Release memory
+        URL.revokeObjectURL(blobUrl);
     } catch (error) {
-      console.error("Error downloading the file:", error);
+        console.error("Error downloading the file:", error);
     }
-  };
+};
 
   const validateUser = async (auctionId, userId) => {
     try {
