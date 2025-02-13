@@ -1,16 +1,25 @@
 import { FileDown } from "lucide-react";
 
 const RulesModal = ({ closeRulesModal }) => {
-  const handleDownloadInstructions = () => {
+  const handleDownloadInstructions = async () => {
     const pdfUrl =
       "https://asset.cloudinary.com/ddj9gigrb/5f4b579aa54c401bf29192929783a490";
 
-    const link = document.createElement("a");
-    link.href = pdfUrl;
-    link.setAttribute("download", "How-to-Play-Instructions.pdf");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const response = await fetch(pdfUrl);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.setAttribute("download", "How-to-Play-Instructions.pdf");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Error downloading the file:", error);
+    }
   };
 
   return (
