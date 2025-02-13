@@ -89,7 +89,7 @@ const StaticContentPage = ({ staticType, pageTitle }) => {
   }
 
   return (
-    <div className="h-dvh mx-auto p-6 bg-white rounded-lg overflow-y-auto">
+    <div className="max-h-dvh mx-auto p-6 bg-white rounded-lg overflow-y-auto">
       <div className="mb-4 flex justify-between items-center">
         <div>
           <h1 className="text-xl font-semibold text-gray-800 mb-1">

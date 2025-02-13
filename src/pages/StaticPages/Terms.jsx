@@ -4,7 +4,7 @@ import StaticDetails from "../../components/StaticDetails";
 
 const Terms = () => {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="h-dvh bg-gray-100">
       <Header heading="Terms and Conditions" />
       <StaticDetails
         staticType="TERMS_AND_CONDITIONS"

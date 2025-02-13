@@ -25,7 +25,7 @@ const Play = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
+    <div className="h-dvh flex flex-col bg-gray-100">
       <Header heading="How to Play" />
       <div className="flex-grow">
         <StaticDetails staticType="HOW_TO_PLAY" pageTitle="How to Play" />

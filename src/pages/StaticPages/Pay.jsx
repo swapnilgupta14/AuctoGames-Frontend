@@ -4,7 +4,7 @@ import Header from "../../components/Header";
 
 const Pay = () => {
   return (
-    <div className="w-full">
+    <div className="w-full h-dvh">
       <Header heading={"How To Register"}></Header>
       <div className="flex-1 w-full">
         <StaticDetails staticType="HOW_TO_PAY" pageTitle="How to Register" />{" "}
