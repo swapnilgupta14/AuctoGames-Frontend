@@ -1,33 +1,45 @@
+import toast from "react-hot-toast";
 import Header from "../../components/Header";
 import StaticDetails from "../../components/StaticDetails";
 import { FileDown } from "lucide-react";
 
 const Play = () => {
   const handleDownloadInstructions = async () => {
-    const pdfUrl =
-      "https://asset.cloudinary.com/ddj9gigrb/5f4b579aa54c401bf29192929783a490";
+    const pdfFileName = "Instructions_Aucto_Games.pdf";
+    const pdfPath = `/${pdfFileName}`;
 
     try {
-        const response = await fetch(pdfUrl);
-        const blob = await response.blob();
+      const response = await fetch(pdfPath);
 
-        // Ensure the correct MIME type
-        const pdfBlob = new Blob([blob], { type: "application/pdf" });
-        const blobUrl = URL.createObjectURL(pdfBlob);
+      if (!response.ok) {
+        throw new Error(`Failed to download PDF. Status: ${response.status}`);
+      }
 
-        const link = document.createElement("a");
-        link.href = blobUrl;
-        link.download = "How-to-Play-Instructions.pdf"; // Ensuring correct extension
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+      const blob = await response.blob();
 
-        // Release memory
-        URL.revokeObjectURL(blobUrl);
+      if (!blob.type.includes("pdf") || blob.size === 0) {
+        throw new Error("Invalid PDF file");
+      }
+
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = downloadUrl;
+      link.download = "How-to-Play-Instructions.pdf";
+
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+      toast.success("PDF downloaded successfully");
+
+      return true;
     } catch (error) {
-        console.error("Error downloading the file:", error);
+      toast.error("PDF download failed:", error.message);
+      throw error;
     }
-};
+  };
 
   return (
     <div className="h-dvh flex flex-col bg-gray-100">
@@ -37,7 +49,7 @@ const Play = () => {
       </div>
       <div className="fixed bottom-0 left-0 w-full">
         <button
-          onClick={handleDownloadInstructions}
+          onClick={async () => await handleDownloadInstructions()}
           className="fixed bottom-0 left-0 w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-700 hover:bg-blue-700 text-white rounded-lg font-medium text-[16px] transition-colors"
         >
           <FileDown className="w-5 h-5" />

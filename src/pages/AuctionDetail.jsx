@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Header from "../components/Header";
 import { validateAuctionRegistration, getWalletBalance } from "../api/fetch";
+import toast from "react-hot-toast";
 
 const AuctionDetail = () => {
   const navigate = useNavigate();
@@ -39,30 +40,41 @@ const AuctionDetail = () => {
   };
 
   const handleDownloadInstructions = async () => {
-    const pdfUrl =
-      "https://asset.cloudinary.com/ddj9gigrb/5f4b579aa54c401bf29192929783a490";
+    const pdfFileName = "Instructions_Aucto_Games.pdf";
+    const pdfPath = `/${pdfFileName}`;
 
     try {
-        const response = await fetch(pdfUrl);
-        const blob = await response.blob();
+      const response = await fetch(pdfPath);
 
-        // Ensure the correct MIME type
-        const pdfBlob = new Blob([blob], { type: "application/pdf" });
-        const blobUrl = URL.createObjectURL(pdfBlob);
+      if (!response.ok) {
+        throw new Error(`Failed to download PDF. Status: ${response.status}`);
+      }
 
-        const link = document.createElement("a");
-        link.href = blobUrl;
-        link.download = "How-to-Play-Instructions.pdf"; // Ensuring correct extension
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+      const blob = await response.blob();
 
-        // Release memory
-        URL.revokeObjectURL(blobUrl);
+      if (!blob.type.includes("pdf") || blob.size === 0) {
+        throw new Error("Invalid PDF file");
+      }
+
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = downloadUrl;
+      link.download = "How-to-Play-Instructions.pdf";
+
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+      toast.success("PDF downloaded successfully");
+
+      return true;
     } catch (error) {
-        console.error("Error downloading the file:", error);
+      toast.error("PDF download failed:", error.message);
+      throw error;
     }
-};
+  };
 
   const validateUser = async (auctionId, userId) => {
     try {
@@ -366,7 +378,7 @@ const AuctionDetail = () => {
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white">
         <button
-          onClick={handleDownloadInstructions}
+          onClick={async () => await handleDownloadInstructions()}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 my-2 bg-gray-50 border-gray-400 border text-gray-800 rounded-lg font-medium text-[16px] transition-colors"
         >
           <FileDown className="w-5 h-5" />
