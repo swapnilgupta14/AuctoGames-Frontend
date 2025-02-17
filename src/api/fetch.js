@@ -716,7 +716,7 @@ export const updateProfile = async (formData) => {
 export const syncTime = async (clientTime) => {
   try {
     const res = await fetch(
-      `https://cricket.skmishra.me/api/time-sync?clientTime=${clientTime}`,
+      `https://cricket.skmishra.tech/api/time-sync?clientTime=${clientTime}`,
       {
         method: "GET",
         headers: {
